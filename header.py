@@ -839,11 +839,11 @@ class Header(Generic):
             return
         attributes, valueLens = {}, []
         for name, values in fileAttributes.iteritems():
-            valueLens.append(len(values))
+            #valueLens.append(len(values))
             for value in values:
                 attributes[name] = value
-        #nAttr = len(fileAttributes)
-        nAttr = max(valueLens)  # n elements per vector. But this may vary??
+        nAttr = len(attributes)
+        #nAttr = max(valueLens)  # n elements per vector. But this may vary??
         attrNames = (c_char_p * nAttr)(*attributes.keys())
         attrValues = (c_char_p * nAttr)(*attributes.values())
         func = self.spssio.spssSetFileAttributes
@@ -1095,6 +1095,9 @@ class Header(Generic):
         if not nElem:
             return {}
         dateInfo = [dateInfoArr[0][i] for i in xrange(nElem)]
+        print "@@@@@@@@@@@"
+        print nElem, dateInfo
+        print "@@@@@@@@@@@"
         fixedDateInfo = dateInfo[:6]
         otherDateInfo = [dateInfo[i: i + 3] for i in xrange(6, nElem, 3)]
         dateInfo = {"fixedDateInfo": fixedDateInfo,
@@ -1106,18 +1109,27 @@ class Header(Generic):
         return dateInfo
 
     @dateVariables.setter
-    def dateVariables(self, dateInfo):  # entirely untested!
-        dateInfo = dateInfo["fixedDateInfo"] + dateInfo["otherDateInfo"]
+    def dateVariables(self, dateInfo):  # 'SPSS_INVALID_DATEINFO'!
+        dateInfo = [dateInfo["fixedDateInfo"]] + dateInfo["otherDateInfo"]
         dateInfo = reduce(list.__add__, dateInfo)  # flatten list
-        isAllFloats = all([isinstance(d, float) for d in dateInfo])
+        print "XXX@@@@@@@@@@@"
+        print len(dateInfo), dateInfo
+        print "XXX@@@@@@@@@@@"
+        def define_var_hdr(size):
+            class Var(Structure):
+                fields = [("size", c_int),
+                          ("Array", c_ubyte * size)]
+            
+        isAllInts = all([isinstance(d, int) for d in dateInfo])
         isSixPlusTriplets = (len(dateInfo) - 6) % 3 == 0
-        if not isAllFloats and isSixPlusTriplets:
+        if not isAllInts and isSixPlusTriplets:
             msg = ("TRENDS date info must consist of 6 fixed elements" +
                    "+ <nCases> three-element groups of other date info " +
-                   "(all floats)")
+                   "(all ints)")
             raise TypeError(msg)
         func = self.spssio.spssSetDateVariables
-        dateInfoArr = (nElements * c_long)(*dateInfo)
+        nElements = len(dateInfo)
+        dateInfoArr = (c_long * nElements)(*dateInfo)
         retcode = func(c_int(self.fh), c_int(nElements), dateInfoArr)
         if retcode > 0:
             raise SPSSIOError("Error setting TRENDS information", retcode)

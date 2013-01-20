@@ -66,7 +66,7 @@ class SavHeaderReader(Header):
                  "formats", "missingValues", "measureLevels",
                  "columnWidths", "alignments", "varSets", "varRoles",
                  "varAttributes", "fileAttributes", "fileLabel",
-                 "multRespDefs", "caseWeightVar", "multRespDefs"]
+                 "multRespDefs", "caseWeightVar"] # "dateVariables"]
         if self.ioUtf8:
             items = map(unicode, items)
         dataDictionary = dict([(item, getattr(self, item)) for item in items])

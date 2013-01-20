@@ -201,10 +201,10 @@ userMissingValues = {
 version = __version__
 
 from generic import *
+from error import *
 from header import *
 from savReader import *
 from savWriter import *
 from savHeaderReader import *
-from error import *
 
 __all__ = ["SavReader", "SavWriter", "SavHeaderReader"]

@@ -98,7 +98,7 @@ class SavWriter(Header):
                  measureLevels=None, columnWidths=None, alignments=None,
                  varSets=None, varRoles=None, varAttributes=None,
                  fileAttributes=None, fileLabel=None, multRespDefs=None,
-                 caseWeightVar=None, overwrite=True, ioUtf8=False,
+                 caseWeightVar=None, overwrite=True, ioUtf8=False, 
                  ioLocale=None, mode="wb", refSavFileName=None):
         """ Constructor. Initializes all vars that can be recycled """
         super(Header, self).__init__(savFileName, ioUtf8, ioLocale)
@@ -136,6 +136,7 @@ class SavWriter(Header):
             self.fileLabel = fileLabel
             self.multRespDefs = multRespDefs
             self.caseWeightVar = caseWeightVar
+            #self.dateVariables = dateVariables
             triplet = [measureLevels, columnWidths, alignments]
             if all([item is None for item in triplet]):
                 self._setColWidth10()
