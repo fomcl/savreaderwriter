@@ -1095,9 +1095,6 @@ class Header(Generic):
         if not nElem:
             return {}
         dateInfo = [dateInfoArr[0][i] for i in xrange(nElem)]
-        print "@@@@@@@@@@@"
-        print nElem, dateInfo
-        print "@@@@@@@@@@@"
         fixedDateInfo = dateInfo[:6]
         otherDateInfo = [dateInfo[i: i + 3] for i in xrange(6, nElem, 3)]
         dateInfo = {"fixedDateInfo": fixedDateInfo,
@@ -1112,14 +1109,6 @@ class Header(Generic):
     def dateVariables(self, dateInfo):  # 'SPSS_INVALID_DATEINFO'!
         dateInfo = [dateInfo["fixedDateInfo"]] + dateInfo["otherDateInfo"]
         dateInfo = reduce(list.__add__, dateInfo)  # flatten list
-        print "XXX@@@@@@@@@@@"
-        print len(dateInfo), dateInfo
-        print "XXX@@@@@@@@@@@"
-        def define_var_hdr(size):
-            class Var(Structure):
-                fields = [("size", c_int),
-                          ("Array", c_ubyte * size)]
-            
         isAllInts = all([isinstance(d, int) for d in dateInfo])
         isSixPlusTriplets = (len(dateInfo) - 6) % 3 == 0
         if not isAllInts and isSixPlusTriplets:
