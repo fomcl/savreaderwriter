@@ -189,8 +189,8 @@ See also the <a class="reference external" href="ftp://public.dhe.ibm.com/softwa
 <div class="section" id="savheaderreader-read-spss-file-meta-data">
 <h1><tt class="xref py py-mod docutils literal"><span class="pre">SavHeaderReader</span></tt> &#8211; Read Spss file meta data<a class="headerlink" href="#savheaderreader-read-spss-file-meta-data" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
-<dt>
-<tt class="descclassname">savReaderWriter.</tt><tt class="descname">SavReader</tt><big>(</big><em>savFileName</em><span class="optional">[</span>, <em>ioUtf8=False</em>, <em>ioLocale=None</em><span class="optional">]</span><big>)</big></dt>
+<dt id="savReaderWriter.SavHeaderReader">
+<tt class="descclassname">savReaderWriter.</tt><tt class="descname">SavHeaderReader</tt><big>(</big><em>savFileName</em><span class="optional">[</span>, <em>ioUtf8=False</em>, <em>ioLocale=None</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#savReaderWriter.SavHeaderReader" title="Permalink to this definition">¶</a></dt>
 <dd><p><strong>Read Spss file meta data. Yields the same information as the Spss command ``DISPLAY DICTIONARY``</strong></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -207,6 +207,10 @@ See also the <a class="reference external" href="ftp://public.dhe.ibm.com/softwa
 </table>
 </dd></dl>
 
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The program calls <tt class="docutils literal"><span class="pre">spssFree*</span></tt> C functions to free memory allocated to dynamic arrays. This previously sometimes caused segmentation faults. This problem now appears to have been solved. However, if you do experience segmentation faults you can set <tt class="docutils literal"><span class="pre">segfaults=True</span></tt> in <tt class="docutils literal"><span class="pre">__init__.py</span></tt>. This will prevent the spssFree* functions from being called (and introduce a memory leak).</p>
+</div>
 <p>Typical use:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="n">SavHeaderReader</span><span class="p">(</span><span class="n">savFileName</span><span class="p">)</span> <span class="k">as</span> <span class="n">spssDict</span><span class="p">:</span>
     <span class="n">wholeDict</span> <span class="o">=</span> <span class="n">spssDict</span><span class="o">.</span><span class="n">dataDictionary</span><span class="p">()</span>
