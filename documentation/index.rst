@@ -144,7 +144,7 @@ Use of __getitem__ and other methods		::
     reader = SavReader(savFileName, idVar="id")
     try:
         print "The file contains %d records" % len(reader)
-        print str(reader)  # prints a file report
+        print unicode(reader)  # prints a file report
         print "The first six records look like this\n", reader[:6]
         print "The first record looks like this\n", reader[0]
         print "The last four records look like this\n", reader.tail(4)
@@ -158,7 +158,7 @@ Use of __getitem__ and other methods		::
 
 :mod:`SavHeaderReader` -- Read Spss file meta data
 ============================================================================
-.. function:: SavReader(savFileName[, ioUtf8=False, ioLocale=None])
+.. function:: SavHeaderReader(savFileName[, ioUtf8=False, ioLocale=None])
 	
    **Read Spss file meta data. Yields the same information as the Spss command ``DISPLAY DICTIONARY``**
 
@@ -168,6 +168,10 @@ Use of __getitem__ and other methods		::
    :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will be. Valid values are True (UTF-8 mode aka Unicode mode) and False (Codepage mode). Cf. ``SET UNICODE=ON/OFF`` (default = False)
 
    :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = None, which corresponds to ``".".join(locale.getlocale())``)
+
+.. warning::
+
+   The program calls ``spssFree*`` C functions to free memory allocated to dynamic arrays. This previously sometimes caused segmentation faults. This problem now appears to be solved. However, if you do experience segmentation faults you can set ``segfaults=True`` in ``__init__.py``. This will prevent the spssFree* functions from being called (and introduce a memory leak).
 
 Typical use::
 
