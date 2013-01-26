@@ -1,0 +1,8 @@
+recursive-include cWriterow *.*
+recursive-include documentation *.*
+recursive-include spssio *.*
+global-exclude *.pyc *.*~
+prune .git
+
+
+
