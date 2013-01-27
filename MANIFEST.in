@@ -1,6 +1,9 @@
-recursive-include cWriterow *.*
-recursive-include documentation *.*
-recursive-include spssio *.*
+recursive-include savReaderWriter/cWriterow *
+recursive-include savReaderWriter/documentation *
+recursive-include savReaderWriter/spssio *
+recursive-include savReaderWriter/build *
+include VERSION
+include TODO
 global-exclude *.pyc *.*~
 prune .git
 
