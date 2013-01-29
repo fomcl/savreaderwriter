@@ -1,0 +1,2 @@
+SavReaderWriter.py: A cross-platform Python interface to the IBM SPSS
+Statistics Input Output Module. Read or Write SPSS system files (.sav, .zsav)
