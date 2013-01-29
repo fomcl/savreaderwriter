@@ -298,11 +298,11 @@ class Header(Generic):
         Returns/takes a dictionary of the form {varName: <format_>.
         For example: formats = {'salary': 'DOLLAR8', 'gender': 'A1',
                                 'educ': 'F8.2'}"""
-        if hasattr(self, "varformats"):
-            return self.varformats
+        if hasattr(self, "formats_"):
+            return self.formats_
         printFormat_, printDec_, printWid_ = c_int(), c_int(), c_int()
         func = self.spssio.spssGetVarPrintFormat
-        formats = {}
+        self.formats_ = {}
         for varName in self.varNames:
             vName = self.vNames[varName]
             retcode = func(c_int(self.fh), c_char_p(vName),
@@ -318,7 +318,7 @@ class Header(Generic):
                 format_ += ("." + str(printDec_.value))
             if format_.endswith(".0"):
                 format_ = format_[:-2]
-            formats[varName] = format_
+            self.formats_[varName] = format_
         return formats
 
     def _splitformats(self):
@@ -975,8 +975,7 @@ class Header(Generic):
                         "testSetEx2": extended2}
         """
         #####
-        # This function does not seem to return anything, even when it should (WIN).
-        # Also, I am not sure whether 'extended' MR definitions complement
+        # I am not sure whether 'extended' MR definitions complement
         # or replace 'normal' MR definitions. I assumed 'complement'.
         #####
 
