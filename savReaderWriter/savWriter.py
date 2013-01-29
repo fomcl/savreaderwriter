@@ -120,7 +120,7 @@ class SavWriter(Header):
         #self._getVarHandles()
 
         if self.mode == "wb":
-            self.openWrite(self.savFileName, self.overwrite)
+            self._openWrite(self.savFileName, self.overwrite)
             self.varNamesTypes = self.varNames, self.varTypes
             self.valueLabels = valueLabels
             self.varLabels = varLabels
@@ -141,8 +141,8 @@ class SavWriter(Header):
             if all([item is None for item in triplet]):
                 self._setColWidth10()
             self.textInfo = self.savFileName
-            self.commitHeader()
-            self.caseBuffer = self.getCaseBuffer()
+            self._commitHeader()
+        self.caseBuffer = self.getCaseBuffer()
 
     def __enter__(self):
         """This function returns the writer object itself so the writerow and
@@ -154,7 +154,6 @@ class SavWriter(Header):
         if type is not None:
             pass  # Exception occurred
         self.closeSavFile(self.fh, mode="wb")
-        #self.closeFile()
 
     def _getVarHandles(self):
         """This function returns a handle for a variable, which can then be
@@ -199,7 +198,7 @@ class SavWriter(Header):
             msg = "Error setting %s value %r for variable %r"
             raise SPSSIOError(msg % (valType, value, varName), retcode)
 
-    def openWrite(self, savFileName, overwrite):
+    def _openWrite(self, savFileName, overwrite):
         """ This function opens a file in preparation for creating a new IBM
         SPSS Statistics data file"""
         if os.path.exists(savFileName) and not os.access(savFileName, os.W_OK):
@@ -248,7 +247,7 @@ class SavWriter(Header):
         return (self.convertDate(day, month, year) +
                 self.convertTime(0, hour, minute, second))
 
-    def commitHeader(self):
+    def _commitHeader(self):
         """This function writes the data dictionary to the data file associated
         with file handle 'fh'. Before any case data can be written, the
         dictionary must be committed; once the dictionary has been committed,
@@ -269,9 +268,9 @@ class SavWriter(Header):
         if cWriterowOK:
             cWriterow(self, record)
             return
-        self.pyWriterow(record)
+        self._pyWriterow(record)
 
-    def pyWriterow(self, record):
+    def _pyWriterow(self, record):
         """ This function writes one record, which is a Python list."""
         float_ = float
         for i, value in enumerate(record):
