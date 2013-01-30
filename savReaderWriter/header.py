@@ -319,7 +319,7 @@ class Header(Generic):
             if format_.endswith(".0"):
                 format_ = format_[:-2]
             self.formats_[varName] = format_
-        return formats
+        return self.formats_
 
     def _splitformats(self):
         """This function returns the 'bare' formats + variable widths,
