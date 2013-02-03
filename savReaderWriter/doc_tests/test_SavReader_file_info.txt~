@@ -1,0 +1,83 @@
+##############################################################################
+## Read a file and get some basic file info
+##############################################################################
+
+>>> import doctest
+>>> import pprint
+>>> from savReaderWriter import *
+>>> doctest.ELLIPSIS_MARKER = ",,,"
+
+## ... Get some basic file info
+>>> savFileName = "../test_data/Employee data.sav"
+>>> try:  # doctest: +ELLIPSIS
+...     reader = SavReader(savFileName)        
+...     numVars, nCases, varNames, varTypes, formats, \
+...          varLabels, valueLabels = reader.getSavFileInfo()
+...     pprint.pprint(reader.getSavFileInfo())
+... finally:
+...     reader.close()
+,,,
+(10,
+ 474,
+ ['id',
+  'gender',
+  'bdate',
+  'educ',
+  'jobcat',
+  'salary',
+  'salbegin',
+  'jobtime',
+  'prevexp',
+  'minority'],
+ {'bdate': 0,
+  'educ': 0,
+  'gender': 1,
+  'id': 0,
+  'jobcat': 0,
+  'jobtime': 0,
+  'minority': 0,
+  'prevexp': 0,
+  'salary': 0,
+  'salbegin': 0},
+ {'bdate': 'ADATE10',
+  'educ': 'F2',
+  'gender': 'A1',
+  'id': 'F4',
+  'jobcat': 'F1',
+  'jobtime': 'F2',
+  'minority': 'F1',
+  'prevexp': 'F6',
+  'salary': 'DOLLAR8',
+  'salbegin': 'DOLLAR8'},
+ {'bdate': 'Date of Birth',
+  'educ': 'Educational Level (years)',
+  'gender': 'Gender',
+  'id': 'Employee Code',
+  'jobcat': 'Employment Category',
+  'jobtime': 'Months since Hire',
+  'minority': 'Minority Classification',
+  'prevexp': 'Previous Experience (months)',
+  'salary': 'Current Salary',
+  'salbegin': 'Beginning Salary'},
+ {'educ': {0.0: '0 (Missing)',
+           8.0: '8',
+           12.0: '12',
+           14.0: '14',
+           15.0: '15',
+           16.0: '16',
+           17.0: '17',
+           18.0: '18',
+           19.0: '19',
+           20.0: '20',
+           21.0: '21'},
+  'gender': {'f': 'Female', 'm': 'Male'},
+  'jobcat': {0.0: '0 (Missing)',
+             1.0: 'Clerical',
+             2.0: 'Custodial',
+             3.0: 'Manager'},
+  'jobtime': {0.0: 'missing'},
+  'minority': {0.0: 'No', 1.0: 'Yes', 9.0: '9 (Missing)'},
+  'prevexp': {0.0: 'missing'},
+  'salary': {0.0: 'missing'},
+  'salbegin': {0.0: 'missing'}})
+

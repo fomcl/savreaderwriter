@@ -1,0 +1,11 @@
+##############################################################################
+## Print a report of the header information (ioUtf8=True)
+##############################################################################
+
+>>> import doctest
+>>> from savReaderWriter import *
+>>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> savFileName = "../test_data/greetings.sav"
+>>> with SavHeaderReader(savFileName) as spssDict: # doctest: +ELLIPSIS
+...     print unicode(spssDict)
+
