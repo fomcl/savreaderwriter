@@ -1,0 +1,16 @@
+##############################################################################
+## Read a file use operators (__cmp__)
+##############################################################################
+
+>>> import doctest
+>>> from savReaderWriter import *
+>>> doctest.ELLIPSIS_MARKER = ",,,"
+
+## ... get number of cases by using __len__
+>>> savFileName = "../test_data/Employee data.sav"
+>>> try:    # doctest: +ELLIPSIS
+...     reader = SavReader(savFileName)        
+...     print reader == reader, reader > reader, reader < reader
+...     print reader == 474, reader > 474, reader < 474
+... finally:
+...     reader.close()

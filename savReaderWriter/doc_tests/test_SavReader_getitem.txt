@@ -1,0 +1,47 @@
+##############################################################################
+## Read a file and slice over records (__getitem__)
+##############################################################################
+
+>>> import doctest
+>>> from savReaderWriter import *
+>>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> try:
+...     import numpy
+...     numpyOK = True
+... except ImportError:
+...     numpyOK = False
+... 
+
+## ... Use indexing, slicing, or array slicing to access records using __getitem__
+>>> savFileName = "../test_data/Employee data.sav"
+>>> try:    # doctest: +ELLIPSIS
+...     reader = SavReader(savFileName)        
+...     print "The first six records look like this\n", reader[:6]
+...     print "The first record looks like this\n", reader[0]
+...     print "The last four records look like this\n", reader.tail(4)  
+...     print "The first five records look like this\n", reader.head()
+...     if numpyOK:
+...         print "First column:\n", reader[..., 0]
+...         print "Row 4 & 5, first three cols\n", reader[4:6, :3]
+... finally:
+...     reader.close()
+,,,
+The first six records look like this
+[[1.0, 'm', '1952-02-03', 15.0, 3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0], [2.0, 'm', '1958-05-23', 16.0, 1.0, 40200.0, 18750.0, 98.0, 36.0, 0.0], [3.0, 'f', '1929-07-26', 12.0, 1.0, 21450.0, 12000.0, 98.0, 381.0, 0.0], [4.0, 'f', '1947-04-15', 8.0, 1.0, 21900.0, 13200.0, 98.0, 190.0, 0.0], [5.0, 'm', '1955-02-09', 15.0, 1.0, 45000.0, 21000.0, 98.0, 138.0, 0.0], [6.0, 'm', '1958-08-22', 15.0, 1.0, 32100.0, 13500.0, 98.0, 67.0, 0.0]]
+The first record looks like this
+[1.0, 'm', '1952-02-03', 15.0, 3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0]
+The last four records look like this
+[[471.0, 'm', '1966-08-03', 15.0, 1.0, 26400.0, 15750.0, 64.0, 32.0, 1.0], [472.0, 'm', '1966-02-21', 15.0, 1.0, 39150.0, 15750.0, 63.0, 46.0, 0.0], [473.0, 'f', '1937-11-25', 12.0, 1.0, 21450.0, 12750.0, 63.0, 139.0, 0.0], [474.0, 'f', '1968-11-05', 12.0, 1.0, 29400.0, 14250.0, 63.0, 9.0, 0.0]]
+The first five records look like this
+[[1.0, 'm', '1952-02-03', 15.0, 3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0], [2.0, 'm', '1958-05-23', 16.0, 1.0, 40200.0, 18750.0, 98.0, 36.0, 0.0], [3.0, 'f', '1929-07-26', 12.0, 1.0, 21450.0, 12000.0, 98.0, 381.0, 0.0], [4.0, 'f', '1947-04-15', 8.0, 1.0, 21900.0, 13200.0, 98.0, 190.0, 0.0], [5.0, 'm', '1955-02-09', 15.0, 1.0, 45000.0, 21000.0, 98.0, 138.0, 0.0]]
+
+
+>>> savFileName = "../test_data/Employee data.sav"
+>>> try:    # doctest: +ELLIPSIS
+...     reader = SavReader(savFileName)        
+...     print "This yields an IndexError", reader[len(reader) + 1] # doctest: +ELLIPSIS
+... finally:
+...     reader.close()
+Traceback (most recent call last):
+  ...
+IndexError: Index out of bounds

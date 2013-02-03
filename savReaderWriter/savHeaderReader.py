@@ -87,7 +87,8 @@ class SavHeaderReader(Header):
                         isList = kwd in ("missingValues", "multRespDefs")
                         for k, v in sorted(values.iteritems()):
                             if isList and isinstance(v, (list, tuple)):
-                                vStr = map(unicode.lower, map(unicode, v))
+                                vStr = [item.encode("utf-8").lower() for item in v]
+                                #vStr = map(unicode.lower, map(unicode, v))
                                 report.append("%s: %s -- %s" %
                                               (varName, k, ", ".join(vStr)))
                             else:
