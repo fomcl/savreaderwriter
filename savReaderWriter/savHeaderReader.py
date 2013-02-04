@@ -87,8 +87,7 @@ class SavHeaderReader(Header):
                         isList = kwd in ("missingValues", "multRespDefs")
                         for k, v in sorted(values.iteritems()):
                             if isList and isinstance(v, (list, tuple)):
-                                vStr = [item.encode("utf-8").lower() for item in v]
-                                #vStr = map(unicode.lower, map(unicode, v))
+                                vStr = [item.lower() for item in v]
                                 report.append("%s: %s -- %s" %
                                               (varName, k, ", ".join(vStr)))
                             else:
@@ -105,4 +104,5 @@ class SavHeaderReader(Header):
                     allValues = [allValues]
                 for varName in allValues:
                     report.append(varName)
+        print os.linesep.join(report)
         return os.linesep.join(report)
