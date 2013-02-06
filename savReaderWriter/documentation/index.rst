@@ -24,6 +24,52 @@ See also the `IBM SPSS Statistics Command Syntax Reference.pdf`_ for info about 
 .. toctree::
    :maxdepth: 2
 
+Installation
+============================================================================
+
+This program works for Linux (incl. z/Linux), Windows, MacOS (32 and 64 bit), AIX-64, HP-UX and Solaris-64.
+However, it has only been tested on Linux 32 (Ubuntu and Mint), Windows (mostly on Windows XP 32, but also a few times on Windows 7 64),
+and MacOS (with an earlier version of savReaderWriter). The other OSs are entirely untested. 
+
+Windows
+------------------------------------------------------------------------------
+Depending on your architecture, you may add either the ``../spssio/win32`` or the ``../spssio/win64`` directory to ``PATH``, but this is *not* strictly necessary for the DLLs to be loaded properly. The search directory for the DLLs is set at run-time.
+
+Linux
+------------------------------------------------------------------------------
+Additional files that were needed on my Linux 32-bit machine (Ubuntu 12 or Mint XFCE): intel-icc8-libs_8.0-1_i386.deb, libicu32_3.2-3_i386.deb, libstdc++5_3.3.6-20_i386.deb, libirc.so. Run the following commands in your terminal::
+
+    sudo apt-get install intel-icc8-libs
+    sudo apt-get install libicu32
+    sudo apt-get install libstdc++5
+
+Then convert libirc.a (static) to libirc.so (dynamic), save in same location as libspssdio.so.1 (FIXME: is this entirely correct?)::
+
+    ar vx intel-icc8-libs_8.0-1_i386.deb
+    tar -xzvf data.tar.gz ./usr/lib/libirc.a
+    ar -x libirc.a
+    gcc -shared *.o -o libirc.so
+
+To use the program, do something like::
+
+    export LD_LIBRARY_PATH=/usr/local/lib/python2.7/dist-packages/savReaderWriter/spssio/lin32
+    python wrapperForSavReaderWriter.py
+
+You may also add the 'export' line to your ``.bashrc`` file::
+
+    sudo gedit /etc/bash.bashrc
+
+Other OS
+------------------------------------------------------------------------------
+As said, other OSs (except MacOS) are untested, but probably the logic is the same as for Linux. Use the following exports for MacOS, Solaris-64, AIX-64 and HP-UX, respectively::
+
+    export DYLD_LIBRARY_PATH=/usr/local/lib/python2.7/dist-packages/savReaderWriter/spssio/macos
+    export LD_LIBRARY_PATH=/usr/local/lib/python2.7/dist-packages/savReaderWriter/spssio/sol64
+    export LIBPATH=/usr/local/lib/python2.7/dist-packages/savReaderWriter/spssio/aix64
+    export SHLIB_PATH=/usr/local/lib/python2.7/dist-packages/savReaderWriter/spssio/hpux_it
+
+
+
 :mod:`SavWriter` -- Write Spss system files
 ============================================================================
 .. function:: SavWriter(savFileName, varNames, varTypes, [valueLabels=None, varLabels=None, formats=None, missingValues=None, measureLevels=None, columnWidths=None, alignments=None, varSets=None, varRoles=None, varAttributes=None, fileAttributes=None, fileLabel=None, multRespDefs=None, caseWeightVar=None, overwrite=True, ioUtf8=False, ioLocale=None, mode="wb", refSavFileName=None])
