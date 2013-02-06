@@ -5,139 +5,236 @@
 >>> import doctest
 >>> from savReaderWriter import *
 >>> doctest.ELLIPSIS_MARKER = ",,,"
->>> savFileName = "../test_data/Employee data.sav"
+>>> savFileName = "../test_data/spssio_test.sav"
 >>> with SavHeaderReader(savFileName) as spssDict: # doctest: +ELLIPSIS
 ...     print unicode(spssDict)
 ...     wholeDict = spssDict.dataDictionary()
 ...
 ,,,
 #ALIGNMENTS
-salary -- right
-jobcat -- right
-bdate -- right
-minority -- right
-prevexp -- right
-gender -- left
-salbegin -- right
-jobtime -- right
-educ -- right
-id -- right
+AGE3 -- right
+DATE_ -- left
+weightVar -- right
+aShortStringVar -- left
+aLongStringVar -- left
+AvgIncome -- right
+MaxIncome -- right
+SEX -- right
+V1 -- right
+V2 -- right
+V3 -- right
+Region -- left
+QUARTER_ -- right
+Income1 -- right
+Income2 -- right
+Income3 -- center
+Age -- left
+ID -- left
+YEAR_ -- right
+MONTH_ -- right
+someDate -- right
+AGE2 -- right
 #CASEWEIGHTVAR
+weightVar
 #COLUMNWIDTHS
-salary -- 8
-jobcat -- 8
-bdate -- 13
-minority -- 8
-prevexp -- 8
-gender -- 1
-salbegin -- 8
-jobtime -- 8
-educ -- 8
-id -- 8
+AGE3 -- 10
+DATE_ -- 10
+weightVar -- 11
+aShortStringVar -- 17
+aLongStringVar -- 26
+AvgIncome -- 11
+MaxIncome -- 11
+SEX -- 10
+V1 -- 10
+V2 -- 10
+V3 -- 10
+Region -- 10
+QUARTER_ -- 10
+Income1 -- 14
+Income2 -- 14
+Income3 -- 15
+Age -- 10
+ID -- 10
+YEAR_ -- 10
+MONTH_ -- 8
+someDate -- 13
+AGE2 -- 10
 #FILEATTRIBUTES
+$VariableView2[13] -- @DerivedFrom
+$VariableView2[10] -- measure
+$VariableView2[11] -- role
+$VariableView2[01] -- name
+VersionNumber -- 1
+$VariableView2[03] -- width
+$VariableView2[09] -- alignment
+$VariableView2[02] -- type
+$VariableView2[08] -- columns
+$VariableView2[05] -- label
+$VariableView2[14] -- @Notes
+$VariableView2[04] -- decimals
+$VariableView2[07] -- missing
+$VariableView2[12] -- @Formula
+$VariableView2[06] -- values
 #FILELABEL
-05.00.00
+This is a file label
 #FORMATS
-salary -- DOLLAR8
-jobcat -- F1
-bdate -- ADATE10
-minority -- F1
-prevexp -- F6
-gender -- A1
-salbegin -- DOLLAR8
-jobtime -- F2
-educ -- F2
-id -- F4
+AGE3 -- F8.2
+DATE_ -- A8
+weightVar -- F8.2
+aShortStringVar -- A1
+aLongStringVar -- A100
+AvgIncome -- F8.2
+MaxIncome -- F8.2
+SEX -- F8.2
+V1 -- F8.2
+V2 -- F8.2
+V3 -- F8.2
+Region -- F8.2
+QUARTER_ -- F1
+Income1 -- F8.2
+Income2 -- F8.2
+Income3 -- F8.2
+Age -- F3
+ID -- N6
+YEAR_ -- F8
+MONTH_ -- F2
+someDate -- ADATE40
+AGE2 -- F8.2
 #MEASURELEVELS
-salary -- ratio
-jobcat -- ordinal
-bdate -- ratio
-minority -- ordinal
-prevexp -- ratio
-gender -- nominal
-salbegin -- ratio
-jobtime -- ratio
-educ -- ordinal
-id -- ratio
+AGE3 -- ratio
+DATE_ -- nominal
+weightVar -- nominal
+aShortStringVar -- nominal
+aLongStringVar -- nominal
+AvgIncome -- ratio
+MaxIncome -- ratio
+SEX -- nominal
+V1 -- nominal
+V2 -- nominal
+V3 -- nominal
+Region -- nominal
+QUARTER_ -- ordinal
+Income1 -- ratio
+Income2 -- ratio
+Income3 -- ratio
+Age -- ratio
+ID -- nominal
+YEAR_ -- ordinal
+MONTH_ -- ordinal
+someDate -- ratio
+AGE2 -- ratio
 #MISSINGVALUES
-salary: values -- 0.0
-jobcat: values -- 0.0
-minority: values -- 9.0
-salbegin: values -- 0.0
-jobtime: values -- 0.0
-educ: values -- 0.0
+aShortStringVar: values -- x, y
+Income1: lower -- -1.797,,,e+308
+Income1: upper -- -1.0
+Income2: lower -- -1.797,,,e+308
+Income2: upper -- -1.0
+Income2: value -- 999.0
+Income3: values -- 999.0, 888.0, 777.0
+Age: lower -- 0.0
+Age: upper -- 18.0
 #MULTRESPDEFS
+V: countedValue -- 1
+V: label -- 
+V: setType -- D
+V: varNames -- v1, v2, v3
+incomes: label -- three kinds of income
+incomes: setType -- C
+incomes: varNames -- income1, income2, income3, age, age2, age3
+ages: label -- the ages
+ages: setType -- C
+ages: varNames -- age, age2, age3
 #VALUELABELS
-salary: 0.0 -- missing
-jobcat: 0.0 -- 0 (Missing)
-jobcat: 1.0 -- Clerical
-jobcat: 2.0 -- Custodial
-jobcat: 3.0 -- Manager
-salbegin: 0.0 -- missing
-minority: 0.0 -- No
-minority: 1.0 -- Yes
-minority: 9.0 -- 9 (Missing)
-prevexp: 0.0 -- missing
-gender: f -- Female
-gender: m -- Male
-jobtime: 0.0 -- missing
-educ: 0.0 -- 0 (Missing)
-educ: 8.0 -- 8
-educ: 12.0 -- 12
-educ: 14.0 -- 14
-educ: 15.0 -- 15
-educ: 16.0 -- 16
-educ: 17.0 -- 17
-educ: 18.0 -- 18
-educ: 19.0 -- 19
-educ: 20.0 -- 20
-educ: 21.0 -- 21
+Age: 27.0 -- 27 y.o. 
+Age: 34.0 -- 34 y.o.
+Age: 50.0 -- 50 y.o.
+aShortStringVar: x -- someValue label
 #VARATTRIBUTES
+AvgIncome: DerivedFrom[1] -- Income1
+AvgIncome: DerivedFrom[2] -- Income2
+AvgIncome: DerivedFrom[3] -- Income3
+AvgIncome: Formula -- mean(Income1, Income2, Income3)
+MaxIncome: DerivedFrom[1] -- Income1
+MaxIncome: DerivedFrom[2] -- Income2
+MaxIncome: DerivedFrom[3] -- Income3
+MaxIncome: Formula -- max(Income1, Income2, Income3)
 #VARLABELS
-salary -- Current Salary
-jobcat -- Employment Category
-bdate -- Date of Birth
-minority -- Minority Classification
-prevexp -- Previous Experience (months)
-gender -- Gender
-salbegin -- Beginning Salary
-jobtime -- Months since Hire
-educ -- Educational Level (years)
-id -- Employee Code
+DATE_ -- Date.  Format:  "MMM YYYY"              
+aShortStringVar -- Some mysterious short stringVar
+aLongStringVar -- Some mysterious long stringVar
+Region -- What region do you live
+QUARTER_ -- QUARTER, period 4
+Age -- How old are you?
+YEAR_ -- YEAR, not periodic
+MONTH_ -- MONTH, period 12
 #VARNAMES
-id
-gender
-bdate
-educ
-jobcat
-salary
-salbegin
-jobtime
-prevexp
-minority
+ID
+Age
+Region
+Income1
+Income2
+Income3
+AvgIncome
+MaxIncome
+AGE2
+AGE3
+SEX
+V1
+V2
+V3
+someDate
+aShortStringVar
+aLongStringVar
+weightVar
+YEAR_
+QUARTER_
+MONTH_
+DATE_
 #VARROLES
-salary -- input
-jobcat -- input
-bdate -- input
-minority -- input
-prevexp -- input
-gender -- input
-salbegin -- input
-jobtime -- input
-educ -- input
-id -- input
+AGE3 -- input
+DATE_ -- input
+weightVar -- input
+aShortStringVar -- input
+aLongStringVar -- input
+AvgIncome -- input
+MaxIncome -- input
+SEX -- input
+V1 -- input
+V2 -- input
+V3 -- input
+Region -- partition
+QUARTER_ -- input
+Income1 -- target
+Income2 -- target
+Income3 -- target
+Age -- input
+ID -- input
+YEAR_ -- input
+MONTH_ -- input
+someDate -- input
+AGE2 -- input
 #VARSETS
-SALARY -- salbegin, salary
-DEMOGR -- gender, minority, educ
 #VARTYPES
-salary -- 0
-jobcat -- 0
-bdate -- 0
-minority -- 0
-prevexp -- 0
-gender -- 1
-salbegin -- 0
-jobtime -- 0
-educ -- 0
-id -- 0
+AGE3 -- 0
+DATE_ -- 8
+weightVar -- 0
+aShortStringVar -- 1
+aLongStringVar -- 100
+AvgIncome -- 0
+MaxIncome -- 0
+SEX -- 0
+V1 -- 0
+V2 -- 0
+V3 -- 0
+Region -- 0
+QUARTER_ -- 0
+Income1 -- 0
+Income2 -- 0
+Income3 -- 0
+Age -- 0
+ID -- 0
+YEAR_ -- 0
+MONTH_ -- 0
+someDate -- 0
+AGE2 -- 0
 ,,,
