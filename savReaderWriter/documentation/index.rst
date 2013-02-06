@@ -43,17 +43,17 @@ Additional files that were needed on my Linux 32-bit machine (Ubuntu 12 or Mint 
     sudo apt-get install libicu32
     sudo apt-get install libstdc++5
 
-Then convert libirc.a (static) to libirc.so (dynamic), save in same location as libspssdio.so.1 (FIXME: is this entirely correct?)::
-
-    ar vx intel-icc8-libs_8.0-1_i386.deb
-    tar -xzvf data.tar.gz ./usr/lib/libirc.a
-    ar -x libirc.a
-    gcc -shared *.o -o libirc.so
-
 To use the program, do something like::
 
     export LD_LIBRARY_PATH=/usr/local/lib/python2.7/dist-packages/savReaderWriter/spssio/lin32
     python wrapperForSavReaderWriter.py
+
+A minimal wrapper would contain something like::
+
+    from savReaderWriter import *
+    with savReader("someFile.sav") as reader:
+        for line in reader:
+            pass
 
 You may also add the 'export' line to your ``.bashrc`` file::
 
