@@ -1,0 +1,46 @@
+##############################################################################
+## Append some records to an existing file, using mode="ap"
+##############################################################################
+
+>>> import shutil
+>>> import os
+>>> import doctest
+>>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> from savReaderWriter import *   # doctest: +ELLIPSIS
+
+,,,
+
+## Append some records to an existing file
+## First make a copy to work with (append records to)
+## Also retrieve varNames and varTypes as these are mandatory args
+>>> savFileName = "../test_data/Employee data.sav"
+>>> shutil.copy(savFileName, "Employee data copy.sav")
+>>> try:  # doctest: +ELLIPSIS
+...     r = SavReader(savFileName, rawMode=True)
+...     NROWS_ORIGINAL = len(r)
+...     varNames, varTypes = r.getSavFileInfo()[2:4]
+... finally:
+...     # Don't forget this! You won't be able to change interface mode (ioUtf8)
+...     r.close()
+,,,
+
+## Append 100 records to the file
+>>> NROWS_EXTRA = 100
+>>> savFileName = "Employee data copy.sav"
+>>> with SavWriter(savFileName, varNames, varTypes, mode="ab") as w:
+...     line = [1.0, 'm', 11654150400.0, 15.0, 3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0]
+...     for i in range(NROWS_EXTRA):
+...         w.writerow(line)
+
+## Demonstrate that the number of records has increased by 100.
+>>> try: # doctest: +ELLIPSIS
+...     r = SavReader(savFileName)
+...     print len(r) == NROWS_ORIGINAL + NROWS_EXTRA 
+... finally:
+...     r.close()
+,,,
+True
+
+# clean up
+>>> os.remove(os.path.abspath(savFileName))
+

@@ -1,0 +1,59 @@
+##############################################################################
+## Print a report of the header information (ioUtf8=True)
+##############################################################################
+
+
+# TODO: fix this test!
+>>> import doctest
+>>> from savReaderWriter import *
+>>> doctest.ELLIPSIS_MARKER = ",,,"
+
+>>> savFileName = "../test_data/greetings.sav"
+>>> with SavHeaderReader(savFileName, ioUtf8=True) as spssDict:
+...     print unicode(spssDict)  # doctest: +ELLIPSIS, +SKIP
+,,,
+File 'greetings.sav' built using SavReaderWriter.py version ,,, (,,,)
+#ALIGNMENTS
+line -- left
+greeting -- left
+Bondjoû -- left
+#CASEWEIGHTVAR
+#COLUMNWIDTHS
+line -- 8
+greeting -- 50
+Bondjoû -- 20
+#FILEATTRIBUTES
+#FILELABEL
+File created by user ',,,' at ,,,
+#FORMATS
+line -- F8.2
+greeting -- A50
+Bondjoû -- A20
+#MEASURELEVELS
+line -- unknown
+greeting -- unknown
+Bondjoû -- unknown
+#MISSINGVALUES
+line: lower -- 0.0
+line: upper -- 9.0
+Bondjoû: values -- ¡hola! 
+#MULTRESPDEFS
+#VALUELABELS
+Bondjoû: Thai -- สวัสดี
+#VARATTRIBUTES
+#VARLABELS
+greeting -- السلام عليكم
+#VARNAMES
+line
+Bondjoû
+greeting
+#VARROLES
+line -- input
+greeting -- input
+Bondjoû -- input
+#VARSETS
+#VARTYPES
+line -- 0
+greeting -- 50
+Bondjoû -- 20
+

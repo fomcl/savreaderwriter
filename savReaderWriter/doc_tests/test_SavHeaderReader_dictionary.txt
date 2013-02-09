@@ -3,9 +3,10 @@
 ##############################################################################
 
 >>> import doctest
->>> import pprint
->>> from savReaderWriter import *
 >>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> import pprint
+>>> from savReaderWriter import * # doctest: +ELLIPSIS
+,,,
 >>> savFileName = "../test_data/Employee data.sav"
 >>> with SavHeaderReader(savFileName) as spssDict: # doctest: +ELLIPSIS
 ...     wholeDict = spssDict.dataDictionary()
