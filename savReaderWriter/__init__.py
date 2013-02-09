@@ -200,8 +200,8 @@ userMissingValues = {
 
 version = __version__
 
-from generic import *
 from error import *
+from generic import *
 from header import *
 from savReader import *
 from savWriter import *

@@ -141,6 +141,7 @@ class SavWriter(Header):
             if all([item is None for item in triplet]):
                 self._setColWidth10()
             self.textInfo = self.savFileName
+        if self.mode in ("wb", "cp"):
             self._commitHeader()
         self.caseBuffer = self.getCaseBuffer()
 

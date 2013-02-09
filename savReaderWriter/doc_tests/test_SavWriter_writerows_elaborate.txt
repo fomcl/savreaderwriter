@@ -1,0 +1,157 @@
+##############################################################################
+## Read a file and do a binary search for records (get)
+##############################################################################
+
+>>> import doctest
+>>> import os
+>>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> from savReaderWriter import *   # doctest: +ELLIPSIS
+
+## ----- Write many rows
+>>> savFileName = "employee data_OUT.sav"
+>>> varNames = ['id', 'gender', 'bdate', 'educ', 'jobcat', 'salary', 'salbegin',
+...             'jobtime', 'prevexp', 'minority']
+>>> varLabels = {'gender': 'guys/gals'}
+>>> varTypes = {'salary': 0, 'jobcat': 0, 'bdate': 0, 'minority': 0,
+...             'prevexp': 0, 'gender': 1, 'salbegin': 0, 'jobtime': 0,
+...             'educ': 0, 'id': 0}
+>>> formats = {'salary': 'DOLLAR8', 'jobcat': 'F3', 'bdate': 'ADATE40',
+...            'minority': 'F3', 'prevexp': 'F3', 'gender': 'A1', 'salbegin':
+...            'DOLLAR8', 'jobtime': 'F8', 'educ': 'F3', 'id': 'N9'}
+>>> varSets = {'SALARY': ['salbegin', 'salary'],
+...            'DEMOGR': ['gender', 'minority', 'educ']}
+>>> varAttributes = {'salary': {'DemographicVars': '1'},
+...                  'jobcat': {'DemographicVars': '1'},
+...                  'gender': {'Binary': 'Yes'},
+...                  'educ': {'DemographicVars': '1'}}
+>>> fileAttributes = {'TheDate[2]': '10/21/2005', 'RevisionDate[2]': '10/21/2005',
+...                   'RevisionDate[1]': '10/29/2004'}
+>>> missingValues = {'educ': {'values': [1, 2, 3]}, 'gender': {'values': 'x'}}
+>>> records = [[1.0, 'm       ', 11654150400.0, 15.0, 3.0,
+...             57000.0, 27000.0, 98.0, 144.0, 0.0],
+...            [2.0, 'm       ', 11852956800.0, 16.0, 1.0,
+...             40200.0, 18750.0, 98.0, 36.0, 0.0]]
+>>> with SavWriter(savFileName, varNames, varTypes,
+...                varLabels=varLabels, varSets=varSets,
+...                missingValues=missingValues, varAttributes=varAttributes,
+...                fileAttributes=fileAttributes) as sav:
+...     sav.writerows(records)
+...     print "Done! %s" % sav.savFileName
+Done! employee data_OUT.sav
+
+# read it back in 
+>>> reader = SavReader(savFileName, rawMode=True)  # doctest: +ELLIPSIS
+,,,
+>>> records_out = [line for line in iter(reader)]
+>>> reader.close()
+>>> print records_out == records  # doctest: +NORMALIZE_WHITESPACE
+True
+
+# check if the header info is okay
+>>> with SavHeaderReader(savFileName) as h:
+...     print unicode(h)  # doctest: +ELLIPSIS
+,,,
+#ALIGNMENTS
+salary -- left
+jobcat -- left
+bdate -- left
+minority -- left
+prevexp -- left
+gender -- left
+salbegin -- left
+jobtime -- left
+educ -- left
+id -- left
+#CASEWEIGHTVAR
+#COLUMNWIDTHS
+salary -- 8
+jobcat -- 8
+bdate -- 8
+minority -- 8
+prevexp -- 8
+gender -- 10
+salbegin -- 8
+jobtime -- 8
+educ -- 8
+id -- 8
+#FILEATTRIBUTES
+TheDate[2] -- 5
+RevisionDate[2] -- 5
+RevisionDate[1] -- 4
+#FILELABEL
+File created by user ',,,' at ,,,
+#FORMATS
+salary -- F8.2
+jobcat -- F8.2
+bdate -- F8.2
+minority -- F8.2
+prevexp -- F8.2
+gender -- A1
+salbegin -- F8.2
+jobtime -- F8.2
+educ -- F8.2
+id -- F8.2
+#MEASURELEVELS
+salary -- unknown
+jobcat -- unknown
+bdate -- unknown
+minority -- unknown
+prevexp -- unknown
+gender -- unknown
+salbegin -- unknown
+jobtime -- unknown
+educ -- unknown
+id -- unknown
+#MISSINGVALUES
+gender: values -- x
+educ: values -- 1.0, 2.0, 3.0
+#MULTRESPDEFS
+#VALUELABELS
+#VARATTRIBUTES
+salary: DemographicVars -- 1
+gender: Binary -- Yes
+educ: DemographicVars -- 1
+jobcat: DemographicVars -- 1
+#VARLABELS
+gender -- guys/gals
+#VARNAMES
+id
+gender
+bdate
+educ
+jobcat
+salary
+salbegin
+jobtime
+prevexp
+minority
+#VARROLES
+salary -- input
+jobcat -- input
+bdate -- input
+minority -- input
+prevexp -- input
+gender -- input
+salbegin -- input
+jobtime -- input
+educ -- input
+id -- input
+#VARSETS
+SALARY -- salbegin, salary
+DEMOGR -- gender, minority, educ
+#VARTYPES
+salary -- 0
+jobcat -- 0
+bdate -- 0
+minority -- 0
+prevexp -- 0
+gender -- 1
+salbegin -- 0
+jobtime -- 0
+educ -- 0
+id -- 0
+
+# clean up
+>>> os.remove(os.path.abspath(savFileName))
+
+

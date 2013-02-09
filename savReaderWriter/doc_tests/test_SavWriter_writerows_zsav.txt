@@ -1,0 +1,27 @@
+##############################################################################
+## Write a file, in zsav compressed format
+##############################################################################
+
+>>> import doctest
+>>> import os
+>>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> from savReaderWriter import *   # doctest: +ELLIPSIS
+
+## ----- Write many rows
+>>> savFileName = "test2.zsav"  # .zsav = zlib compressed (--> v21 libs)
+>>> records = [['Test1', 1, 1, '2010-08-11'], ['Test2', 2, 1, '1910-01-12']]
+>>> varNames = ['var1', 'var2', 'var3', 'bdate']
+>>> varTypes = {'var1': 50, 'var2': 0, 'var3': 0, 'bdate': 10}
+>>> with SavWriter(savFileName, varNames, varTypes) as sav:
+...     sav.writerows(records)
+...     print "Done! %s" % sav.savFileName
+Done! test2.zsav
+
+# read it back in
+>>> reader = SavReader(savFileName)  # doctest: +ELLIPSIS
+,,,
+>>> records_out = [line for line in iter(reader)]
+>>> reader.close()
+>>> print records_out == records  # doctest: +NORMALIZE_WHITESPACE
+True
+>>> os.remove(os.path.abspath(savFileName))

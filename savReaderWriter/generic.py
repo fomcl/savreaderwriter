@@ -150,8 +150,9 @@ class Generic(object):
         fdopen.argtypes = [c_int, c_char_p]
         fdopen.restype = c_void_p
         fdopen.errcheck = self.errcheck
-        with open(savFileName, mode) as f:
-            self.fd = fdopen(f.fileno(), mode)
+        mode_ = "wb" if mode == "cp" else mode
+        with open(savFileName, mode_) as f:
+            self.fd = fdopen(f.fileno(), mode_)
         if mode == "rb":
             spssOpen = self.spssio.spssOpenRead
         elif mode == "wb":

@@ -1,0 +1,87 @@
+##############################################################################
+## Write a file in utf8 mode aka unicode mode
+##############################################################################
+
+>>> import doctest
+>>> import os
+>>> import pprint
+>>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> from savReaderWriter import *   # doctest: +ELLIPSIS
+
+,,,
+## ... check if non-ascii encodings work well
+## ... notice the use of 'ioUtf8'
+## ... source: http://www.omniglot.com/language/phrases/hello.htm
+>>> greetings = [
+...     ['Arabic', u'\u0627\u0644\u0633\u0644\u0627\u0645\u0020\u0639\u0644\u064a\u0643\u0645'],
+...     ['Assamese', u'\u09a8\u09ae\u09b8\u09cd\u0995\u09be\u09f0'],
+...     ['Bengali', u'\u0986\u09b8\u09b8\u09be\u09b2\u09be\u09ae\u09c1\u0986\u09b2\u09be\u0987\u0995\u09c1\u09ae'],
+...     ['English', u'Greetings and salutations'],
+...     ['Georgian', u'\u10d2\u10d0\u10db\u10d0\u10e0\u10ef\u10dd\u10d1\u10d0'],
+...     ['Kazakh', u'\u0421\u04d9\u043b\u0435\u043c\u0435\u0442\u0441\u0456\u0437 \u0431\u0435'],
+...     ['Russian', u'\u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439\u0442\u0435'],
+...     ['Spanish', u'\xa1Hola!'],
+...     ['Swiss German', u'Gr\xfcezi'],
+...     ['Thai', u'\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35'],
+...     ['Walloon', u'Bondjo\xfb'],
+...     ]
+>>> savFileName = "greetings.sav"
+>>> varNames = [u'Bondjo\xfb', 'greeting']
+>>> varTypes = {u'Bondjo\xfb': 20, 'greeting': 50}
+>>> valueLabels = {u'Bondjo\xfb': {'Thai': u'\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35'}}
+>>> missingValues = {u'Bondjo\xfb': {'values': u'\xa1Hola!'}}
+>>> varLabels = {'greeting': u'\u0627\u0644\u0633\u0644\u0627\u0645\u0020\u0639\u0644\u064a\u0643\u0645'}
+>>> with SavWriter(savFileName, varNames, varTypes, valueLabels, varLabels,
+...                missingValues=missingValues, ioUtf8=True) as sav:
+...     sav.writerows(greetings)
+
+
+# read the file back in ---> error/nuisance with null bytes!!
+# BUG: the null bytes are supposed to be stripped or replaced with space!
+>>> with SavReader("greetings.sav", ioUtf8=True)as sav:   # doctest: +ELLIPSIS
+...     for line in sav:
+...         #print repr(line[1].rstrip("\x00"))
+...         print line 
+,,,
+[u'Arabic              ', u'\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064a\u0643\u0645\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00']
+[u'Assamese            ', u'\u09a8\u09ae\u09b8\u09cd\u0995\u09be\u09f0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00']
+[u'Bengali             ', u'\u0986\u09b8\u09b8\u09be\u09b2\u09be\u09ae\u09c1\u0986\u09b2\u09be\u0987\u0995\u09c1\u09ae\x00\x00\x00\x00\x00']
+[u'English             ', u'Greetings and salutations\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00']
+[u'Georgian            ', u'\u10d2\u10d0\u10db\u10d0\u10e0\u10ef\u10dd\u10d1\u10d0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00']
+[u'Kazakh              ', u'\u0421\u04d9\u043b\u0435\u043c\u0435\u0442\u0441\u0456\u0437 \u0431\u0435\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00']
+[u'Russian             ', u'\u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439\u0442\u0435\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00']
+[u'Spanish             ', u'\xa1Hola!\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00']
+[u'Swiss German        ', u'Gr\xfcezi\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00']
+[u'Thai                ', u'\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00']
+[u'Walloon             ', u'Bondjo\xfb\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00']
+
+
+# check the header info
+>>> with SavHeaderReader(savFileName, ioUtf8=True)as spssDict:
+...     wholeDict = spssDict.dataDictionary()
+...     pprint.pprint(wholeDict)  # doctest: +ELLIPSIS
+,,,
+{u'alignments': {u'Bondjo\xfb': u'left', u'greeting': u'left'},
+ u'caseWeightVar': u'',
+ u'columnWidths': {u'Bondjo\xfb': 20, u'greeting': 50},
+ u'fileAttributes': {},
+ u'fileLabel': u"File created by user ',,,' at ,,,",
+ u'formats': {u'Bondjo\xfb': u'A20', u'greeting': u'A50'},
+ u'measureLevels': {u'Bondjo\xfb': u'unknown', u'greeting': u'unknown'},
+ u'missingValues': {u'Bondjo\xfb': {u'values': [u'\xa1Hola! ']},
+                    u'greeting': {}},
+ u'multRespDefs': {},
+ u'valueLabels': {u'Bondjo\xfb': {u'Thai                ': u'\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35'}},
+ u'varAttributes': {},
+ u'varLabels': {u'Bondjo\xfb': u'',
+                u'greeting': u'\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064a\u0643\u0645'},
+ u'varNames': [u'Bondjo\xfb', u'greeting'],
+ u'varRoles': {u'Bondjo\xfb': u'input', u'greeting': u'input'},
+ u'varSets': {},
+ u'varTypes': {u'Bondjo\xfb': 20, u'greeting': 50}}
+
+
+# clean up
+>>> os.remove(os.path.abspath(savFileName))
+
+

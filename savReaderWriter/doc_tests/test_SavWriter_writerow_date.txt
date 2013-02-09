@@ -1,0 +1,52 @@
+##############################################################################
+## Write a file, incl. SPSS date values
+##############################################################################
+
+>>> import doctest
+>>> import os
+>>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> from savReaderWriter import *   # doctest: +ELLIPSIS
+
+## ----- Write one row
+# var1 is a 5-char string var, the others are numerical:
+# formats, varLabels, valueLabels, missingValues etc. may also be None (default).
+# This also shows how date fields can be converted into spss dates.
+# Spss dates are *stored* as the number of seconds since Oct 14, 1582, but
+# *displayed* as <format>. In this case they are displayed as EDATE
+# (European date, cf. ADATE = American date), ie. as dd.mm.yyyy
+
+>>> records = [['Test1', 1, 1, '2010-08-11'], ['Test2', 2, 1, '1910-01-12']]
+>>> varNames = ['var1', 'v2', 'v3', 'bdate']
+>>> varTypes = {'var1': 41, 'v2': 0, 'v3': 0, 'bdate': 0}
+>>> formats = {'var1': 'A41', 'v2': 'F3.1', 'v3': 'F5.1', 'bdate': 'EDATE40'}
+>>> missingValues = {'var1': {'values': ['Test1', 'Test2']},
+...                  'v2': {'values': 1}}
+>>> varLabels = {'var1': 'This is variable 1',
+...              'v2': 'This is v2!',
+...              'bdate': 'dob'}
+>>> valueLabels = {'var1': {'Test1': 'Test1 value label',
+...                         'Test2': 'Test2 value label'},
+...                'v2': {1: 'yes', 2: 'no'}}
+>>> savFileName = "test1.sav"
+>>> with SavWriter(savFileName, varNames, varTypes,
+...                valueLabels, varLabels, formats) as sav:
+...     pos = varNames.index("bdate")
+...     for record in records:
+...         record[pos] = sav.spssDateTime(record[pos], "%Y-%m-%d")
+...         print record
+...         sav.writerow(record)
+...     print "Done! %s" % sav.savFileName
+['Test1', 1, 1, 13500864000.0]
+['Test2', 2, 1, 10326873600.0]
+Done! test1.sav
+
+# read it back in in rawMode (dates not converted to ISO-dates)
+>>> reader = SavReader(savFileName, rawMode=True)  # doctest: +ELLIPSIS
+,,,
+>>> records_out = [line for line in iter(reader)]
+>>> reader.close()
+>>> print records_out == records  # doctest: +NORMALIZE_WHITESPACE
+True
+>>> os.remove(os.path.abspath(savFileName))
+
+
