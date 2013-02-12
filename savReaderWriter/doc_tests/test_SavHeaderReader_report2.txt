@@ -1,0 +1,143 @@
+##############################################################################
+## Print a report of the header information
+##############################################################################
+
+>>> import doctest
+>>> from savReaderWriter import *
+>>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> savFileName = "../test_data/Employee data.sav"
+>>> with SavHeaderReader(savFileName) as spssDict: # doctest: +ELLIPSIS
+...     print unicode(spssDict)
+...     wholeDict = spssDict.dataDictionary()
+...
+,,,
+#ALIGNMENTS
+salary -- right
+jobcat -- right
+bdate -- right
+minority -- right
+prevexp -- right
+gender -- left
+salbegin -- right
+jobtime -- right
+educ -- right
+id -- right
+#CASEWEIGHTVAR
+#COLUMNWIDTHS
+salary -- 8
+jobcat -- 8
+bdate -- 13
+minority -- 8
+prevexp -- 8
+gender -- 1
+salbegin -- 8
+jobtime -- 8
+educ -- 8
+id -- 8
+#FILEATTRIBUTES
+#FILELABEL
+05.00.00
+#FORMATS
+salary -- DOLLAR8
+jobcat -- F1
+bdate -- ADATE10
+minority -- F1
+prevexp -- F6
+gender -- A1
+salbegin -- DOLLAR8
+jobtime -- F2
+educ -- F2
+id -- F4
+#MEASURELEVELS
+salary -- ratio
+jobcat -- ordinal
+bdate -- ratio
+minority -- ordinal
+prevexp -- ratio
+gender -- nominal
+salbegin -- ratio
+jobtime -- ratio
+educ -- ordinal
+id -- ratio
+#MISSINGVALUES
+salary: values -- 0.0
+jobcat: values -- 0.0
+minority: values -- 9.0
+salbegin: values -- 0.0
+jobtime: values -- 0.0
+educ: values -- 0.0
+#MULTRESPDEFS
+#VALUELABELS
+salary: 0.0 -- missing
+jobcat: 0.0 -- 0 (Missing)
+jobcat: 1.0 -- Clerical
+jobcat: 2.0 -- Custodial
+jobcat: 3.0 -- Manager
+salbegin: 0.0 -- missing
+minority: 0.0 -- No
+minority: 1.0 -- Yes
+minority: 9.0 -- 9 (Missing)
+prevexp: 0.0 -- missing
+gender: f -- Female
+gender: m -- Male
+jobtime: 0.0 -- missing
+educ: 0.0 -- 0 (Missing)
+educ: 8.0 -- 8
+educ: 12.0 -- 12
+educ: 14.0 -- 14
+educ: 15.0 -- 15
+educ: 16.0 -- 16
+educ: 17.0 -- 17
+educ: 18.0 -- 18
+educ: 19.0 -- 19
+educ: 20.0 -- 20
+educ: 21.0 -- 21
+#VARATTRIBUTES
+#VARLABELS
+salary -- Current Salary
+jobcat -- Employment Category
+bdate -- Date of Birth
+minority -- Minority Classification
+prevexp -- Previous Experience (months)
+gender -- Gender
+salbegin -- Beginning Salary
+jobtime -- Months since Hire
+educ -- Educational Level (years)
+id -- Employee Code
+#VARNAMES
+id
+gender
+bdate
+educ
+jobcat
+salary
+salbegin
+jobtime
+prevexp
+minority
+#VARROLES
+salary -- input
+jobcat -- input
+bdate -- input
+minority -- input
+prevexp -- input
+gender -- input
+salbegin -- input
+jobtime -- input
+educ -- input
+id -- input
+#VARSETS
+SALARY -- salbegin, salary
+DEMOGR -- gender, minority, educ
+#VARTYPES
+salary -- 0
+jobcat -- 0
+bdate -- 0
+minority -- 0
+prevexp -- 0
+gender -- 1
+salbegin -- 0
+jobtime -- 0
+educ -- 0
+id -- 0
+,,,

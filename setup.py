@@ -2,9 +2,16 @@
 # -*- coding: utf-8 -*-
 
 # python setup.py sdist --formats=gztar,zip bdist --formats=rpm,wininst
-from distutils.core import setup
-import os.path
+#from distutils.core import setup
+
+import os
 import shutil
+import sys
+
+sys.path.append(os.path.abspath("."))
+from ez_setup import use_setuptools
+use_setuptools()
+from setuptools import setup
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read().strip()
@@ -21,7 +28,7 @@ setup(name='savReaderWriter',
       license='MIT',
       long_description=read('README'),
       platforms=['Windows', 'Mac', 'Linux/POSIX'],
-      url='https://bitbucket.org/fomcl/savReaderWriter',
+      url='https://bitbucket.org/fomcl/savreaderwriter',
       packages=['savReaderWriter'],
       package_data={'savReaderWriter': ['spssio/include/*.*',
                                         'spssio/win64/*.*',
@@ -37,6 +44,7 @@ setup(name='savReaderWriter',
                                         'spssio/license/*.*',
                                         'cWriterow/*.*',
                                         'documentation/*',
+                                        '/doc_tests/*.*',
                                         'README','VERSION', 
                                         'TODO', 'COPYRIGHT']},
       classifiers=['Development Status :: 4 - Beta',

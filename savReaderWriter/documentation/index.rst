@@ -13,7 +13,8 @@ Welcome to savReaderWriter's documentation!
 
 .. _`IBM SPSS Statistics Command Syntax Reference.pdf`: ftp://public.dhe.ibm.com/software/analytics/spss/documentation/statistics/20.0/en/client/Manuals/IBM_SPSS_Statistics_Command_Syntax_Reference.pdf
 .. _`International License Agreement`: ../../../spssio/license/LA_en
-In the documentation below, the associated SPSS commands are given in ``CAPS``. 
+
+In the documentation below, the associated SPSS commands are given in ``CAPS``.
 See also the `IBM SPSS Statistics Command Syntax Reference.pdf`_ for info about SPSS syntax.
 
 .. note::
@@ -27,9 +28,14 @@ See also the `IBM SPSS Statistics Command Syntax Reference.pdf`_ for info about 
 Installation
 ============================================================================
 
-This program works for Linux (incl. z/Linux), Windows, MacOS (32 and 64 bit), AIX-64, HP-UX and Solaris-64.
-However, it has only been tested on Linux 32 (Ubuntu and Mint), Windows (mostly on Windows XP 32, but also a few times on Windows 7 64),
-and MacOS (with an earlier version of savReaderWriter). The other OSs are entirely untested. 
+This program works for Linux (incl. z/Linux), Windows, MacOS (32 and 64 bit), AIX-64, HP-UX and Solaris-64. However, it has only been tested on Linux 32 (Ubuntu and Mint), Windows (mostly on Windows XP 32, but also a few times on Windows 7 64), and MacOS (with an earlier version of savReaderWriter). The other OSs are entirely untested. The program can be installed by running::
+
+    python setup.py install
+
+The ``cWriterow`` package is a faster Cython implementation of the pyWriterow method. To install it, you need Cython and run ``setup.py`` in the ``cWriterow`` folder::
+
+    easy_install cython
+    python setup.py build_ext --inplace
 
 Windows
 ------------------------------------------------------------------------------
@@ -54,6 +60,10 @@ A minimal wrapper would contain something like::
     with savReader("someFile.sav") as reader:
         for line in reader:
             pass
+
+.. note::
+
+    More code examples can be found in the ``doc_tests`` folder
 
 You may also add the 'export' line to your ``.bashrc`` file::
 
@@ -149,6 +159,10 @@ Typical use::
         for record in records:
             sav.writerow(record)
 
+.. note::
+
+    More code examples can be found in the ``doc_tests`` folder
+
 :mod:`SavReader` -- Read Spss system files
 ============================================================================
 .. function:: SavReader(savFileName, [returnHeader=False, recodeSysmisTo=None,                 verbose=False, selectVars=None, idVar=None, rawMode=False, ioUtf8=False, ioLocale=None])
@@ -175,7 +189,7 @@ Typical use::
 
 .. warning::
 
-   Once a file is open, ioUtf8 and ioLocale can not be changed. The same applies after a file could not be successfully closed
+   Once a file is open, ``ioUtf8`` and ``ioLocale`` can not be changed. The same applies after a file could not be successfully closed. Always ensure a file is closed by calling ``__exit__()`` (i.e., using a context manager) or ``close()`` (in a ``try - finally`` suite)
 
 Typical use::
     
@@ -202,6 +216,10 @@ Use of __getitem__ and other methods		::
     finally:
         reader.close()
 
+.. note::
+
+    More code examples can be found in the ``doc_tests`` folder
+
 :mod:`SavHeaderReader` -- Read Spss file meta data
 ============================================================================
 .. function:: SavHeaderReader(savFileName[, ioUtf8=False, ioLocale=None])
@@ -225,7 +243,9 @@ Typical use::
         wholeDict = spssDict.dataDictionary()
         print unicode(spssDict)
 
+.. note::
 
+    More code examples can be found in the ``doc_tests`` folder
 
 Indices and tables
 ==================

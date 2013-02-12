@@ -7,6 +7,8 @@
 >>> doctest.ELLIPSIS_MARKER = ",,,"
 >>> from savReaderWriter import *   # doctest: +ELLIPSIS
 
+,,,
+
 ## ----- Write one row
 # var1 is a 5-char string var, the others are numerical:
 # formats, varLabels, valueLabels, missingValues etc. may also be None (default).
@@ -41,12 +43,16 @@
 Done! test1.sav
 
 # read it back in in rawMode (dates not converted to ISO-dates)
->>> reader = SavReader(savFileName, rawMode=True)  # doctest: +ELLIPSIS
+>>> try:
+...     reader = SavReader(savFileName, rawMode=True)  # doctest: +ELLIPSIS
+...     records_out = [line for line in iter(reader)]
+... finally:
+...     reader.close()
 ,,,
->>> records_out = [line for line in iter(reader)]
->>> reader.close()
 >>> print records_out == records  # doctest: +NORMALIZE_WHITESPACE
 True
+
+# clean up
 >>> os.remove(os.path.abspath(savFileName))
 
 
