@@ -1,0 +1,36 @@
+##############################################################################
+## Write a file, typical use
+##############################################################################
+
+>>> import doctest
+>>> import os
+>>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> from savReaderWriter import *   # doctest: +ELLIPSIS
+
+,,,
+
+## ----- Typical use
+>>> records = [['Test1', 1, 1, '2010-08-11'], ['Test2', 2, 1, '1910-01-12']]
+>>> varNames = ['var1', 'v2', 'v3', 'bdate']
+>>> varTypes = {'var1': 6, 'v2': 0, 'v3': 0, 'bdate': 10}
+>>> savFileName = "test.sav"
+>>> with SavWriter(savFileName, varNames, varTypes) as sav:
+...     for record in records:
+...         sav.writerow(record)
+...     print "Done! %s" % sav.savFileName
+Done! test.sav
+
+# read it back in
+>>> try:
+...     reader = SavReader(savFileName)  # doctest: +ELLIPSIS
+...     records_out = [line for line in iter(reader)]
+... finally:
+...     reader.close()
+,,,
+>>> print records_out == records
+True
+
+# clean up
+>>> os.remove(os.path.abspath(savFileName))
+
+
