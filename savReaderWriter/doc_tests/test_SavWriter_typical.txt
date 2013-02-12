@@ -1,5 +1,5 @@
 ##############################################################################
-## Write a file, in zsav compressed format
+## Write a file, typical use
 ##############################################################################
 
 >>> import doctest
@@ -9,23 +9,28 @@
 
 ,,,
 
-## ----- Write many rows
->>> savFileName = "test2.zsav"  # .zsav = zlib compressed (--> v21 libs)
+## ----- Typical use
 >>> records = [['Test1', 1, 1, '2010-08-11'], ['Test2', 2, 1, '1910-01-12']]
->>> varNames = ['var1', 'var2', 'var3', 'bdate']
->>> varTypes = {'var1': 50, 'var2': 0, 'var3': 0, 'bdate': 10}
+>>> varNames = ['var1', 'v2', 'v3', 'bdate']
+>>> varTypes = {'var1': 6, 'v2': 0, 'v3': 0, 'bdate': 10}
+>>> savFileName = "test.sav"
 >>> with SavWriter(savFileName, varNames, varTypes) as sav:
-...     sav.writerows(records)
+...     for record in records:
+...         sav.writerow(record)
 ...     print "Done! %s" % sav.savFileName
-Done! test2.zsav
+Done! test.sav
 
 # read it back in
->>> reader = SavReader(savFileName)  # doctest: +ELLIPSIS
+>>> try:
+...     reader = SavReader(savFileName)  # doctest: +ELLIPSIS
+...     records_out = [line for line in iter(reader)]
+... finally:
+...     reader.close()
 ,,,
->>> records_out = [line for line in iter(reader)]
->>> reader.close()
 >>> print records_out == records  # doctest: +NORMALIZE_WHITESPACE
 True
 
 # clean up
 >>> os.remove(os.path.abspath(savFileName))
+
+

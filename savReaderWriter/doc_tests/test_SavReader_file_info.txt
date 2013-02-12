@@ -2,10 +2,12 @@
 ## Read a file and get some basic file info
 ##############################################################################
 
->>> import doctest
 >>> import pprint
->>> from savReaderWriter import *
+>>> import doctest
 >>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> from savReaderWriter import *
+
+,,,
 
 ## ... Get some basic file info
 >>> savFileName = "../test_data/Employee data.sav"
