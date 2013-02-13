@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # python setup.py sdist --formats=gztar,zip bdist --formats=rpm,wininst
+# sudo python setup.py register -r https://testpypi.python.org/pypi sdist --formats=gztar bdist --formats=egg upload -r https://testpypi.python.org/pypi
+
 #from distutils.core import setup
 
 import os
@@ -44,7 +46,8 @@ setup(name='savReaderWriter',
                                         'spssio/license/*.*',
                                         'cWriterow/*.*',
                                         'documentation/*',
-                                        '/doc_tests/*.*',
+                                        'doc_tests/*.*',
+                                        'test_data/*.*',
                                         'README','VERSION', 
                                         'TODO', 'COPYRIGHT']},
       classifiers=['Development Status :: 4 - Beta',
