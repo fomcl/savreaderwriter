@@ -4,13 +4,11 @@
 # python setup.py sdist --formats=gztar,zip bdist --formats=rpm,wininst
 # sudo python setup.py register -r https://testpypi.python.org/pypi sdist --formats=gztar bdist --formats=egg upload -r https://testpypi.python.org/pypi
 
-#from distutils.core import setup
-
 import os
 import shutil
 import sys
 
-sys.path.append(os.path.abspath("."))
+sys.path.append(os.path.dirname(__file__))
 from ez_setup import use_setuptools
 use_setuptools()
 from setuptools import setup
@@ -29,8 +27,13 @@ setup(name='savReaderWriter',
       maintainer_email=email,
       license='MIT',
       long_description=read('README'),
+      zip_safe=False,
       platforms=['Windows', 'Mac', 'Linux/POSIX'],
       url='https://bitbucket.org/fomcl/savreaderwriter',
+      download_url='https://bitbucket.org/fomcl/savreaderwriter/downloads',
+      extras_require={'fastReading': ["psyco"],
+                      'arraySlicing': ["numpy"],
+                      'fastWriting': ["Cython"],},
       packages=['savReaderWriter'],
       package_data={'savReaderWriter': ['spssio/include/*.*',
                                         'spssio/win64/*.*',
@@ -39,11 +42,11 @@ setup(name='savReaderWriter',
                                         'spssio/sol64/*.*',
                                         'spssio/lin32/*.*',
                                         'spssio/lin64/*.*',
-                                        'spssio/documents/*.*',
+                                        'spssio/documents/*',
                                         'spssio/hpux_it/*.*',
                                         'spssio/zlinux64/*.*',
                                         'spssio/aix64/*.*',
-                                        'spssio/license/*.*',
+                                        'spssio/license/*',
                                         'cWriterow/*.*',
                                         'documentation/*',
                                         'doc_tests/*.*',

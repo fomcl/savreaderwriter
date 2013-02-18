@@ -12,7 +12,7 @@ Welcome to savReaderWriter's documentation!
 .. moduleauthor:: Albert-Jan Roskam <fomcl@yahoo.com>
 
 .. _`IBM SPSS Statistics Command Syntax Reference.pdf`: ftp://public.dhe.ibm.com/software/analytics/spss/documentation/statistics/20.0/en/client/Manuals/IBM_SPSS_Statistics_Command_Syntax_Reference.pdf
-.. _`International License Agreement`: ../../../spssio/license/LA_en
+.. _`International License Agreement`: ./LA_en
 
 In the documentation below, the associated SPSS commands are given in ``CAPS``.
 See also the `IBM SPSS Statistics Command Syntax Reference.pdf`_ for info about SPSS syntax.

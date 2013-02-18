@@ -2,7 +2,7 @@ recursive-include savReaderWriter/cWriterow *.*
 recursive-include savReaderWriter/documentation *.*
 recursive-include savReaderWriter/doc_tests *.*
 recursive-include savReaderWriter/test_data *.*
-recursive-include savReaderWriter/spssio *.*
+recursive-include savReaderWriter/spssio *
 include VERSION
 include TODO
 include COPYRIGHT
