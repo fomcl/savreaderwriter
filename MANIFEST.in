@@ -1,8 +1,9 @@
-recursive-include savReaderWriter/cWriterow *.*
-recursive-include savReaderWriter/documentation *.*
-recursive-include savReaderWriter/doc_tests *.*
-recursive-include savReaderWriter/test_data *.*
-recursive-include savReaderWriter/spssio *
+graft savReaderWriter/cWriterow
+graft savReaderWriter/documentation
+graft savReaderWriter/doc_tests
+graft savReaderWriter/test_data
+graft savReaderWriter/spssio 
+include ez_setup.py
 include VERSION
 include TODO
 include COPYRIGHT

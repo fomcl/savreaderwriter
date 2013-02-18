@@ -7,14 +7,79 @@
 import os
 import shutil
 import sys
+import platform
 
-sys.path.append(os.path.dirname(__file__))
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from ez_setup import use_setuptools
 use_setuptools()
 from setuptools import setup
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read().strip()
+
+#####
+## Set package_data values, depending on install/build
+#####
+args = sys.argv
+is_32bit = platform.architecture()[0] == "32bit"
+is_install_mode = 'install' in args
+is_msi32 = 'bdist' in args and not 'sdist' in args and '--formats=wininst' in args
+is_rpm32 = 'bdist' in args and not 'sdist' in args and '--formats=rpm' in args  
+pf = sys.platform.lower()
+
+## This is included in every platform
+package_data = {'savReaderWriter': ['spssio/include/*.*',
+                                    'spssio/documents/*',
+                                    'spssio/license/*',
+                                    'cWriterow/*.*',
+                                    'documentation/*',
+                                    'doc_tests/*.*',
+                                    'test_data/*.*',
+                                    'README','VERSION', 
+                                    'TODO', 'COPYRIGHT']}
+
+## *installing* the package: install only platform-relevant libraries
+if is_install_mode:             
+    if pf.startswith("win") and is_32bit:
+        package_data['savReaderWriter'].append('spssio/win32/*.*')
+    elif pf.startswith("win"):
+        package_data['savReaderWriter'].append('spssio/win64/*.*')
+    # How to recognize zLinux (IBM System Z)???
+    elif pf.startswith("lin") and is_32bit:
+        package_data['savReaderWriter'].append('spssio/lin32/*.*')
+    elif pf.startswith("lin"):
+        package_data['savReaderWriter'].append('spssio/lin64/*.*')
+    elif pf.startswith("darwin") or pf.startswith("mac"):
+        package_data['savReaderWriter'].append('spssio/macos/*.*')
+    elif pf.startswith("aix") and not is_32bit:
+        package_data['savReaderWriter'].append('spssio/aix64/*.*')
+    elif pf.startswith("hp-ux"):
+        package_data['savReaderWriter'].append('spssio/hp-ux/*.*')
+    elif pf.startswith("sunos") and not is_32bit:
+        package_data['savReaderWriter'].append('spssio/sol64/*.*')
+    else:
+        msg = "Your platform (%r) is not supported" % pf
+        raise NotImplementedError(msg)
+
+## Two 'light-weight' binary distributions
+elif is_rpm32:
+    package_data['savReaderWriter'].append('spssio/lin32/*.*')
+
+elif is_msi32:
+    package_data['savReaderWriter'].append('spssio/win32/*.*')
+
+## *building* the package: include all the libraries
+## It would be cooler to include only DLLs for msi bdists, SOs for RPM bdists
+else: 
+    package_data['savReaderWriter'].extend(['spssio/win64/*.*',
+                                            'spssio/macos/*.*',
+                                            'spssio/win32/*.*',
+                                            'spssio/sol64/*.*',
+                                            'spssio/lin32/*.*',
+                                            'spssio/lin64/*.*',
+                                            'spssio/hpux_it/*.*',
+                                            'spssio/zlinux64/*.*',
+                                            'spssio/aix64/*.*'])
 
 email = "@".join(["fomcl", "yahoo.com"])
 
@@ -35,24 +100,7 @@ setup(name='savReaderWriter',
                       'arraySlicing': ["numpy"],
                       'fastWriting': ["Cython"],},
       packages=['savReaderWriter'],
-      package_data={'savReaderWriter': ['spssio/include/*.*',
-                                        'spssio/win64/*.*',
-                                        'spssio/macos/*.*',
-                                        'spssio/win32/*.*',
-                                        'spssio/sol64/*.*',
-                                        'spssio/lin32/*.*',
-                                        'spssio/lin64/*.*',
-                                        'spssio/documents/*',
-                                        'spssio/hpux_it/*.*',
-                                        'spssio/zlinux64/*.*',
-                                        'spssio/aix64/*.*',
-                                        'spssio/license/*',
-                                        'cWriterow/*.*',
-                                        'documentation/*',
-                                        'doc_tests/*.*',
-                                        'test_data/*.*',
-                                        'README','VERSION', 
-                                        'TODO', 'COPYRIGHT']},
+      package_data=package_data,
       classifiers=['Development Status :: 4 - Beta',
                    'Intended Audience :: Developers',
                    'License :: OSI Approved :: MIT License',
