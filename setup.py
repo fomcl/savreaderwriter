@@ -23,8 +23,9 @@ def read(fname):
 args = sys.argv
 is_32bit = platform.architecture()[0] == "32bit"
 is_install_mode = 'install' in args
-is_msi32 = 'bdist' in args and not 'sdist' in args and '--formats=wininst' in args
-is_rpm32 = 'bdist' in args and not 'sdist' in args and '--formats=rpm' in args  
+is_only_bdist = 'bdist' in args and not 'sdist' in args
+is_msi32 = is_only_bdist and '--formats=wininst' in args
+is_rpm32 = is_only_bdist and '--formats=rpm' in args  
 pf = sys.platform.lower()
 
 ## This is included in every platform
@@ -69,7 +70,6 @@ elif is_msi32:
     package_data['savReaderWriter'].append('spssio/win32/*.*')
 
 ## *building* the package: include all the libraries
-## It would be cooler to include only DLLs for msi bdists, SOs for RPM bdists
 else: 
     package_data['savReaderWriter'].extend(['spssio/win64/*.*',
                                             'spssio/macos/*.*',
