@@ -2,7 +2,13 @@
 # -*- coding: utf-8 -*-
 
 # python setup.py sdist --formats=gztar,zip bdist --formats=rpm,wininst
-# sudo python setup.py register -r https://testpypi.python.org/pypi sdist --formats=gztar bdist --formats=egg upload -r https://testpypi.python.org/pypi
+# sudo python setup.py register -r https://testpypi.python.org/pypi sdist --formats=gztar upload -r https://testpypi.python.org/pypi
+# sudo python setup.py check build_sphinx --source-dir=savReaderWriter/documentation -v
+# sudo python setup.py check upload_sphinx --upload-dir=build/sphinx/html
+#cd /home/antonia/Desktop/savReaderWriter/dist
+#sudo py2dsc savReaderWriter-3.1.2b.tar.gz
+#cd deb_dist/savreaderwriter-3.1.2b/
+#sudo dpkg-buildpackage -rfakeroot -uc -us
 
 import os
 import shutil
@@ -21,11 +27,13 @@ def read(fname):
 ## Set package_data values, depending on install/build
 #####
 args = sys.argv
+
 is_32bit = platform.architecture()[0] == "32bit"
 is_install_mode = 'install' in args
 is_only_bdist = 'bdist' in args and not 'sdist' in args
 is_msi32 = is_only_bdist and '--formats=wininst' in args
-is_rpm32 = is_only_bdist and '--formats=rpm' in args  
+is_rpm32 = is_only_bdist and '--formats=rpm' in args
+is_deb = args[-2:] == ['--command-packages=stdeb.command', 'bdist_deb']
 pf = sys.platform.lower()
 
 ## This is included in every platform
@@ -63,7 +71,7 @@ if is_install_mode:
         raise NotImplementedError(msg)
 
 ## Two 'light-weight' binary distributions
-elif is_rpm32:
+elif is_rpm32 or is_deb:
     package_data['savReaderWriter'].append('spssio/lin32/*.*')
 
 elif is_msi32:

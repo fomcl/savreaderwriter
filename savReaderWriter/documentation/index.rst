@@ -32,6 +32,10 @@ This program works for Linux (incl. z/Linux), Windows, MacOS (32 and 64 bit), AI
 
     python setup.py install
 
+Or alternatively::
+
+    pip install savReaderWriter
+
 The ``cWriterow`` package is a faster Cython implementation of the pyWriterow method. To install it, you need Cython and run ``setup.py`` in the ``cWriterow`` folder::
 
     easy_install cython
