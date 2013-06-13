@@ -1,0 +1,87 @@
+##############################################################################
+## Write multiple response definitions
+##############################################################################
+
+>>> import doctest
+>>> reload(doctest)   # doctest: +ELLIPSIS
+<module 'doctest' from '.../doctest.pyc'>
+>>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> import os
+>>> import pprint
+>>> import tempfile
+>>> from savReaderWriter import *   # doctest: +ELLIPSIS
+
+,,,
+
+# preparare some data
+>>> records = [['Test1', 1, 1, 'Yes', 'No'], ['Test2', 2, 1, 'No', 'Yes']]
+>>> varNames = ['v1', 'v2', 'v3', 'yn', 'yeah']
+>>> varTypes = {'v1': 5, 'v2': 0, 'v3': 0, 'yn': 3, 'yeah': 3}
+>>> savFileName = os.path.join(tempfile.gettempdir(), 'test.sav')
+>>> def checkMultRespDefs(savFileName):
+...     with SavHeaderReader(savFileName) as spssDict:
+...         wholeDict = spssDict.dataDictionary()
+...         pprint.pprint(wholeDict['multRespDefs'])
+
+###########
+# Categorical sets
+###########
+# Was already ok
+>>> categorical = {'setType': 'C', 'label': 'labelC',  'varNames': ['v2', 'v3']}
+>>> multRespDefs = dict(categorical=categorical)
+>>> kwargs = dict(savFileName=savFileName, varNames=varNames,
+...               varTypes=varTypes, multRespDefs=multRespDefs)
+>>> with SavWriter(**kwargs) as writer:
+...     writer.writerows(records)
+>>> checkMultRespDefs(savFileName)  # doctest: +ELLIPSIS
+,,,
+{'categorical': {'label': 'labelC', 'setType': 'C', 'varNames': ['v2', 'v3']}}
+
+
+###########
+# Dichotomous sets
+###########
+# 2013-06-13 FIXED
+# previously "Assertion `length != 0' failed. Aborted (core dumped)"
+>>> dichotomous1 = {'setType': 'D', 'label': 'labelD',
+...                 'varNames': ['yn', 'yeah'], 'countedValue': 'Yes'}
+>>> multRespDefs = dict(dichotomous1=dichotomous1)
+>>> kwargs = dict(savFileName=savFileName, varNames=varNames,
+...               varTypes=varTypes, multRespDefs=multRespDefs)
+>>> with SavWriter(**kwargs) as writer:
+...     writer.writerows(records)
+>>> checkMultRespDefs(savFileName)  # doctest: +ELLIPSIS
+,,,
+{'dichotomous1': {'countedValue': 'Yes',
+                  'label': 'labelD',
+                  'setType': 'D',
+                  'varNames': ['yn', 'yeah']}}
+
+
+
+###########
+# Extended sets
+###########
+#TO DO: SPSS_INVALID_MRSETDEF
+>>> extended1 = {'setType': 'E', 'label': '', 'varNames': ['v1', 'v2', 'v3'],
+...              'countedValue': '1', 'firstVarIsLabel': True}
+>>> multRespDefs = dict(extended1=extended1)
+>>> kwargs = dict(savFileName=savFileName, varNames=varNames,
+...               varTypes=varTypes, multRespDefs=multRespDefs)
+>>> with SavWriter(**kwargs) as writer:  # doctest: +SKIP
+...     writer.writerows(records)
+>>> checkMultRespDefs(savFileName)  # doctest: +SKIP
+
+#TO DO: SPSS_INVALID_MRSETDEF
+>>> extended2 = {'setType': 'E', 'label': 'User specified label', 'varNames':
+...              ['v1', 'v2', 'v2'], 'countedValue': '1', 'firstVarIsLabel': False}
+>>> multRespDefs = dict(extended2=extended2)
+>>> kwargs = dict(savFileName=savFileName, varNames=varNames,
+...               varTypes=varTypes, multRespDefs=multRespDefs)
+>>> with SavWriter(**kwargs) as writer:  # doctest: +SKIP
+...     writer.writerows(records)
+>>> checkMultRespDefs(savFileName)  # doctest: +SKIP
+
+
+# clean up
+>>> os.remove(os.path.abspath(savFileName))
