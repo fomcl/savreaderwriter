@@ -892,7 +892,7 @@ class Header(Generic):
         dictionary, into a string that the IO module can use"""
         mrespDefs = []
         for setName, rest in multRespDefs.iteritems():
-            print setName, rest, rest["setType"]
+            #print setName, rest, rest["setType"]
             if rest["setType"] not in ("C", "D"):
                 continue
             rest["setName"] = setName
@@ -904,7 +904,11 @@ class Header(Generic):
             if rest["setType"] == "C":  # multiple category sets
                 template = " %%(lblLen)s %s " % tail
             else:                       # multiple dichotomy sets
-                template = " %%(countedValue)s %%(lblLen)s %s " % tail
+                # line below added/modified after Issue #4:
+                # Assertion during creating of multRespDefs
+                rest["valueLen"] = len(str(rest["countedValue"])) 
+                template = "%%(valueLen)s %%(countedValue)s %%(lblLen)s %s " \
+                           % tail
             mrespDef += template % rest
             mrespDefs.append(mrespDef)
         mrespDefs = "\n".join(mrespDefs)

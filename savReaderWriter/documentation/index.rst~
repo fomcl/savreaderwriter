@@ -12,7 +12,7 @@ Welcome to savReaderWriter's documentation!
 .. moduleauthor:: Albert-Jan Roskam <fomcl@yahoo.com>
 
 .. _`IBM SPSS Statistics Command Syntax Reference.pdf`: ftp://public.dhe.ibm.com/software/analytics/spss/documentation/statistics/20.0/en/client/Manuals/IBM_SPSS_Statistics_Command_Syntax_Reference.pdf
-.. _`International License Agreement`: ../../../spssio/license/LA_en
+.. _`International License Agreement`: ./LA_en
 
 In the documentation below, the associated SPSS commands are given in ``CAPS``.
 See also the `IBM SPSS Statistics Command Syntax Reference.pdf`_ for info about SPSS syntax.
@@ -60,6 +60,10 @@ A minimal wrapper would contain something like::
     with savReader("someFile.sav") as reader:
         for line in reader:
             pass
+
+.. note::
+
+    More code examples can be found in the ``doc_tests`` folder
 
 You may also add the 'export' line to your ``.bashrc`` file::
 
@@ -155,6 +159,10 @@ Typical use::
         for record in records:
             sav.writerow(record)
 
+.. note::
+
+    More code examples can be found in the ``doc_tests`` folder
+
 :mod:`SavReader` -- Read Spss system files
 ============================================================================
 .. function:: SavReader(savFileName, [returnHeader=False, recodeSysmisTo=None,                 verbose=False, selectVars=None, idVar=None, rawMode=False, ioUtf8=False, ioLocale=None])
@@ -207,6 +215,10 @@ Use of __getitem__ and other methods		::
         print reader.get(4, "not found")             # gets 1st record where id==4
     finally:
         reader.close()
+
+.. note::
+
+    More code examples can be found in the ``doc_tests`` folder
 
 :mod:`SavHeaderReader` -- Read Spss file meta data
 ============================================================================
