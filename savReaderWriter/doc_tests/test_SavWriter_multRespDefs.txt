@@ -58,9 +58,8 @@
                   'varNames': ['yn', 'yeah']}}
 
 
-
 ###########
-# Extended sets
+# Extended sets <------------ TO DO -------------->
 ###########
 #TO DO: SPSS_INVALID_MRSETDEF
 >>> extended1 = {'setType': 'E', 'label': '', 'varNames': ['v1', 'v2', 'v3'],
