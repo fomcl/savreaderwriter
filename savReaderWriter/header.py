@@ -862,6 +862,10 @@ class Header(Generic):
         (multiple dichotomy sets) or 'C' (multiple category sets). If setType
         is 'D', the multiple response definition also includes '"countedValue":
         countedValue'"""
+        # TODO: make this work perfectly with unicode (with e.g. Thai)
+        # --> re module is not perfect! Perhaps also use unicodedata module
+        # Alternatively, switch to regex or ponyguruma module
+        # http://stackoverflow.com/questions/1832893/python-regex-matching-unicode-properties
         regex = "\$(?P<setName>\w+)=(?P<setType>[CD])\n?"
         m = re.search(regex + ".*", mrDef, re.I | re.U)
         if not m:
@@ -887,15 +891,15 @@ class Header(Generic):
 
     def _setMultRespDefs(self, multRespDefs):
         """Set 'normal' multiple response defintions.
-        This is a helper function for the multRespDefs setter function.
+        This is a helper function for the multRespDefs setter function. 
         It translates the multiple response definition, specified as a
         dictionary, into a string that the IO module can use"""
         mrespDefs = []
         for setName, rest in multRespDefs.iteritems():
-            #print setName, rest, rest["setType"]
+            rest = self.encode(rest)
             if rest["setType"] not in ("C", "D"):
                 continue
-            rest["setName"] = setName
+            rest["setName"] = self.encode(setName)
             mrespDef = "$%(setName)s=%(setType)s" % rest
             lblLen = len(rest["label"])
             rest["lblLen"] = lblLen
@@ -906,7 +910,7 @@ class Header(Generic):
             else:                       # multiple dichotomy sets
                 # line below added/modified after Issue #4:
                 # Assertion during creating of multRespDefs
-                rest["valueLen"] = len(str(rest["countedValue"])) 
+                rest["valueLen"] = len(str(rest["countedValue"]))
                 template = "%%(valueLen)s %%(countedValue)s %%(lblLen)s %s " \
                            % tail
             mrespDef += template % rest
@@ -1044,6 +1048,7 @@ class Header(Generic):
             combinedDefs = normal
         elif extended and not normal:
             combinedDefs = extended
+        print type(combinedDefs), combinedDefs
         func = self.spssio.spssSetMultRespDefs
         retcode = func(c_int(self.fh), c_char_p(combinedDefs))
         if retcode > 0:
