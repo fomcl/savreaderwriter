@@ -2,9 +2,9 @@
 ## Read a file and use len() to get number of records (__len__)
 ##############################################################################
 
->>> import doctest
->>> from savReaderWriter import *
->>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
 
 ## ... get number of cases by using __len__
 >>> savFileName = "../test_data/Employee data.sav"
@@ -13,5 +13,4 @@
 ...     print "The file contains %d records" % len(reader)
 ... finally:
 ...     reader.close()
-,,,
 The file contains 474 records

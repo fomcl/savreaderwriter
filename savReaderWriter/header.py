@@ -74,7 +74,7 @@ class Header(Generic):
         gc.collect()
         if segfaults:
             return
-        print "... freeing" , funcName[8:]
+        #print ".. freeing" , funcName[8:]
         func = getattr(self.spssio, funcName)
         retcode = func(*args)
         if retcode > 0:
@@ -862,11 +862,7 @@ class Header(Generic):
         (multiple dichotomy sets) or 'C' (multiple category sets). If setType
         is 'D', the multiple response definition also includes '"countedValue":
         countedValue'"""
-        # TODO: make this work perfectly with unicode (with e.g. Thai)
-        # --> re module is not perfect! Perhaps also use unicodedata module
-        # Alternatively, switch to regex or ponyguruma module
-        # http://stackoverflow.com/questions/1832893/python-regex-matching-unicode-properties
-        regex = "\$(?P<setName>\w+)=(?P<setType>[CD])\n?"
+        regex = "\$(?P<setName>\S+)=(?P<setType>[CD])\n?"
         m = re.search(regex + ".*", mrDef, re.I | re.U)
         if not m:
             return {}
@@ -876,7 +872,8 @@ class Header(Generic):
             matches = re.findall(regex, mrDef, re.I)
             setName, setType, lblLen, lblVarNames = matches[0]
         else:               # multiple dichotomy sets
-            regex += ("(?P<valueLen>\d+) (?P<countedValue>\w+)" +
+            # \w+ won't always work (e.g. thai) --> \S+
+            regex += ("(?P<valueLen>\d+) (?P<countedValue>\S+)" +
                       " (?P<lblLen>\d+) (?P<lblVarNames>.+) ?\n?")
             matches = re.findall(regex, mrDef, re.I | re.U)
             setName, setType, valueLen = matches[0][:3]
@@ -904,7 +901,7 @@ class Header(Generic):
             lblLen = len(rest["label"])
             rest["lblLen"] = lblLen
             rest["varNames"] = " ".join(rest["varNames"])
-            tail = "%(varNames)s" if lblLen == 0 else "%(label)s %(varNames)s"
+            tail = " %(varNames)s" if lblLen == 0 else "%(label)s %(varNames)s"
             if rest["setType"] == "C":  # multiple category sets
                 template = " %%(lblLen)s %s " % tail
             else:                       # multiple dichotomy sets
@@ -914,7 +911,7 @@ class Header(Generic):
                 template = "%%(valueLen)s %%(countedValue)s %%(lblLen)s %s " \
                            % tail
             mrespDef += template % rest
-            mrespDefs.append(mrespDef)
+            mrespDefs.append(mrespDef.rstrip())
         mrespDefs = "\n".join(mrespDefs)
         return mrespDefs
 
@@ -933,25 +930,6 @@ class Header(Generic):
                           "label": label, "countedValue": countedValue,
                           "varNames": varNames}}
 
-    def _setMultRespDefsEx(self, multRespDefs):
-        """Set 'extended' multiple response defintions.
-        This is a helper function for the multRespDefs setter function."""
-        mrDefs = []
-        for setName, rest in multRespDefs.iteritems():
-            if rest["setType"] != "E":
-                continue
-            rest["setName"] = setName
-            v = int(rest["firstVarIsLabel"])
-            rest["firstVarIsLabel"] = v if v == 1 else ""
-            rest["valueLen"] = len(rest["countedValue"])
-            rest["lblLen"] = len(rest["label"])
-            rest["varNames"] = " ".join(rest["varNames"])
-            mrDef = "$%(setName)s=%(setType)s 1%(firstVarIsLabel)s "
-            mrDef += "%(valueLen)s %(countedValue)s %(lblLen)s %(label)s "
-            mrDef += "%(varNames)s"
-            mrDefs.append((mrDef % rest).replace("  ", " "))
-        return "\n".join(mrDefs)
-
     @property
     @decode
     def multRespDefs(self):
@@ -964,6 +942,10 @@ class Header(Generic):
         --extended multiple dichotomy sets: {setName: {"setType": "E",
           "label": lbl, "varNames": [<list_of_varNames>], "countedValue":
            countedValue, 'firstVarIsLabel': <bool>}}
+	Note. You can get values of extended multiple dichotomy sets with 
+        getMultRespSetsDefEx, but you cannot write extended multiple dichotomy
+        sets.
+
         For example:
         categorical  = {"setType": "C", "label": "labelC",
                        "varNames": ["salary", "educ"]}
@@ -1040,17 +1022,9 @@ class Header(Generic):
     def multRespDefs(self, multRespDefs):
         if not multRespDefs:
             return
-        normal = self._setMultRespDefs(multRespDefs)
-        extended = self._setMultRespDefsEx(multRespDefs)
-        if normal and extended:
-            combinedDefs = normal + " \n" + extended
-        elif normal and not extended:
-            combinedDefs = normal
-        elif extended and not normal:
-            combinedDefs = extended
-        print type(combinedDefs), combinedDefs
+        multRespDefs = self._setMultRespDefs(multRespDefs)
         func = self.spssio.spssSetMultRespDefs
-        retcode = func(c_int(self.fh), c_char_p(combinedDefs))
+        retcode = func(c_int(self.fh), c_char_p(multRespDefs))
         if retcode > 0:
             msg = "Problem setting multiple response definitions"
             raise SPSSIOError(msg, retcode)

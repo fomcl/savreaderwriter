@@ -2,12 +2,10 @@
 ## Write a file, in zsav compressed format
 ##############################################################################
 
->>> import doctest
 >>> import os
->>> doctest.ELLIPSIS_MARKER = ",,,"
->>> from savReaderWriter import *   # doctest: +ELLIPSIS
-
-,,,
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
 
 ## ----- Write many rows
 >>> savFileName = "test2.zsav"  # .zsav = zlib compressed (--> v21 libs)
@@ -21,7 +19,7 @@ Done! test2.zsav
 
 # read it back in
 >>> reader = SavReader(savFileName)  # doctest: +ELLIPSIS
-,,,
+...
 >>> records_out = [line for line in iter(reader)]
 >>> reader.close()
 >>> print records_out == records  # doctest: +NORMALIZE_WHITESPACE

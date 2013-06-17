@@ -1,2 +1,0 @@
-import nose
-result = nose.run(argv=["verbosity=2", "with-doctest=1", "where=savReaderWriter/doc_tests", "doctest-extension=txt"])

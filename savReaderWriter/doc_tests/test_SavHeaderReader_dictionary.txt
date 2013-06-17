@@ -2,17 +2,15 @@
 ## Print a Python dictionary of the SPSS dictionary (aka header information)
 ##############################################################################
 
->>> import doctest
->>> doctest.ELLIPSIS_MARKER = ",,,"
 >>> import pprint
->>> from savReaderWriter import * # doctest: +ELLIPSIS
-,,,
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
+
 >>> savFileName = "../test_data/Employee data.sav"
 >>> with SavHeaderReader(savFileName) as spssDict: # doctest: +ELLIPSIS
 ...     wholeDict = spssDict.dataDictionary()
 ...     pprint.pprint(sorted(wholeDict.items()))
-...
-,,,
 [('alignments',
   {'bdate': 'right',
    'educ': 'right',
@@ -142,4 +140,3 @@
    'prevexp': 0,
    'salary': 0,
    'salbegin': 0})]
-

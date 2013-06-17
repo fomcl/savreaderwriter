@@ -1,10 +1,10 @@
 ##############################################################################
-## Read a file use operators (__cmp__)
+## Read a file and use operators (__cmp__)
 ##############################################################################
 
->>> import doctest
->>> from savReaderWriter import *
->>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
 
 ## ... get number of cases by using __len__
 >>> savFileName = "../test_data/Employee data.sav"
@@ -14,7 +14,7 @@
 ...     print reader == 474, reader > 474, reader < 474
 ... finally:
 ...     reader.close()
-,,,
+...
 True False False
 True False False
 

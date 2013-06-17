@@ -1,11 +1,11 @@
 ##############################################################################
-## Read a file and do a binary search for records (get)
+## Write a file (elaborate example)
 ##############################################################################
 
->>> import doctest
 >>> import os
->>> doctest.ELLIPSIS_MARKER = ",,,"
->>> from savReaderWriter import *   # doctest: +ELLIPSIS
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
 
 ## ----- Write many rows
 >>> savFileName = "employee data_OUT.sav"
@@ -41,7 +41,7 @@ Done! employee data_OUT.sav
 
 # read it back in 
 >>> reader = SavReader(savFileName, rawMode=True)  # doctest: +ELLIPSIS
-,,,
+...
 >>> records_out = [line for line in iter(reader)]
 >>> reader.close()
 >>> print records_out == records  # doctest: +NORMALIZE_WHITESPACE
@@ -50,7 +50,7 @@ True
 # check if the header info is okay
 >>> with SavHeaderReader(savFileName) as h:
 ...     print unicode(h)  # doctest: +ELLIPSIS
-,,,
+...
 #ALIGNMENTS
 salary -- left
 jobcat -- left
@@ -79,7 +79,7 @@ TheDate[2] -- 5
 RevisionDate[2] -- 5
 RevisionDate[1] -- 4
 #FILELABEL
-File created by user ',,,' at ,,,
+File created by user '...' at ...
 #FORMATS
 salary -- F8.2
 jobcat -- F8.2

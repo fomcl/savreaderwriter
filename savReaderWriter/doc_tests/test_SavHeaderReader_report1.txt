@@ -2,15 +2,14 @@
 ## Print a report of the header information
 ##############################################################################
 
->>> import doctest
->>> from savReaderWriter import *
->>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
+
 >>> savFileName = "../test_data/spssio_test.sav"
 >>> with SavHeaderReader(savFileName) as spssDict: # doctest: +ELLIPSIS
 ...     print unicode(spssDict)
 ...     wholeDict = spssDict.dataDictionary()
-...
-,,,
 #ALIGNMENTS
 AGE3 -- right
 DATE_ -- left
@@ -125,9 +124,9 @@ someDate -- ratio
 AGE2 -- ratio
 #MISSINGVALUES
 aShortStringVar: values -- x, y
-Income1: lower -- -1.797,,,e+308
+Income1: lower -- -1.797...e+308
 Income1: upper -- -1.0
-Income2: lower -- -1.797,,,e+308
+Income2: lower -- -1.797...e+308
 Income2: upper -- -1.0
 Income2: value -- 999.0
 Income3: values -- 999.0, 888.0, 777.0
@@ -237,4 +236,3 @@ YEAR_ -- 0
 MONTH_ -- 0
 someDate -- 0
 AGE2 -- 0
-,,,

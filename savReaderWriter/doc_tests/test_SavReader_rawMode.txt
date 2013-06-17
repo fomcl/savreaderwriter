@@ -2,11 +2,9 @@
 ## Read a file and iterate over its records (rawMode)
 ##############################################################################
 
->>> import doctest
->>> doctest.ELLIPSIS_MARKER = ",,,"
->>> from savReaderWriter import *
-
-,,,
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
 
 ## ----- Typical use
 ## rawMode means date and certain values are not converted/formatted
@@ -16,7 +14,7 @@
 ...     for lino, line in enumerate(sav):
 ...         if lino < 100:
 ...             print line
-,,,
+...
 [1.0, 'm       ', 11654150400.0, 15.0, 3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0]
 [2.0, 'm       ', 11852956800.0, 16.0, 1.0, 40200.0, 18750.0, 98.0, 36.0, 0.0]
 [3.0, 'f       ', 10943337600.0, 12.0, 1.0, 21450.0, 12000.0, 98.0, 381.0, 0.0]

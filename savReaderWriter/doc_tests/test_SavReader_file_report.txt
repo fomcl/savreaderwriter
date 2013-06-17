@@ -2,10 +2,10 @@
 ## Read a file and get some basic file info (reports)
 ##############################################################################
 
->>> import doctest
 >>> import pprint
->>> from savReaderWriter import *
->>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
 
 ## ... Get some basic file info
 >>> savFileName = "../test_data/Employee data.sav"
@@ -15,7 +15,7 @@
 ...     print unicode(reader)
 ... finally:
 ...     reader.close()
-,,,
+...
 **********************************************************************
 *File '../test_data/Employee data.sav' (24.32 kB) has 10 columns (variables) and 474 rows (4740 values)
 *The file was created with SPSS version: MS Windows Release 11.0 spssio32.dll (11.1.0)
@@ -23,7 +23,7 @@
 *The interface mode is: Codepage (UTF-8)
 *The file encoding is: 'utf_8' (Code page: 65001)
 *File encoding and the interface encoding are compatible: Yes
-*Your computer's locale is: ',,,' (Code page: ,,,)
+*Your computer's locale is: '...' (Code page: ...)
 *The file contains the following variables:
   01. id (F4 - numerical)
   02. gender (A1 - string)
@@ -44,7 +44,7 @@
 *The interface mode is: Codepage (UTF-8)
 *The file encoding is: 'utf_8' (Code page: 65001)
 *File encoding and the interface encoding are compatible: Yes
-*Your computer's locale is: ',,,' (Code page: ,,,)
+*Your computer's locale is: '...' (Code page: ...)
 *The file contains the following variables:
   01. id (F4 - numerical)
   02. gender (A1 - string)

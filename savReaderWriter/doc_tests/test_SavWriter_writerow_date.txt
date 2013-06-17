@@ -2,12 +2,10 @@
 ## Write a file, incl. SPSS date values
 ##############################################################################
 
->>> import doctest
 >>> import os
->>> doctest.ELLIPSIS_MARKER = ",,,"
->>> from savReaderWriter import *   # doctest: +ELLIPSIS
-
-,,,
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
 
 ## ----- Write one row
 # var1 is a 5-char string var, the others are numerical:
@@ -48,7 +46,7 @@ Done! test1.sav
 ...     records_out = [line for line in iter(reader)]
 ... finally:
 ...     reader.close()
-,,,
+...
 >>> print records_out == records  # doctest: +NORMALIZE_WHITESPACE
 True
 

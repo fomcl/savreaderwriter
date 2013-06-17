@@ -2,11 +2,11 @@
 ## Write a file, ioUtf8=True
 ##############################################################################
 
->>> import doctest
 >>> import os
 >>> import pprint
->>> doctest.ELLIPSIS_MARKER = ",,,"
->>> from savReaderWriter import *   # doctest: +ELLIPSIS
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
 
 ## ... check if non-ascii encodings work well
 ## ... notice the use of 'ioUtf8'
@@ -41,7 +41,7 @@
 ...     for line in sav:
 ...         #print repr(line[1].rstrip("\x00"))
 ...         print line 
-,,,
+...
 [u'Arabic              ', u'\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064a\u0643\u0645\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00']
 [u'Assamese            ', u'\u09a8\u09ae\u09b8\u09cd\u0995\u09be\u09f0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00']
 [u'Bengali             ', u'\u0986\u09b8\u09b8\u09be\u09b2\u09be\u09ae\u09c1\u0986\u09b2\u09be\u0987\u0995\u09c1\u09ae\x00\x00\x00\x00\x00']
@@ -59,12 +59,12 @@
 >>> with SavHeaderReader(savFileName, ioUtf8=True)as spssDict:
 ...     wholeDict = spssDict.dataDictionary()
 ...     pprint.pprint(wholeDict)  # doctest: +ELLIPSIS
-,,,
+...
 {u'alignments': {u'Bondjo\xfb': u'left', u'greeting': u'left'},
  u'caseWeightVar': u'',
  u'columnWidths': {u'Bondjo\xfb': 20, u'greeting': 50},
  u'fileAttributes': {},
- u'fileLabel': u"File created by user ',,,' at ,,,",
+ u'fileLabel': u"File created by user '...' at ...",
  u'formats': {u'Bondjo\xfb': u'A20', u'greeting': u'A50'},
  u'measureLevels': {u'Bondjo\xfb': u'unknown', u'greeting': u'unknown'},
  u'missingValues': {u'Bondjo\xfb': {u'values': [u'\xa1Hola! ']},

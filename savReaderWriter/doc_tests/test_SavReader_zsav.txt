@@ -2,11 +2,9 @@
 ## Read a file and iterate over its records (.zsav)
 ##############################################################################
 
->>> import doctest
->>> doctest.ELLIPSIS_MARKER = ",,,"
->>> from savReaderWriter import *
-
-,,,
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
 
 ## It's a good idea not to change the .zsav extension
 ## SPSS versions 20 or older are NOT compatible with zsav
@@ -15,7 +13,7 @@
 >>> with SavReader(savFileName) as zsav: # doctest: +ELLIPSIS
 ...     for lino, line in enumerate(zsav):
 ...             print line
-,,,
+...
 ['Test1                                                   ', 1.0, 1.0, '2010-08-11      ']
 ['Test2                                                   ', 2.0, 1.0, '1910-01-12      ']
 

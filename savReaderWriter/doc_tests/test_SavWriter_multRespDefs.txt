@@ -2,16 +2,12 @@
 ## Write multiple response definitions
 ##############################################################################
 
->>> import doctest
->>> reload(doctest)   # doctest: +ELLIPSIS
-<module 'doctest' from '.../doctest.pyc'>
->>> doctest.ELLIPSIS_MARKER = ",,,"
 >>> import os
 >>> import pprint
 >>> import tempfile
->>> from savReaderWriter import *   # doctest: +ELLIPSIS
-
-,,,
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
 
 # preparare some data
 >>> records = [['Test1', 1, 1, 'Yes', 'No'], ['Test2', 2, 1, 'No', 'Yes']]
@@ -34,7 +30,6 @@
 >>> with SavWriter(**kwargs) as writer:
 ...     writer.writerows(records)
 >>> checkMultRespDefs(savFileName)  # doctest: +ELLIPSIS
-,,,
 {'categorical': {'label': 'labelC', 'setType': 'C', 'varNames': ['v2', 'v3']}}
 
 
@@ -51,36 +46,44 @@
 >>> with SavWriter(**kwargs) as writer:
 ...     writer.writerows(records)
 >>> checkMultRespDefs(savFileName)  # doctest: +ELLIPSIS
-,,,
 {'dichotomous1': {'countedValue': 'Yes',
                   'label': 'labelD',
                   'setType': 'D',
                   'varNames': ['yn', 'yeah']}}
 
 
-###########
-# Extended sets <------------ TO DO -------------->
-###########
-#TO DO: SPSS_INVALID_MRSETDEF
->>> extended1 = {'setType': 'E', 'label': '', 'varNames': ['v1', 'v2', 'v3'],
-...              'countedValue': '1', 'firstVarIsLabel': True}
->>> multRespDefs = dict(extended1=extended1)
+>>> dichotomous2 = {"setType": "D", "label": "", "varNames":
+...                 ["v1", "v2", "v3"], "countedValue": "No"}
+>>> multRespDefs = dict(dichotomous2=dichotomous2)
 >>> kwargs = dict(savFileName=savFileName, varNames=varNames,
 ...               varTypes=varTypes, multRespDefs=multRespDefs)
->>> with SavWriter(**kwargs) as writer:  # doctest: +SKIP
+>>> with SavWriter(**kwargs) as writer:
 ...     writer.writerows(records)
->>> checkMultRespDefs(savFileName)  # doctest: +SKIP
+>>> checkMultRespDefs(savFileName)  # doctest: +ELLIPSIS
+{'dichotomous2': {'countedValue': 'No',
+                  'label': '',
+                  'setType': 'D',
+                  'varNames': ['v1', 'v2', 'v3']}}
 
-#TO DO: SPSS_INVALID_MRSETDEF
->>> extended2 = {'setType': 'E', 'label': 'User specified label', 'varNames':
-...              ['v1', 'v2', 'v2'], 'countedValue': '1', 'firstVarIsLabel': False}
->>> multRespDefs = dict(extended2=extended2)
->>> kwargs = dict(savFileName=savFileName, varNames=varNames,
-...               varTypes=varTypes, multRespDefs=multRespDefs)
->>> with SavWriter(**kwargs) as writer:  # doctest: +SKIP
+
+
+### unicode mode (ioUtf8=True)
+>>> thai = u'\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35'
+>>> dichotomous3 = {"setType": "D", "label": thai,
+...                 "varNames": ["v1", "v2"], "countedValue": thai}
+>>> multRespDefs = dict(dichotomous3=dichotomous3)
+>>> kwargs = dict(savFileName=savFileName,
+...               varNames=varNames,
+...               varTypes=varTypes,
+...               multRespDefs=multRespDefs,
+...               ioUtf8=True)
+>>> with SavWriter(**kwargs) as writer:
 ...     writer.writerows(records)
->>> checkMultRespDefs(savFileName)  # doctest: +SKIP
-
+>>> checkMultRespDefs(savFileName)  # doctest: +ELLIPSIS
+{'dichotomous3': {'countedValue': '\xe0\xb8\xaa\xe0\xb8\xa7\xe0\xb8\xb1\xe0\xb8\xaa\xe0\xb8\x94\xe0\xb8\xb5',
+                  'label': '\xe0\xb8\xaa\xe0\xb8\xa7\xe0\xb8\xb1\xe0\xb8\xaa\xe0\xb8\x94\xe0\xb8\xb5',
+                  'setType': 'D',
+                  'varNames': ['v1', 'v2']}}
 
 # clean up
 >>> os.remove(os.path.abspath(savFileName))

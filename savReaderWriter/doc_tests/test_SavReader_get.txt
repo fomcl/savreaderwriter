@@ -2,9 +2,10 @@
 ## Read a file and do a binary search for records (get)
 ##############################################################################
 
->>> import doctest
->>> from savReaderWriter import *
->>> doctest.ELLIPSIS_MARKER = ",,,"
+>>> import pprint
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
 
 ## ... Do a binary search for records --> idVar
 >>> savFileName = "../test_data/Employee data.sav"
@@ -17,7 +18,7 @@
 ...     print reader.get(4, "not found", full=True) # gets all records where id==4
 ... finally:
 ...     reader.close()
-,,,
+...
 [4.0, 'f', '1947-04-15', 8.0, 1.0, 21900.0, 13200.0, 98.0, 190.0, 0.0]
 not found
 [474.0, 'f', '1968-11-05', 12.0, 1.0, 29400.0, 14250.0, 63.0, 9.0, 0.0]

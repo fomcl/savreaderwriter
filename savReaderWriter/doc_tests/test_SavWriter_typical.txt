@@ -2,12 +2,11 @@
 ## Write a file, typical use
 ##############################################################################
 
->>> import doctest
 >>> import os
->>> doctest.ELLIPSIS_MARKER = ",,,"
->>> from savReaderWriter import *   # doctest: +ELLIPSIS
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
 
-,,,
 
 ## ----- Typical use
 >>> records = [['Test1', 1, 1, '2010-08-11'], ['Test2', 2, 1, '1910-01-12']]
@@ -26,7 +25,7 @@ Done! test.sav
 ...     records_out = [line for line in iter(reader)]
 ... finally:
 ...     reader.close()
-,,,
+...
 >>> print records_out == records  # doctest: +NORMALIZE_WHITESPACE
 True
 

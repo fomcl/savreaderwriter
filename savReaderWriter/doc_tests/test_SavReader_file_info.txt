@@ -3,11 +3,9 @@
 ##############################################################################
 
 >>> import pprint
->>> import doctest
->>> doctest.ELLIPSIS_MARKER = ",,,"
->>> from savReaderWriter import *
-
-,,,
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
 
 ## ... Get some basic file info
 >>> savFileName = "../test_data/Employee data.sav"
@@ -18,7 +16,7 @@
 ...     pprint.pprint(reader.getSavFileInfo())
 ... finally:
 ...     reader.close()
-,,,
+...
 (10,
  474,
  ['id',

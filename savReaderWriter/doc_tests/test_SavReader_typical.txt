@@ -1,12 +1,10 @@
 ##############################################################################
-## Read a file and iterate over its records
+## Read a file and iterate over its records (typical use)
 ##############################################################################
 
->>> import doctest
->>> doctest.ELLIPSIS_MARKER = ",,,"
->>> from savReaderWriter import *
-
-,,,
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
 
 ## ----- Typical use
 >>> savFileName = "../test_data/Employee data.sav"
@@ -15,7 +13,7 @@
 ...     print header
 ...     for line in sav:
 ...         print line
-,,,
+...
 ['id', 'gender', 'bdate', 'educ', 'jobcat', 'salary', 'salbegin', 'jobtime', 'prevexp', 'minority']
 [1.0, 'm', '1952-02-03', 15.0, 3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0]
 [2.0, 'm', '1958-05-23', 16.0, 1.0, 40200.0, 18750.0, 98.0, 36.0, 0.0]
