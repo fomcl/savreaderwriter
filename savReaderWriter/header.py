@@ -30,14 +30,56 @@ class Header(Generic):
         super class"""
         return self.fh
 
+##    def decode(func):
+##        """Decorator to Utf-8 decode all str items contained in a dictionary
+##        If ioUtf8=True, the dictionary's keys and values are decoded, but only
+##        values that are strs, lists, or dicts. For example:
+##        {'v1': {'y': 'yy', 'z': 666}}-->{u'v1': {u'y': u'yy', u'z': 666}}"""
+##        uS = lambda x: x.decode("utf-8") if isinstance(x, str) else x
+##        uL = lambda x: map(uS, x) if isinstance(x, list) else x
+##
+##        @functools.wraps(func)
+##        def wrapper(arg):
+##            result = func(arg)
+##            if not arg.ioUtf8:
+##                return result  # unchanged
+##            if isinstance(result, str):
+##                return uS(result)
+##            utf8ifiedDict = {}
+##            for k, v in result.iteritems():
+##                k, v = uS(k), uS(v)
+##                if isinstance(v, list):
+##                    v = map(uS, v)
+##                elif isinstance(v, dict):
+##                    v = dict([(uS(x), uL(uS(y))) for x, y in v.items()])
+##                utf8ifiedDict[k] = v
+##            return utf8ifiedDict
+##        return wrapper
+
     def decode(func):
         """Decorator to Utf-8 decode all str items contained in a dictionary
         If ioUtf8=True, the dictionary's keys and values are decoded, but only
         values that are strs, lists, or dicts. For example:
-        {'v1': {'y': 'yy', 'z': 666}}-->{u'v1': {u'y': u'yy', u'z': 666}}"""
+        >>> @decode
+        ... def test(d):
+        ...     return d
+        >>> # test 1
+        >>> test({'v1': {'y': 'yy', 'z': 666}})
+        {u'v1': {u'y': u'yy', u'z': 666}}
+        >>> # test 2
+        >>> thai = ('\xe0\xb8\xaa\xe0\xb8\xa7\xe0\xb8\xb1' +
+        ...         '\xe0\xb8\xaa\xe0\xb8\x94\xe0\xb8\xb5')
+        >>> d = {'dichotomous3': {'countedValue': thai,
+        ...      'label': thai, 'setType': 'D', 'varNames': ['v1', 'v2']}}
+        >>> uthai = thai.decode("utf-8")
+        >>> test(d) == {u'dichotomous3': {u'countedValue': uthai,
+        ...             u'label': uthai,
+        ...             u'setType': u'D',
+        ...             u'varNames': [u'v1', u'v2']}}
+        True
+        """
         uS = lambda x: x.decode("utf-8") if isinstance(x, str) else x
         uL = lambda x: map(uS, x) if isinstance(x, list) else x
-
         @functools.wraps(func)
         def wrapper(arg):
             result = func(arg)
@@ -45,15 +87,15 @@ class Header(Generic):
                 return result  # unchanged
             if isinstance(result, str):
                 return uS(result)
-            utf8ifiedDict = {}
+            uresult = {}
             for k, v in result.iteritems():
-                k, v = uS(k), uS(v)
-                if isinstance(v, list):
-                    v = map(uS, v)
-                elif isinstance(v, dict):
-                    v = dict([(uS(x), uL(uS(y))) for x, y in v.items()])
-                utf8ifiedDict[k] = v
-            return utf8ifiedDict
+                uresult[uS(k)] = {}
+                try:
+                    for i, j in v.iteritems():  # or wrapper(j) recursion?
+                        uresult[uS(k)][uS(i)] = uS(uL(j))
+                except AttributeError:
+                    uresult[uS(k)] = uL(uS(v))
+            return uresult
         return wrapper
 
     def encode(self, item):

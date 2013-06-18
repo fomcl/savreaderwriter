@@ -11,10 +11,10 @@
 >>> with SavHeaderReader(savFileName, ioUtf8=True) as spssDict: # doctest: +ELLIPSIS
 ...     wholeDict = spssDict.dataDictionary()
 ...     really = wholeDict
-...
+
 >>> thai = u'\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35'
->>> arabic = (u'\u0627\u0644\u0633\u0644\u0627\u0645'+ 
-...           u' \u0639\u0644\u064a\u0643\u0645')
+>>> arabic = (u'\u0627\u0644\u0633\u0644\u0627\u0645 '+ 
+...           u'\u0639\u0644\u064a\u0643\u0645')
 >>> desired = \
 ... {u'alignments': {u'Bondjo\xfb': u'left',
 ...                  u'greeting': u'left',
@@ -44,3 +44,24 @@
 ...  u'varTypes': {u'Bondjo\xfb': 20, u'greeting': 50, u'line': 0}}
 >>> desired == really
 True
+>>> for k, v in desired.items():
+...     "%s ---> %s" % (k.upper(), v == really[k])
+...     if v != really[k]:
+...         print v
+...         print really[k]
+u'VALUELABELS ---> True'
+u'CASEWEIGHTVAR ---> True'
+u'VARSETS ---> True'
+u'VARATTRIBUTES ---> True'
+u'VARROLES ---> True'
+u'MEASURELEVELS ---> True'
+u'VARTYPES ---> True'
+u'VARNAMES ---> True'
+u'VARLABELS ---> True'
+u'FORMATS ---> True'
+u'MULTRESPDEFS ---> True'
+u'COLUMNWIDTHS ---> True'
+u'MISSINGVALUES ---> True'
+u'ALIGNMENTS ---> True'
+u'FILELABEL ---> True'
+u'FILEATTRIBUTES ---> True'
