@@ -3,12 +3,13 @@
 ##############################################################################
 
 >>> import os
+>>> import tempfile
 >>> import sys
 >>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
 <skipline> ...
 
 ## ----- Write many rows
->>> savFileName = "employee data_OUT.sav"
+>>> savFileName = os.path.join(tempfile.gettempdir(), "employee data_OUT.sav")
 >>> varNames = ['id', 'gender', 'bdate', 'educ', 'jobcat', 'salary', 'salbegin',
 ...             'jobtime', 'prevexp', 'minority']
 >>> varLabels = {'gender': 'guys/gals'}
@@ -36,7 +37,7 @@
 ...                missingValues=missingValues, varAttributes=varAttributes,
 ...                fileAttributes=fileAttributes) as sav:
 ...     sav.writerows(records)
-...     print "Done! %s" % sav.savFileName
+...     print "Done! %s" % os.path.basename(sav.savFileName)
 Done! employee data_OUT.sav
 
 # read it back in 
@@ -152,6 +153,6 @@ educ -- 0
 id -- 0
 
 # clean up
->>> os.remove(os.path.abspath(savFileName))
+>>> os.remove(savFileName)
 
 

@@ -3,6 +3,7 @@
 ##############################################################################
 
 >>> import os
+>>> import tempfile
 >>> import sys
 >>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
 <skipline> ...
@@ -12,11 +13,11 @@
 >>> records = [['Test1', 1, 1, '2010-08-11'], ['Test2', 2, 1, '1910-01-12']]
 >>> varNames = ['var1', 'v2', 'v3', 'bdate']
 >>> varTypes = {'var1': 6, 'v2': 0, 'v3': 0, 'bdate': 10}
->>> savFileName = "test.sav"
+>>> savFileName = os.path.join(tempfile.gettempdir(), "test.sav")
 >>> with SavWriter(savFileName, varNames, varTypes) as sav:
 ...     for record in records:
 ...         sav.writerow(record)
-...     print "Done! %s" % sav.savFileName
+...     print "Done! %s" % os.path.basename(sav.savFileName)
 Done! test.sav
 
 # read it back in
@@ -26,10 +27,10 @@ Done! test.sav
 ... finally:
 ...     reader.close()
 ...
->>> print records_out == records  # doctest: +NORMALIZE_WHITESPACE
+>>> print records_out == records
 True
 
 # clean up
->>> os.remove(os.path.abspath(savFileName))
+>>> os.remove(savFileName)
 
 

@@ -3,6 +3,7 @@
 ##############################################################################
 
 >>> import os
+>>> import tempfile
 >>> import sys
 >>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
 <skipline> ...
@@ -27,7 +28,7 @@
 >>> valueLabels = {'var1': {'Test1': 'Test1 value label',
 ...                         'Test2': 'Test2 value label'},
 ...                'v2': {1: 'yes', 2: 'no'}}
->>> savFileName = "test1.sav"
+>>> savFileName = os.path.join(tempfile.gettempdir(), "test.sav")
 >>> with SavWriter(savFileName, varNames, varTypes,
 ...                valueLabels, varLabels, formats) as sav:
 ...     pos = varNames.index("bdate")
@@ -35,10 +36,10 @@
 ...         record[pos] = sav.spssDateTime(record[pos], "%Y-%m-%d")
 ...         print record
 ...         sav.writerow(record)
-...     print "Done! %s" % sav.savFileName
+...     print "Done! %s" % os.path.basename(sav.savFileName)
 ['Test1', 1, 1, 13500864000.0]
 ['Test2', 2, 1, 10326873600.0]
-Done! test1.sav
+Done! test.sav
 
 # read it back in in rawMode (dates not converted to ISO-dates)
 >>> try:
@@ -47,7 +48,7 @@ Done! test1.sav
 ... finally:
 ...     reader.close()
 ...
->>> print records_out == records  # doctest: +NORMALIZE_WHITESPACE
+>>> print records_out == records
 True
 
 # clean up

@@ -3,7 +3,6 @@
 ##############################################################################
 
 >>> import os
->>> import pprint
 >>> import tempfile
 >>> import sys
 >>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
@@ -17,7 +16,7 @@
 >>> def checkMultRespDefs(savFileName):
 ...     with SavHeaderReader(savFileName) as spssDict:
 ...         wholeDict = spssDict.dataDictionary()
-...         pprint.pprint(wholeDict['multRespDefs'])
+...         return wholeDict['multRespDefs']
 
 ###########
 # Categorical sets
@@ -29,8 +28,9 @@
 ...               varTypes=varTypes, multRespDefs=multRespDefs)
 >>> with SavWriter(**kwargs) as writer:
 ...     writer.writerows(records)
->>> checkMultRespDefs(savFileName)  # doctest: +ELLIPSIS
-{'categorical': {'label': 'labelC', 'setType': 'C', 'varNames': ['v2', 'v3']}}
+>>> desired = {'categorical': {'label': 'labelC', 'setType': 'C', 'varNames': ['v2', 'v3']}}
+>>> checkMultRespDefs(savFileName) == desired
+True
 
 
 ###########
@@ -45,11 +45,12 @@
 ...               varTypes=varTypes, multRespDefs=multRespDefs)
 >>> with SavWriter(**kwargs) as writer:
 ...     writer.writerows(records)
->>> checkMultRespDefs(savFileName)  # doctest: +ELLIPSIS
-{'dichotomous1': {'countedValue': 'Yes',
-                  'label': 'labelD',
-                  'setType': 'D',
-                  'varNames': ['yn', 'yeah']}}
+>>> desired = {'dichotomous1': {'countedValue': 'Yes',
+...            'label': 'labelD',
+...            'setType': 'D',
+...            'varNames': ['yn', 'yeah']}}
+>>> checkMultRespDefs(savFileName) == desired
+True
 
 
 >>> dichotomous2 = {"setType": "D", "label": "", "varNames":
@@ -59,18 +60,18 @@
 ...               varTypes=varTypes, multRespDefs=multRespDefs)
 >>> with SavWriter(**kwargs) as writer:
 ...     writer.writerows(records)
->>> checkMultRespDefs(savFileName)  # doctest: +ELLIPSIS
-{'dichotomous2': {'countedValue': 'No',
-                  'label': '',
-                  'setType': 'D',
-                  'varNames': ['v1', 'v2', 'v3']}}
-
+>>> desired = {'dichotomous2': {'countedValue': 'No',
+...            'label': '',
+...            'setType': 'D',
+...            'varNames': ['v1', 'v2', 'v3']}}
+>>> checkMultRespDefs(savFileName) == desired
+True
 
 
 ### unicode mode (ioUtf8=True)
->>> thai = u'\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35'
->>> dichotomous3 = {"setType": "D", "label": thai,
-...                 "varNames": ["v1", "v2"], "countedValue": thai}
+>>> uthai = u'\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35'
+>>> dichotomous3 = {"setType": "D", "label": uthai,
+...                 "varNames": ["v1", "v2"], "countedValue": uthai}
 >>> multRespDefs = dict(dichotomous3=dichotomous3)
 >>> kwargs = dict(savFileName=savFileName,
 ...               varNames=varNames,
@@ -79,11 +80,16 @@
 ...               ioUtf8=True)
 >>> with SavWriter(**kwargs) as writer:
 ...     writer.writerows(records)
->>> checkMultRespDefs(savFileName)  # doctest: +ELLIPSIS
-{'dichotomous3': {'countedValue': '\xe0\xb8\xaa\xe0\xb8\xa7\xe0\xb8\xb1\xe0\xb8\xaa\xe0\xb8\x94\xe0\xb8\xb5',
-                  'label': '\xe0\xb8\xaa\xe0\xb8\xa7\xe0\xb8\xb1\xe0\xb8\xaa\xe0\xb8\x94\xe0\xb8\xb5',
-                  'setType': 'D',
-                  'varNames': ['v1', 'v2']}}
+>>> thai = ('\xe0\xb8\xaa\xe0\xb8\xa7\xe0\xb8\xb1' + 
+...         '\xe0\xb8\xaa\xe0\xb8\x94\xe0\xb8\xb5')
+>>> desired = {'dichotomous3': {'countedValue': thai,
+...            'label': thai,
+...            'setType': 'D',
+...            'varNames': ['v1', 'v2']}}
+>>> checkMultRespDefs(savFileName) == desired
+True
+>>> uthai == thai.decode("utf-8")
+True
 
 # clean up
->>> os.remove(os.path.abspath(savFileName))
+>>> os.remove(savFileName)

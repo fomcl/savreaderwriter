@@ -1,8 +1,9 @@
 ##############################################################################
-## Write a file in utf8 mode aka unicode mode
+## Write a file in utf8 mode aka unicode mode (ioUtf8=True)
 ##############################################################################
 
 >>> import os
+>>> import tempfile
 >>> import pprint
 >>> import sys
 >>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
@@ -24,7 +25,7 @@
 ...     ['Thai', u'\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35'],
 ...     ['Walloon', u'Bondjo\xfb'],
 ...     ]
->>> savFileName = "greetings.sav"
+>>> savFileName = os.path.join(tempfile.gettempdir(), "greetings.sav")
 >>> varNames = [u'Bondjo\xfb', 'greeting']
 >>> varTypes = {u'Bondjo\xfb': 20, 'greeting': 50}
 >>> valueLabels = {u'Bondjo\xfb': {'Thai': u'\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35'}}
@@ -37,7 +38,7 @@
 
 # read the file back in ---> error/nuisance with null bytes!!
 # BUG: the null bytes are supposed to be stripped or replaced with space!
->>> with SavReader("greetings.sav", ioUtf8=True)as sav:   # doctest: +ELLIPSIS
+>>> with SavReader(savFileName, ioUtf8=True)as sav:   # doctest: +ELLIPSIS
 ...     for line in sav:
 ...         #print repr(line[1].rstrip("\x00"))
 ...         print line 
@@ -56,30 +57,13 @@
 
 
 # check the header info
->>> with SavHeaderReader(savFileName, ioUtf8=True)as spssDict:
+>>> with SavHeaderReader(savFileName, ioUtf8=True) as spssDict:
 ...     wholeDict = spssDict.dataDictionary()
-...     pprint.pprint(wholeDict)  # doctest: +ELLIPSIS
-{u'alignments': {u'Bondjo\xfb': u'left', u'greeting': u'left'},
- u'caseWeightVar': u'',
- u'columnWidths': {u'Bondjo\xfb': 20, u'greeting': 50},
- u'fileAttributes': {},
- u'fileLabel': u"File created by user '...' at ...",
- u'formats': {u'Bondjo\xfb': u'A20', u'greeting': u'A50'},
- u'measureLevels': {u'Bondjo\xfb': u'unknown', u'greeting': u'unknown'},
- u'missingValues': {u'Bondjo\xfb': {u'values': [u'\xa1Hola! ']},
-                    u'greeting': {}},
- u'multRespDefs': {},
- u'valueLabels': {u'Bondjo\xfb': {u'Thai                ': u'\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35'}},
- u'varAttributes': {},
- u'varLabels': {u'Bondjo\xfb': u'',
-                u'greeting': u'\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064a\u0643\u0645'},
- u'varNames': [u'Bondjo\xfb', u'greeting'],
- u'varRoles': {u'Bondjo\xfb': u'input', u'greeting': u'input'},
- u'varSets': {},
- u'varTypes': {u'Bondjo\xfb': 20, u'greeting': 50}}
-
+...     print repr(unicode(spssDict))  # doctest: +ELLIPSIS
+#ALIGNMENTS...
+u"File 'greetings.sav' built using SavReaderWriter.py version ... (... ...:...:... ...)\n#ALIGNMENTS\ngreeting -- left\nBondjo\xfb -- left\n#CASEWEIGHTVAR\n#COLUMNWIDTHS\ngreeting -- 50\nBondjo\xfb -- 20\n#FILEATTRIBUTES\n#FILELABEL\nFile created by user 'antonia' at ... ...:...:... ...\n#FORMATS\ngreeting -- A50\nBondjo\xfb -- A20\n#MEASURELEVELS\ngreeting -- unknown\nBondjo\xfb -- unknown\n#MISSINGVALUES\nBondjo\xfb: values -- \xa1hola! \n#MULTRESPDEFS\n#VALUELABELS\nBondjo\xfb: Thai -- \u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35\n#VARATTRIBUTES\n#VARLABELS\ngreeting -- \u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064a\u0643\u0645\n#VARNAMES\nBondjo\xfb\ngreeting\n#VARROLES\ngreeting -- input\nBondjo\xfb -- input\n#VARSETS\n#VARTYPES\ngreeting -- 50\nBondjo\xfb -- 20"
 
 # clean up
->>> os.remove(os.path.abspath(savFileName))
+>>> os.remove(savFileName)
 
 
