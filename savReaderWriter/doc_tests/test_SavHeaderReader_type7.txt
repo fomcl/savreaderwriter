@@ -1,0 +1,25 @@
+##############################################################################
+## Query type 7 record information of a file
+##############################################################################
+
+>>> import sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
+
+# e.g. Record subtype 3, which contains 'Release information' is present (True)
+# This file contains release info, but no date variable info, etc. etc.
+>>> savFileName = "../test_data/Employee data.sav"
+>>> with SavHeaderReader(savFileName) as spssDict:
+...    type7info = spssDict.queryType7
+>>> desired = \
+... {3: ('Release information', True),
+...  4: ('Floating point constants including the system missing value', True),
+...  5: ('Variable set definitions', True),
+...  6: ('Date variable information', False),
+...  7: ('Multiple-response set definitions', False),
+...  8: ('Data Entry for Windows (DEW) information', False),
+... 10: ('TextSmart information', False),
+... 11: ('Measurement level, column width, and alignment for each variable',
+...       True)}
+>>> desired == type7info
+True
