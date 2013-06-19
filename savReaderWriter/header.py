@@ -1194,3 +1194,31 @@ class Header(Generic):
         retcode = self.spssio.spssSetIdString(c_int(self.fh), c_char_p(idStr))
         if retcode > 0:
             raise SPSSIOError("Error setting file label (id string)", retcode)
+
+    @property
+    def queryType7(self):
+        """This function can be used to determine whether a file opened for reading
+        or append contains a specific "type 7" record. Returns a dictionary of the
+        form: {subtype_number: (subtype_label, present_or_not)}, where
+        present_or_not is a bool"""
+        subtypes = \
+                 {3: "Release information",
+                  4: "Floating point constants including the system missing value",
+                  5: "Variable set definitions",
+                  6: "Date variable information",
+                  7: "Multiple-response set definitions",
+                  8: "Data Entry for Windows (DEW) information",
+                 10: "TextSmart information",
+                 11: ("Measurement level, column width, and " +
+                      "alignment for each variable")}
+        type7info = {}
+        for subtype, label in subtypes.items():
+            bFound = c_int()
+            args = c_int(self.fh), c_int(subtype), byref(bFound)
+            retcode = self.spssio.spssQueryType7(*args)
+            if retcode > 0:
+                raise SPSSIOError("Error retrieving type7 info", retcode)
+            type7info[subtype] = (label, bool(bFound.value))
+        return type7info
+
+
