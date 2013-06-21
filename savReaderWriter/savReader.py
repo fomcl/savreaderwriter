@@ -240,7 +240,6 @@ class SavReader(Header):
 
     def _get_array_slice(self, key, nRows, nCols):
         """This is a helper function to implement array slicing with numpy"""
-
         if not numpyOk:
             raise ImportError("Array slicing requires the numpy library")
 
@@ -303,7 +302,6 @@ class SavReader(Header):
                     raise IndexError("Index out of bounds")
                 if not 0 <= cstart < nCols:
                     raise IndexError("Index out of bounds")
-
                 key = (Ellipsis, slice(cstart, cstop, cstep))
 
             except UnboundLocalError:
@@ -314,9 +312,10 @@ class SavReader(Header):
             # reader[...]
             rstart, rstop, rstep = 0, nRows, 1
             key = (Ellipsis, Ellipsis)
-
         records = self._items(rstart, rstop, rstep)
         result = numpy.array(list(records))[key].tolist()
+        if abs(key[1].start - key[1].stop) == 1:
+            return reduce(list.__add__, result) # flatten list if it's one col
         if is_index:
             return result[0]
         return result
