@@ -1304,7 +1304,7 @@ class Header(Generic):
                type_ = re.search("'(\w+)'", str(type(x))).group(1)
                raise TypeError("Must be str, int or float, not %s") % type_
            if src_fmt != dst_fmt:
-               x = struct.unpack(dst_fmt, struct.pack(src_fmt, x))
+               x = struct.unpack(dst_fmt, struct.pack(src_fmt, x))[0]
            return x
         if swapit:
             data, asciiGUID = map(swap, data), swap(asciiGUID)
