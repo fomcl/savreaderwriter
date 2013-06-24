@@ -1295,7 +1295,7 @@ class Header(Generic):
         def swap(x):
            """swap bytes if needed"""
            src_fmt = '<%s' if sys.byteorder == 'little' else '>%s'
-           dst_fmt = ">" if swapit and dst_fmt[0] == "<" else "<"
+           dst_fmt = ">%s" if swapit and src_fmt[0] == "<" else "<%s"
            if isinstance(x, (float, int)):
                src_fmt, dst_fmt = src_fmt % "l", dst_mft % "l"
            elif isinstance(x, str):
