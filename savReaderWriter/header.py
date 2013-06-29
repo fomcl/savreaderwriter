@@ -1221,4 +1221,115 @@ class Header(Generic):
             type7info[subtype] = (label, bool(bFound.value))
         return type7info
 
+    @property
+    def dataEntryInfo(self):
+        """Get/Set information that is private to the Data Entry for Windows (DEW)
+        product. Returns/takes a dictionary of the form:
+        dataEntryInfo = {"data": [<list_of_dew_segments>], "GUID": <guid>},
+        where GUID stands for 'globally unique identifier'. 
+        Some remarks:
+        -A difference in the byte order of the host system and the foreign host
+         will result in an error. Therefore, an optional 'swapBytes' key may 
+         be specified whose value indicates whether the bytes should be swapped 
+         (True) or not (False). Default is that the byte order of the host system
+         is retained.
+        -DEW information is not copied when using mode="cp" in the SavWriter
+         initializer
+        -THIS IS ENTIRELY UNTESTED!"""
+        # check if file and host system byte order match
+        # spssGetDEWInfo will return SPSS_NO_DEW, which is less desirable
+        endianness = self.releaseInfo["big/little-endian code"]
+        file_byte_order = 'little' if endianness == 0 else 'big'
+        if file_byte_order != sys.byteorder:
+            msg = "Host (%s-endian) and file (%s-endian) byte order differ"
+            raise ValueError(msg % (sys.byteorder, file_byte_order))
 
+        # retrieve length of DEW information (in bytes)
+        pLength, pHashTotal = c_long(), c_long()
+        func = self.spssio.spssGetDEWInfo
+        args = c_int(self.fh), byref(pLength), byref(pHashTotal)
+        retcode = func(*args)
+        maxData = pLength.value  # Maximum bytes to return
+        if not maxData:
+            return {}  # file contains no DEW info
+
+        # retrieve first segment of DEW information
+        if not retcode:
+            nData, pData = c_long(), c_void_p()
+            func =  self.spssio.spssGetDEWFirst
+            args = c_int(self.fh), byref(pData), c_long(maxData), byref(nData)
+            retcode = func(*args)
+            dew_information = [pData.value]
+
+        # retrieve subsequent segments of DEW information
+        if not retcode:
+            func = self.spssio.spssGetDEWNext
+            for i in range(nData.value - 1):
+                nData = c_long()
+                retcode = func(*args)
+                if retcode > 0:
+                    break
+                dew_information.append(pData.value)
+
+        # retieve GUID information
+        if not retcode:
+            func = self.spssio.spssGetDEWGUID
+            asciiGUID = create_string_buffer(257)
+            retcode = func(c_int(self.fh), byref(asciiGUID))
+
+        if retcode > 0:
+            msg = "Error getting Data Entry info with function %r"
+            raise SPSSIOError(msg % func.__name__, retcode)
+        return dict(data=dew_information, GUID=asciiGUID.value)
+
+    @dataEntryInfo.setter
+    def dataEntryInfo(self, info):
+        data, asciiGUID = info["data"], info["GUID"]
+        # input validation
+        is_ascii = all(map(lambda x: ord(x) < 128, asciiGUID))
+        if not isinstance(asciiGUID, str) and is_ascii:
+            raise ValueError("GUID must be a string of ascii characters")
+        
+        # I am not sure at all about the following
+        swapit = info.has_key("swapBytes") and info.get("swapBytes")
+        def swap(x):
+           """swap bytes if needed"""
+           src_fmt = '<%s' if sys.byteorder == 'little' else '>%s'
+           dst_fmt = ">%s" if swapit and src_fmt[0] == "<" else "<%s"
+           if isinstance(x, (float, int)):
+               src_fmt, dst_fmt = src_fmt % "l", dst_mft % "l"
+           elif isinstance(x, str):
+               src_fmt, dst_fmt = src_fmt % "s", dst_mft % "s"
+           else:
+               type_ = re.search("'(\w+)'", str(type(x))).group(1)
+               raise TypeError("Must be str, int or float, not %s") % type_
+           if src_fmt != dst_fmt:
+               x = struct.unpack(dst_fmt, struct.pack(src_fmt, x))[0]
+           return x
+        if swapit:
+            data, asciiGUID = map(swap, data), swap(asciiGUID)
+
+        # write DEW information
+        for i, pData in enumerate(data):
+            nBytes = len(pData)
+            args = c_int(self.fh), c_void_p(pData), c_long(nBytes)
+            # ... first segment
+            if not i:
+                func = self.spssio.spssSetDEWFirst
+                retcode = func(*args)
+            # ... subsequent segments
+            else:
+                func = self.spssio.spssSetDEWNext
+                retcode = func(*args)
+            if retcode > 0:
+                break
+
+        # write GUI information
+        if not retcode:
+            args = c_int(self.fh), c_char_p(asciiGUID)
+            func = self.spssio.spssSetDEWGUID
+            retcode = func(*args)
+
+        if retcode > 0:
+            msg = "Error setting Data Entry info with function %r"
+            raise SPSSIOError(msg % func.__name__, retcode)
