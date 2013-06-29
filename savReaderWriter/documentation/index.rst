@@ -40,14 +40,16 @@ To get the 'bleeding edge' version straight from the repository do::
 
     pip install -U -e git+https://bitbucket.org/fomcl/savreaderwriter.git#egg=savreaderwriter
 
+.. versionchanged:: 3.2
+
+The ``savReaderWriter`` program is now self-contained. That is, the IBM SPSS I/O modules now all load by themselves, without any changes being required anymore to ``PATH``, ``LD_LIBRARY_PATH`` and equivalents. Also, no extra .deb files need to be installed anymore (i.e. no dependencies).
+
+
 The ``cWriterow`` package is a faster Cython implementation of the pyWriterow method. To install it, you need Cython and run ``setup.py`` in the ``cWriterow`` folder::
 
     easy_install cython
     python setup.py build_ext --inplace
 
-.. versionchanged:: 3.1.3
-
-The ``savReaderWriter`` program is now self-contained. That is, the IBM SPSS I/O modules now all load by themselves, without any changes being required to PATH, LD_LIBRARY_PATH and equivalents. Also, no extra .deb files need to be installed anymore.
 
 
 :mod:`SavWriter` -- Write Spss system files
@@ -78,7 +80,7 @@ The ``savReaderWriter`` program is now self-contained. That is, the IBM SPSS I/O
                           "someStrvar1": {"values": ["foo', "bar", "baz"]},
                           "someStrvar2": {"values': "bletch"}}
      
-      .. seealso:: *measureLevels, columnWidths, alignments must all three be set, if used*
+      .. warning:: *measureLevels, columnWidths, alignments must all three be set, if used*
 
    :param measureLevels: measurement level dictionary ``{varName: <level>}``. Valid levels are: "unknown",  "nominal", "ordinal", "scale", "ratio", "flag", "typeless". Cf. ``VARIABLE LEVEL`` (default: None). 
 

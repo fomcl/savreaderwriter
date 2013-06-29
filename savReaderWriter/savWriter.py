@@ -266,13 +266,15 @@ class SavWriter(Header):
         return dict([(i, "%%-%ds" % (-8 * (i // -8))) for i in strLengths])
 
     def writerow(self, record):
+        """ This function writes one record, which is a Python list."""
         if cWriterowOK:
             cWriterow(self, record)
             return
         self._pyWriterow(record)
 
     def _pyWriterow(self, record):
-        """ This function writes one record, which is a Python list."""
+        """ This function writes one record, which is a Python list,
+        compare this Python version with the Cython version cWriterow."""
         float_ = float
         for i, value in enumerate(record):
             varName = self.varNames[i]
