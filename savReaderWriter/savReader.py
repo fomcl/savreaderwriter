@@ -328,6 +328,10 @@ class SavReader(Header):
         """ This convenience function returns the last <n> records. """
         return self[-abs(n):]
 
+    def all(self):
+        """ This convenience function returns all the records. """        
+        return [record for record in iter(self)]
+
     def __contains__(self, item):
         """ This function implements membership testing and returns True if
         <idVar> contains <item>. Thus, it requires the 'idVar' parameter to
