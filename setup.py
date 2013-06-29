@@ -29,6 +29,7 @@ def read(fname):
 args = sys.argv
 
 is_32bit = platform.architecture()[0] == "32bit"
+is_64bit = platform.architecture()[0] == "64bit"
 is_install_mode = 'install' in args
 is_only_bdist = 'bdist' in args and not 'sdist' in args
 is_msi32 = is_only_bdist and '--formats=wininst' in args
@@ -53,10 +54,11 @@ if is_install_mode:
         package_data['savReaderWriter'].append('spssio/win32/*.*')
     elif pf.startswith("win"):
         package_data['savReaderWriter'].append('spssio/win64/*.*')
-    # How to recognize zLinux (IBM System Z)???
     elif pf.startswith("lin") and is_32bit:
         package_data['savReaderWriter'].append('spssio/lin32/*.*')
-    elif pf.startswith("lin"):
+    elif pf.startswith("lin") and is_64bit and os.uname()[-1] == "s390x":
+        package_data['savReaderWriter'].append('spssio/zlinux64/*.*')
+    elif pf.startswith("lin") and is_64bit:
         package_data['savReaderWriter'].append('spssio/lin64/*.*')
     elif pf.startswith("darwin") or pf.startswith("mac"):
         package_data['savReaderWriter'].append('spssio/macos/*.*')

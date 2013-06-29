@@ -46,46 +46,58 @@ class Generic(object):
                    "encode file name %r [%s]")
             raise ValueError(msg % (encoding, fn, e))
 
+    def _loadLibs(self, path):
+        """Helper function that loads I/O libraries in the correct order"""
+        # Get a list of all the files in the spssio dir for a given OS
+        # Sort the list in the order in which the libs need to be loaded
+        # Using regex patterns ought to be more resilient to updates of the
+        # I/O modules, compared to hardcoding the names
+        libs = sorted(os.listdir(path))
+        pats = ['(lib)?icudata', '(lib)?icuuc', '(lib)?icui',
+                '(lib)?zlib', '(lib)?spssd?io', '(lib)?spssjdio']
+        libs = [lib for pat in pats for lib in libs if re.match(pat, lib)]
+        load = WinDLL if sys.platform.lower().startswith("win") else CDLL
+        return [load(os.path.join(path, lib)) for lib in libs][-2]
+
     def loadLibrary(self):
         """This function loads and returns the SPSSIO libraries,
         depending on the platform."""
-        is_32bit = platform.architecture()[0] == "32bit"
+
+        arch = platform.architecture()[0]
+        is_32bit, is_64bit = arch == "32bit", arch == "64bit"
         pf = sys.platform.lower()
-        load = WinDLL if pf.startswith("win") else CDLL
-        oldpath = os.getcwd()
-        path = os.path.dirname( __file__ )
-        chdir = lambda loc: os.chdir(os.path.join(path, "spssio", loc))
-        try:
-            if pf.startswith("win") and is_32bit:
-                chdir("win32")
-                spssio = load("spssio32.dll") 
-            elif pf.startswith("win"):
-                chdir("win64")
-                spssio = load("spssio64.dll")
-            elif pf.startswith("lin"):  # most linux flavours, incl zLinux
-                if is_32bit:
-                    chdir("lin32")
-                else:
-                    chdir("lin64")
-                # how to recognize zLinux?
-                spssio = load("libspssdio.so.1")
-            elif pf.startswith("darwin") or pf.startswith("mac"):
-                chdir("macos")
-                spssio = load("libspssdio.dylib")
-            elif pf.startswith("aix") and not is_32bit:
-                chdir("aix64")
-                spssio = load("libspssdio.so.1")
-            elif pf.startswith("hp-ux"):
-                chdir("hpux_it")
-                spssio = load("libspssdio.sl.1")
-            elif pf.startswith("sunos") and not is_32bit:
-                chdir("sol64")
-                spssio = load("libspssdio.so.1")
-            else:
-                msg = "Your platform (%r) is not supported" % pf
-                raise NotImplementedError(msg)
-        finally:
-            os.chdir(oldpath)
+        path = os.path.join(os.path.dirname(__file__), "spssio")
+        join = os.path.join
+
+        # windows
+        if pf.startswith("win") and is_32bit:
+            spssio = self._loadLibs(join(path, "win32"))
+        elif pf.startswith("win"):
+            spssio = self._loadLibs(join(path, "win64"))
+
+        # linux
+        elif pf.startswith("lin") and is_32bit:
+            spssio = self._loadLibs(join(path, "lin32"))
+        elif pf.startswith("lin") and is_64bit and os.uname()[-1] == "s390x":
+            # zLinux64: Thanks Anderson P. from System z Linux LinkedIn Group!
+            spssio = self._loadLibs(path, "zlinux")[-1]
+        elif pf.startswith("lin") and is_64bit:
+            spssio = self._loadLibs(path, "lin32")[-1]
+
+        # other
+        elif pf.startswith("darwin") or pf.startswith("mac"):
+            # Mac: Thanks Rich Sadowsky!
+            spssio = self._loadLibs(path, "macos")[-1]
+        elif pf.startswith("aix") and is_64bit:
+            spssio = self._loadLibs(path, "aix64")[-1]
+        elif pf.startswith("hp-ux"):
+            spssio = self._loadLibs(path, "hpux_it")[-1]
+        elif pf.startswith("sunos") and is_64bit:
+            spssio = self._loadLibs(path, "sol64")[-1]
+        else:
+            msg = "Your platform (%r) is not supported" % pf
+            raise NotImplementedError(msg)
+
         return spssio
 
     def errcheck(self, res, func, args):
@@ -110,8 +122,9 @@ class Generic(object):
         _wideCharToMultiByte = windll.kernel32.WideCharToMultiByte
         _wideCharToMultiByte.restype = c_int
         _wideCharToMultiByte.argtypes = [wintypes.UINT, wintypes.DWORD,
-            wintypes.LPCWSTR, c_int, wintypes.LPSTR, c_int, wintypes.LPCSTR, _LPBOOL]
-
+                                         wintypes.LPCWSTR, c_int,
+                                         wintypes.LPSTR, c_int,
+                                         wintypes.LPCSTR, _LPBOOL]
         codePage = _CP_UTF8
         dwFlags = 0
         lpWideCharStr = fn
