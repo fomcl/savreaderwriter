@@ -17,7 +17,7 @@ Welcome to savReaderWriter's documentation!
 In the documentation below, the associated SPSS commands are given in ``CAPS``.
 See also the `IBM SPSS Statistics Command Syntax Reference.pdf`_ for info about SPSS syntax.
 
-.. note::
+.. seealso::
 
    The :mod:`savReaderWriter` program uses the SPSS I/O module (``.so``, ``.dll``, ``.dylib``, depending on your Operating  System). Users of the SPSS I/O module should read the `International License Agreement`_ before using the SPSS I/O module. By downloading, installing, copying, accessing, or otherwise using the  SPSS I/O module, licensee agrees to the terms of this agreement. Copyright © IBM Corporation™ 1989, 2012 --- all rights reserved.
 
@@ -32,52 +32,22 @@ This program works for Linux (incl. z/Linux), Windows, MacOS (32 and 64 bit), AI
 
     python setup.py install
 
+Or alternatively::
+
+    pip install savReaderWriter
+
+To get the 'bleeding edge' version straight from the repository do::
+
+    pip install -U -e git+https://bitbucket.org/fomcl/savreaderwriter.git#egg=savreaderwriter
+
 The ``cWriterow`` package is a faster Cython implementation of the pyWriterow method. To install it, you need Cython and run ``setup.py`` in the ``cWriterow`` folder::
 
     easy_install cython
     python setup.py build_ext --inplace
 
-Windows
-------------------------------------------------------------------------------
-Depending on your architecture, you may add either the ``../spssio/win32`` or the ``../spssio/win64`` directory to ``PATH``, but this is *not* strictly necessary for the DLLs to be loaded properly. The search directory for the DLLs is set at run-time.
+.. versionchanged:: 3.1.3
 
-Linux
-------------------------------------------------------------------------------
-Additional files that were needed on my Linux 32-bit machine (Ubuntu 12 or Mint XFCE): intel-icc8-libs_8.0-1_i386.deb, libicu32_3.2-3_i386.deb, libstdc++5_3.3.6-20_i386.deb, libirc.so. Run the following commands in your terminal::
-
-    sudo apt-get install intel-icc8-libs
-    sudo apt-get install libicu32
-    sudo apt-get install libstdc++5
-
-To use the program, do something like::
-
-    export LD_LIBRARY_PATH=/usr/local/lib/python2.7/dist-packages/savReaderWriter/spssio/lin32
-    python wrapperForSavReaderWriter.py
-
-A minimal wrapper would contain something like::
-
-    from savReaderWriter import *
-    with savReader("someFile.sav") as reader:
-        for line in reader:
-            pass
-
-.. note::
-
-    More code examples can be found in the ``doc_tests`` folder
-
-You may also add the 'export' line to your ``.bashrc`` file::
-
-    sudo gedit /etc/bash.bashrc
-
-Other OS
-------------------------------------------------------------------------------
-As said, other OSs (except MacOS) are untested, but probably the logic is the same as for Linux. Use the following exports for MacOS, Solaris-64, AIX-64 and HP-UX, respectively::
-
-    export DYLD_LIBRARY_PATH=/usr/local/lib/python2.7/dist-packages/savReaderWriter/spssio/macos
-    export LD_LIBRARY_PATH=/usr/local/lib/python2.7/dist-packages/savReaderWriter/spssio/sol64
-    export LIBPATH=/usr/local/lib/python2.7/dist-packages/savReaderWriter/spssio/aix64
-    export SHLIB_PATH=/usr/local/lib/python2.7/dist-packages/savReaderWriter/spssio/hpux_it
-
+The ``savReaderWriter`` program is now self-contained. That is, the IBM SPSS I/O modules now all load by themselves, without any changes being required to PATH, LD_LIBRARY_PATH and equivalents. Also, no extra .deb files need to be installed anymore.
 
 
 :mod:`SavWriter` -- Write Spss system files
@@ -108,7 +78,7 @@ As said, other OSs (except MacOS) are untested, but probably the logic is the sa
                           "someStrvar1": {"values": ["foo', "bar", "baz"]},
                           "someStrvar2": {"values': "bletch"}}
      
-      .. note:: *measureLevels, columnWidths, alignments must all three be set, if used*
+      .. seealso:: *measureLevels, columnWidths, alignments must all three be set, if used*
 
    :param measureLevels: measurement level dictionary ``{varName: <level>}``. Valid levels are: "unknown",  "nominal", "ordinal", "scale", "ratio", "flag", "typeless". Cf. ``VARIABLE LEVEL`` (default: None). 
 
@@ -155,11 +125,11 @@ Typical use::
     records = [['Test1', 1, 1], ['Test2', 2, 1]]
     varNames = ['var1', 'v2', 'v3']
     varTypes = {'var1': 5, 'v2': 0, 'v3': 0}
-    with SavWriter(savFileName, varNames, varTypes) as sav:
+    with SavWriter(savFileName, varNames, varTypes) as writer:
         for record in records:
-            sav.writerow(record)
+            writer.writerow(record)
 
-.. note::
+.. seealso::
 
     More code examples can be found in the ``doc_tests`` folder
 
@@ -199,10 +169,10 @@ Typical use::
         for line in sav:
             process(line)
 
-Use of __getitem__ and other methods		::
+Use of __getitem__ and other methods::
     
     reader = SavReader(savFileName, idVar="id")
-    try:
+    with reader:
         print "The file contains %d records" % len(reader)
         print unicode(reader)  # prints a file report
         print "The first six records look like this\n", reader[:6]
@@ -213,10 +183,9 @@ Use of __getitem__ and other methods		::
         print "Row 4 & 5, first three cols\n", reader[4:6, :3]  # requires numpy
         ## ... Do a binary search for records --> idVar
         print reader.get(4, "not found")             # gets 1st record where id==4
-    finally:
-        reader.close()
 
-.. note::
+
+.. seealso::
 
     More code examples can be found in the ``doc_tests`` folder
 
@@ -243,7 +212,7 @@ Typical use::
         wholeDict = spssDict.dataDictionary()
         print unicode(spssDict)
 
-.. note::
+.. seealso::
 
     More code examples can be found in the ``doc_tests`` folder
 
