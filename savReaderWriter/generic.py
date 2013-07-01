@@ -46,17 +46,28 @@ class Generic(object):
                    "encode file name %r [%s]")
             raise ValueError(msg % (encoding, fn, e))
 
-    def _loadLibs(self, path):
+    def _loadLibs(self, folder):
         """Helper function that loads I/O libraries in the correct order"""
         # Get a list of all the files in the spssio dir for a given OS
         # Sort the list in the order in which the libs need to be loaded
         # Using regex patterns ought to be more resilient to updates of the
         # I/O modules, compared to hardcoding the names
+        debug = False
+        path = os.path.join(os.path.dirname(__file__), "spssio", folder)
         libs = sorted(os.listdir(path))
-        pats = ['(lib)?icudata', '(lib)?icuuc', '(lib)?icui',
+        pats = ['(lib)?icuda?t', '(lib)?icuuc', '(lib)?icui',
                 '(lib)?zlib', '(lib)?spssd?io', '(lib)?spssjdio']
         libs = [lib for pat in pats for lib in libs if re.match(pat, lib)]
+        isLib = r"""\w+(\.s[ol](?:\.\d+)*| # linux/hp/solaris
+                    \.\d+\.a|              # aix
+                    \.dll|                 # windows
+                    (\.\d+)*\.dylib)$      # mac""" # filter out non-libs
+        libs = [lib for lib in libs if re.match(isLib, lib, re.I | re.X)]
         load = WinDLL if sys.platform.lower().startswith("win") else CDLL
+        if libs and debug:
+            assert len(libs) == 6, "SPSS I/O needs to load 6 libraries!"
+            print os.path.basename(path).upper().center(79, "-")
+            print "\n".join(libs)
         return [load(os.path.join(path, lib)) for lib in libs][-2]
 
     def loadLibrary(self):
@@ -66,34 +77,32 @@ class Generic(object):
         arch = platform.architecture()[0]
         is_32bit, is_64bit = arch == "32bit", arch == "64bit"
         pf = sys.platform.lower()
-        path = os.path.join(os.path.dirname(__file__), "spssio")
-        join = os.path.join
 
         # windows
         if pf.startswith("win") and is_32bit:
-            spssio = self._loadLibs(join(path, "win32"))
+            spssio = self._loadLibs("win32")
         elif pf.startswith("win"):
-            spssio = self._loadLibs(join(path, "win64"))
+            spssio = self._loadLibs("win64")
 
         # linux
         elif pf.startswith("lin") and is_32bit:
-            spssio = self._loadLibs(join(path, "lin32"))
+            spssio = self._loadLibs("lin32")
         elif pf.startswith("lin") and is_64bit and os.uname()[-1] == "s390x":
             # zLinux64: Thanks Anderson P. from System z Linux LinkedIn Group!
-            spssio = self._loadLibs(path, "zlinux")[-1]
+            spssio = self._loadLibs("zlinux")
         elif pf.startswith("lin") and is_64bit:
-            spssio = self._loadLibs(path, "lin32")[-1]
+            spssio = self._loadLibs("lin32")
 
         # other
         elif pf.startswith("darwin") or pf.startswith("mac"):
             # Mac: Thanks Rich Sadowsky!
-            spssio = self._loadLibs(path, "macos")[-1]
+            spssio = self._loadLibs("macos")
         elif pf.startswith("aix") and is_64bit:
-            spssio = self._loadLibs(path, "aix64")[-1]
+            spssio = self._loadLibs("aix64")
         elif pf.startswith("hp-ux"):
-            spssio = self._loadLibs(path, "hpux_it")[-1]
+            spssio = self._loadLibs("hpux_it")
         elif pf.startswith("sunos") and is_64bit:
-            spssio = self._loadLibs(path, "sol64")[-1]
+            spssio = self._loadLibs("sol64")
         else:
             msg = "Your platform (%r) is not supported" % pf
             raise NotImplementedError(msg)

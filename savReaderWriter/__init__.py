@@ -9,9 +9,6 @@ Statistics Input Output Module. Read or Write SPSS system files (.sav, .zsav)
 
 """
 
-__author__ = "Albert-Jan Roskam" + " " + "@".join(["fomcl", "yahoo.com"])
-__version__ = "3.1.1"
-
 # change this to 'True' in case you experience segmentation
 # faults related to freeing memory.
 segfaults = False
@@ -53,6 +50,10 @@ except ImportError:
     print ("NOTE. cWriterow module not found. Install this module " +
             "to increase writer performance")
     cWriterowOK = False
+
+__author__ = "Albert-Jan Roskam" + " " + "@".join(["fomcl", "yahoo.com"])
+__version__ = open(os.path.join(os.path.dirname(__file__),
+                                "VERSION")).read().strip()
 
 retcodes = {
     0: "SPSS_OK",
