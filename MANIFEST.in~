@@ -1,0 +1,11 @@
+graft savReaderWriter/cWriterow
+recursive-include savReaderWriter/documentation *.*
+graft savReaderWriter/doc_tests
+recursive-include savReaderWriter/test_data *.*
+graft savReaderWriter/spssio 
+include ez_setup.py
+include VERSION
+include TODO
+include COPYRIGHT
+global-exclude *.pyc *.*~
+prune .git

@@ -1,0 +1,10 @@
+
+
+[arraySlicing]
+numpy
+
+[fastReading]
+psyco
+
+[fastWriting]
+Cython
