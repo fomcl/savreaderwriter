@@ -28,7 +28,33 @@ See also the `IBM SPSS Statistics Command Syntax Reference.pdf`_ for info about 
 Installation
 ============================================================================
 
-This program works for Linux (incl. z/Linux), Windows, MacOS (32 and 64 bit), AIX-64, HP-UX and Solaris-64. However, it has only been tested on Linux 32 (Ubuntu and Mint), Windows (mostly on Windows XP 32, but also a few times on Windows 7 64), and MacOS (with an earlier version of savReaderWriter). The other OSs are entirely untested. The program can be installed by running::
+Platforms
+----------
+As shown in the table below, this program works for Linux (incl. z/Linux), Windows, MacOS (32 and 64 bit), AIX-64, HP-UX and Solaris-64. However, it has only been tested on Linux 32 (Ubuntu and Mint), Windows (mostly on Windows XP 32, but also a few times on Windows 7 64), and MacOS (with an earlier version of savReaderWriter). The other OSs are entirely untested.
+
++------------------+------------+-----------+
+| Operating System |       Architecture     |
+|                  +------------+-----------+
+|                  |   32 bit   |  64 bit   |
++==================+============+===========+
+| AIX              |            |    X      |
++------------------+------------+-----------+
+| HP-UX            |            |    X      |
++------------------+------------+-----------+
+| Linux            |     X      |    X      |
++------------------+------------+-----------+
+| MAC OS           |     X      |    X?     |
++------------------+------------+-----------+
+| Solaris          |            |    X      |
++------------------+------------+-----------+
+| Windows          |     X      |    X      |
++------------------+------------+-----------+
+| zLinux           |            |    X      |
++------------------+------------+-----------+
+
+Setup
+-------------------
+The program can be installed by running::
 
     python setup.py install
 
@@ -42,15 +68,22 @@ To get the 'bleeding edge' version straight from the repository do::
 
 .. versionchanged:: 3.2
 
-The ``savReaderWriter`` program is now self-contained. That is, the IBM SPSS I/O modules now all load by themselves, without any changes being required anymore to ``PATH``, ``LD_LIBRARY_PATH`` and equivalents. Also, no extra .deb files need to be installed anymore (i.e. no dependencies).
+The ``savReaderWriter`` program is now self-contained. That is, the IBM SPSS I/O modules now all load by themselves, without any changes being required anymore to ``PATH``, ``LD_LIBRARY_PATH`` and equivalents. Also, no extra .deb files need to be installed anymore (i.e. no dependencies). ``savReaderWriter`` now uses version 21.0.0.1 (i.e., Fixpack 1) of the I/O module.
 
+Optional
+-------------------
 
-The ``cWriterow`` package is a faster Cython implementation of the pyWriterow method. To install it, you need Cython and run ``setup.py`` in the ``cWriterow`` folder::
+**cWriterow.**
+The ``cWriterow`` package is a faster Cython implementation of the pyWriterow method (66 % faster). To install it, you need Cython and run ``setup.py`` in the ``cWriterow`` folder::
 
     easy_install cython
     python setup.py build_ext --inplace
 
+**psyco.**
+The ``psyco`` package may be installed to speed up reading (66 % faster).
 
+**numpy.**
+The ``psyco`` package should be installed if you intend to use array slicing (e.g ``data[:2,2:4]``).
 
 :mod:`SavWriter` -- Write Spss system files
 ============================================================================
@@ -64,13 +97,13 @@ The ``cWriterow`` package is a faster Cython implementation of the pyWriterow me
 
    :param varTypes: varTypes dictionary ``{varName: varType}``, where varType == 0 means 'numeric', and varType > 0 means 'character' of that length (in bytes)
 
-   :param valueLabels: value label dictionary ``{varName: {value: label}}``. Cf. ``VALUE LABELS`` (default: None).
+   :param valueLabels: value label dictionary ``{varName: {value: label}}``. Cf. ``VALUE LABELS`` (default: ``None``).
 
-   :param varLabels: variable label dictionary ``{varName: varLabel}``. Cf. ``VARIABLE LABEL`` (default: None).
+   :param varLabels: variable label dictionary ``{varName: varLabel}``. Cf. ``VARIABLE LABEL`` (default: ``None``).
 
-   :param formats: print/write format dictionary ``{varName: spssFmt}``. Commonly used formats include F  (numeric, e.g. F5.4), N (numeric with leading zeroes, e.g. N8), A (string, e.g. A8) and EDATE/ADATE  (European/American date, e.g. ADATE30). Cf. ``FORMATS`` (default: None).
+   :param formats: print/write format dictionary ``{varName: spssFmt}``. Commonly used formats include F  (numeric, e.g. ``F5.4``), N (numeric with leading zeroes, e.g. ``N8``), A (string, e.g. ``A8``) and ``EDATE``/``ADATE`` (European/American date, e.g. ``ADATE30``). Cf. ``FORMATS`` (default: ``None``).
 
-   :param missingValues: missing values dictionary ``{varName: {missing_value_spec}}``. Cf. ``MISSING VALUES`` (default: None). For example: 
+   :param missingValues: missing values dictionary ``{varName: {missing_value_spec}}``. Cf. ``MISSING VALUES`` (default: ``None``). For example: 
 
       .. code:: python
 
@@ -82,17 +115,17 @@ The ``cWriterow`` package is a faster Cython implementation of the pyWriterow me
      
       .. warning:: *measureLevels, columnWidths, alignments must all three be set, if used*
 
-   :param measureLevels: measurement level dictionary ``{varName: <level>}``. Valid levels are: "unknown",  "nominal", "ordinal", "scale", "ratio", "flag", "typeless". Cf. ``VARIABLE LEVEL`` (default: None). 
+   :param measureLevels: measurement level dictionary ``{varName: <level>}``. Valid levels are: "unknown",  "nominal", "ordinal", "scale", "ratio", "flag", "typeless". Cf. ``VARIABLE LEVEL`` (default: ``None``). 
 
-   :param columnWidths: column display width dictionary ``{varName: <int>}``. Cf. ``VARIABLE WIDTH``.   (default: None --> >= 10 [stringVars] or automatic [numVars]). 
+   :param columnWidths: column display width dictionary ``{varName: <int>}``. Cf. ``VARIABLE WIDTH``.   (default: ``None`` --> >= 10 [stringVars] or automatic [numVars]). 
 
-   :param alignments: alignment dictionary ``{varName: <left/center/right>}`` Cf. ``VARIABLE ALIGNMENT``  (default: None --> numerical: right, string: left). 
+   :param alignments: alignment dictionary ``{varName: <left/center/right>}`` Cf. ``VARIABLE ALIGNMENT``  (default: ``None`` --> numerical: right, string: left). 
 
-   :param varSets: sets dictionary ``{setName: [list_of_valid_varNames]}``. Cf. ``SETMACRO`` extension  command. (default: None). 
+   :param varSets: sets dictionary ``{setName: [list_of_valid_varNames]}``. Cf. ``SETSMACRO`` extension  command. (default: ``None``). 
 
-   :param varRoles: variable roles dictionary ``{varName: varRole}``. VarRoles may be any of the following:  'both', 'frequency', 'input', 'none', 'partition', 'record ID', 'split', 'target'. Cf. ``VARIABLE ROLE``  (default: None). 
+   :param varRoles: variable roles dictionary ``{varName: varRole}``. VarRoles may be any of the following:  'both', 'frequency', 'input', 'none', 'partition', 'record ID', 'split', 'target'. Cf. ``VARIABLE ROLE``  (default: ``None``). 
 
-   :param varAttributes: variable attributes dictionary ``{varName: {attribName: attribValue}`` (default:  None). Cf. ``VARIABLE  ATTRIBUTES``. (default: None). For example:
+   :param varAttributes: variable attributes dictionary ``{varName: {attribName: attribValue}`` (default:  None). Cf. ``VARIABLE  ATTRIBUTES``. (default: ``None``). For example:
 
       .. code:: python
 
@@ -104,21 +137,21 @@ The ``cWriterow`` package is a faster Cython implementation of the pyWriterow me
 
          fileAttributes = {'RevisionDate[1]': '10/29/2004', 'RevisionDate[2]': '10/21/2005'} 
 
-   :param fileLabel: file label string, which defaults to "File created by user <username> at <datetime>" if  file label is None. Cf. ``FILE LABEL`` (default: None). 
+   :param fileLabel: file label string, which defaults to "File created by user <username> at <datetime>" if  file label is None. Cf. ``FILE LABEL`` (default: ``None``). 
 
-   :param multRespDefs: Multiple response sets definitions (dichotomy groups or category groups) dictionary ``{setName: <set definition>}``. In SPSS syntax, 'setName' has a dollar prefix ('$someSet'). See also  docstring of multRespDefs method. Cf. ``MRSETS``. (default: None). 
+   :param multRespDefs: Multiple response sets definitions (dichotomy groups or category groups) dictionary ``{setName: <set definition>}``. In SPSS syntax, 'setName' has a dollar prefix ('$someSet'). See also  docstring of multRespDefs method. Cf. ``MRSETS``. (default: ``None``). 
 
    :param caseWeightVar: valid varName that is set as case weight. Cf. ``WEIGHT BY`` command). 
 
-   :param overwrite: Boolean that indicates whether an existing Spss file should be overwritten (default: True). 
+   :param overwrite: Boolean that indicates whether an existing Spss file should be overwritten (default: ``True``). 
 
-   :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will  be. Valid values are True (UTF-8/unicode mode, cf. ``SET UNICODE=ON``) or False (Codepage mode, ``SET  UNICODE=OFF``) (default: False). 
+   :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will  be. Valid values are True (UTF-8/unicode mode, cf. ``SET UNICODE=ON``) or False (Codepage mode, ``SET  UNICODE=OFF``) (default: ``False``). 
 
    :param ioLocale: indicates the locale of the I/O module, cf. ``SET LOCALE`` (default: None, which is the  same as ``".".join(locale.getlocale())``. Locale specification is OS-dependent. 
 
    :param mode: indicates the mode in which <savFileName> should be opened. Possible values are "wb" (write),  "ab" (append), "cp" (copy: initialize header using <refSavFileName> as a reference file, cf. ``APPLY DICTIONARY``). (default: "wb"). 
 
-   :param refSavFileName: reference file that should be used to initialize the header (aka the SPSS data  dictionary) containing variable label, value label, missing value, etc, etc definitions. Only relevant  in conjunction with mode="cp". (default: None). 
+   :param refSavFileName: reference file that should be used to initialize the header (aka the SPSS data  dictionary) containing variable label, value label, missing value, etc, etc definitions. Only relevant  in conjunction with mode="cp". (default: ``None``). 
 
 
 Typical use::
@@ -143,21 +176,21 @@ Typical use::
 
    :param savFileName: the file name of the spss data file
 
-   :param returnHeader: Boolean that indicates whether the first record should be a list of variable names (default = False)
+   :param returnHeader: Boolean that indicates whether the first record should be a list of variable names (default = ``False``)
 
-   :param recodeSysmisTo: indicates to which value missing values should be recoded (default = None, i.e. no recoding is done)
+   :param recodeSysmisTo: indicates to which value missing values should be recoded (default = ``None``, i.e. no recoding is done)
 
-   :param selectVars: indicates which variables in the file should be selected. The variables should be  specified as a list or a tuple of valid variable names. If None is specified, all variables in the file are used (default = None)
+   :param selectVars: indicates which variables in the file should be selected. The variables should be  specified as a list or a tuple of valid variable names. If None is specified, all variables in the file are used (default = ``None``)
 
-   :param idVar: indicates which variable in the file should be used for use as id variable for the 'get'  method (default = None)
+   :param idVar: indicates which variable in the file should be used for use as id variable for the 'get'  method (default = ``None``)
 
-   :param verbose: Boolean that indicates whether information about the spss data file (e.g., number of cases,  variable names, file size) should be printed on the screen (default = False).
+   :param verbose: Boolean that indicates whether information about the spss data file (e.g., number of cases,  variable names, file size) should be printed on the screen (default = ``False``).
 
-   :param rawMode: Boolean that indicates whether values should get SPSS-style formatting, and whether date variables (if present) should be converted to ISO-dates. If True, the program does not format any values, which increases processing speed. (default = False)
+   :param rawMode: Boolean that indicates whether values should get SPSS-style formatting, and whether date variables (if present) should be converted to ISO-dates. If True, the program does not format any values, which increases processing speed. (default = ``False``)
 
-   :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will be. Valid values are True (UTF-8 mode aka Unicode mode) and False (Codepage mode). Cf. ``SET UNICODE=ON/OFF`` (default = False)
+   :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will be. Valid values are True (UTF-8 mode aka Unicode mode) and False (Codepage mode). Cf. ``SET UNICODE=ON/OFF`` (default = ``False``)
 
-   :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = None, which corresponds to ``".".join(locale.getlocale())``)
+   :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = ``None``, which corresponds to ``".".join(locale.getlocale())``)
 
 .. warning::
 
@@ -171,7 +204,7 @@ Typical use::
         for line in sav:
             process(line)
 
-Use of __getitem__ and other methods::
+Use of ``__getitem__`` and other methods::
     
     data = SavReader(savFileName, idVar="id")
     with data:
@@ -181,6 +214,7 @@ Use of __getitem__ and other methods::
         print "The first record looks like this\n", data[0]
         print "The last four records look like this\n", data.tail(4)
         print "The first five records look like this\n", data.head()
+	allData = data.all()
         print "First column:\n", data[..., 0]  # requires numpy
         print "Row 4 & 5, first three cols\n", data[4:6, :3]  # requires numpy
         ## ... Do a binary search for records --> idVar
@@ -200,9 +234,9 @@ Use of __getitem__ and other methods::
 
    :param savFileName: the file name of the spss data file
 
-   :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will be. Valid values are True (UTF-8 mode aka Unicode mode) and False (Codepage mode). Cf. ``SET UNICODE=ON/OFF`` (default = False)
+   :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will be. Valid values are True (UTF-8 mode aka Unicode mode) and False (Codepage mode). Cf. ``SET UNICODE=ON/OFF`` (default = ``False``)
 
-   :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = None, which corresponds to ``".".join(locale.getlocale())``)
+   :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = ``None``, which corresponds to ``".".join(locale.getlocale())``)
 
 .. warning::
 
@@ -211,7 +245,7 @@ Use of __getitem__ and other methods::
 Typical use::
 
     with SavHeaderReader(savFileName) as spssDict:
-        wholeDict = spssDict.dataDictionary()
+        metadata = spssDict.dataDictionary()
         print unicode(spssDict)
 
 .. seealso::

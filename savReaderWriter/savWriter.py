@@ -169,9 +169,9 @@ class SavWriter(Header):
         for varName in self.varNames:
             retcode = func(c_int(self.fh), c_char_p(varName), byref(varHandle))
             varHandles[varName] = varHandle.value
-            if retcode > 0:
-                msg = "Error getting variable handle for variable %r"
-                raise SPSSIOError(msg % varName, retcode)
+            if retcode:
+                msg = "Problem getting variable handle for variable %r"
+                checkErrsWarns(msg, retcode)
         return varHandles
 
     def __setitem__(self, varName, value):
@@ -193,11 +193,11 @@ class SavWriter(Header):
             funcC = self.spssio.spssSetValueChar
             retcode = funcC(c_int(self.fh), c_double(varHandle),
                             c_char_p(value))
-        if retcode > 0:
+        if retcode:
             isString = isinstance(value, basestring)
             valType = "character" if isString else "numerical"
             msg = "Error setting %s value %r for variable %r"
-            raise SPSSIOError(msg % (valType, value, varName), retcode)
+            checkErrsWarns(msg % (valType, value, varName), retcode)
 
     def _openWrite(self, savFileName, overwrite):
         """ This function opens a file in preparation for creating a new IBM
@@ -222,9 +222,9 @@ class SavWriter(Header):
         d, m, y = c_int(day), c_int(month), c_int(year)
         spssDate = c_double()
         retcode = self.spssio.spssConvertDate(d, m, y, byref(spssDate))
-        if retcode > 0:
+        if retcode:
             msg = "Problem converting date value '%s-%s-%s'" % (d, m, y)
-            raise SPSSIOError(msg, retcode)
+            checkErrsWarns(msg, retcode)
         return spssDate.value
 
     def convertTime(self, day, hour, minute, second):
@@ -233,10 +233,10 @@ class SavWriter(Header):
         d, h, m, s, spssTime = (c_int(day), c_int(hour), c_int(minute),
                                 c_double(float(second)), c_double())
         retcode = self.spssio.spssConvertTime(d, h, m, s, byref(spssTime))
-        if retcode > 0:
+        if retcode:
             msg = ("Problem converting time value '%s %s:%s:%s'" %
                   (day, hour, minute, second))
-            raise SPSSIOError(msg, retcode)
+            checkErrsWarns(msg, retcode)
         return spssTime.value
 
     def spssDateTime(self, datetimeStr="2001-12-08", strptimeFmt="%Y-%m-%d"):
@@ -254,8 +254,8 @@ class SavWriter(Header):
         dictionary must be committed; once the dictionary has been committed,
         no further changes can be made to it."""
         retcode = self.spssio.spssCommitHeader(c_int(self.fh))
-        if retcode > 0:
-            raise SPSSIOError("Problem committing header", retcode)
+        if retcode:
+            checkErrsWarns("Problem committing header", retcode)
 
     def _getPaddingLookupTable(self, varTypes):
         """Helper function that returns a lookup table that maps string lengths

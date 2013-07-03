@@ -185,6 +185,9 @@ class SavReader(Header):
         else:
             retcode = self.seekNextCase(c_int(self.fh), c_long(0))  # reset
 
+        if retcode:
+            checkErrsWarns("Problem seeking first case", retcode)
+
         if stop is None:
             stop = self.nCases
 
@@ -193,8 +196,8 @@ class SavReader(Header):
             if start:
                 # only call this when iterating over part of the records
                 retcode = self.seekNextCase(c_int(self.fh), c_long(case))
-                if retcode > 0:
-                    raise SPSSIOError("Error seeking case %d" % case, retcode)
+                if retcode:
+                    checkErrsWarns("Problem seeking case %d" % case, retcode)
             elif stop == self.nCases:
                 self.printPctProgress(case, self.nCases)
 

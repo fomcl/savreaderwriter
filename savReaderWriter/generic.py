@@ -193,9 +193,8 @@ class Generic(object):
         else:
             retcode = spssOpen(sav, pointer(fh))
 
-        if retcode > 0:
-            msg = "Error opening file %r in mode %r"
-            raise SPSSIOError(msg % (savFileName, mode), retcode)
+        msg = "Problem opening file %r in mode %r" % (savFileName, mode)
+        checkErrsWarns(msg, retcode)
         return fh.value
 
     def closeSavFile(self, fh, mode="rb"):
@@ -208,8 +207,8 @@ class Generic(object):
         elif mode == "ab":
             spssClose = self.spssio.spssCloseAppend
         retcode = spssClose(c_int(fh))
-        if retcode > 0:
-            raise SPSSIOError("Error closing file in mode %r" % mode, retcode)
+        msg = "Problem closing file in mode %r" % mode
+        checkErrsWarns(msg, retcode)
 
 ##    def closeFile(self):
 ##        """Close file"""
@@ -235,8 +234,7 @@ class Generic(object):
                    "character representation code"]
         relInfoArr = (c_int * len(relInfo))()
         retcode = self.spssio.spssGetReleaseInfo(c_int(self.fh), relInfoArr)
-        if retcode > 0:
-            raise SPSSIOError("Error getting ReleaseInfo", retcode)
+        checkErrsWarns("Problem getting ReleaseInfo", retcode)
         info = dict([(item, relInfoArr[i]) for i, item in enumerate(relInfo)])
         return info
 
@@ -264,8 +262,7 @@ class Generic(object):
         compSwitch = c_int()
         func = self.spssio.spssGetCompression
         retcode = func(c_int(self.fh), byref(compSwitch))
-        if retcode > 0:
-            raise SPSSIOError("Error getting file compression", retcode)
+        checkErrsWarns("Problem getting file compression", retcode)
         return compression.get(compSwitch.value)
 
     @fileCompression.setter
@@ -278,8 +275,7 @@ class Generic(object):
         if invalidSwitch and self.spssVersion[0] < 21:
             msg = "Writing zcompressed files requires >=v21 SPSS I/O libraries"
             raise ValueError(msg)
-        elif retcode > 0:
-            raise SPSSIOError("Error setting file compression", retcode)
+        checkErrsWarns("Problem setting file compression", retcode)
 
     @property
     def systemString(self):
@@ -288,8 +284,7 @@ class Generic(object):
         sysName = create_string_buffer(42)
         func = self.spssio.spssGetSystemString
         retcode = func(c_int(self.fh), byref(sysName))
-        if retcode > 0:
-            raise SPSSIOError("Error getting SystemString", retcode)
+        checkErrsWarns("Problem getting SystemString", retcode)
         return sysName.value
 
     def getStruct(self, varTypes, varNames, mode="rb"):
@@ -328,8 +323,7 @@ class Generic(object):
         caseSize = c_long()
         retcode = self.spssio.spssGetCaseSize(c_int(self.fh), byref(caseSize))
         caseBuffer = create_string_buffer(caseSize.value)
-        if retcode > 0:
-            raise SPSSIOError("Problem getting case buffer", retcode)
+        checkErrsWarns("Problem getting case buffer", retcode)
         return caseBuffer
 
     @property
@@ -354,6 +348,7 @@ class Generic(object):
         lowest, highest = c_double(), c_double()
         func = self.spssio.spssLowHighVal
         retcode = func(byref(lowest), byref(highest))
+        checkErrsWarns("Problem getting min/max missing values", retcode)
         return lowest.value, highest.value
 
     @property
@@ -396,6 +391,7 @@ class Generic(object):
         nCodePage = c_int()
         func = self.spssio.spssGetFileCodePage
         retcode = func(c_int(self.fh), byref(nCodePage))
+        checkErrsWarns("Problem getting file codepage", retcode)
         return nCodePage.value
 
     def isCompatibleEncoding(self):
@@ -409,9 +405,8 @@ class Generic(object):
         func.restype = c_bool
         isCompatible = c_int()
         retcode = func(c_int(self.fh), byref(isCompatible))
-        if retcode > 0:
-            msg = "Error testing encoding compatibility: %r"
-            raise SPSSIOError(msg % isCompatible.value, retcode)
+        msg = "Error testing encoding compatibility: %r" % isCompatible.value
+        checkErrsWarns(msg, retcode)
         if not isCompatible.value and not self.ioUtf8:
             msg = ("NOTE. SPSS Statistics data file %r is written in a " +
                    "character encoding (%s) incompatible with the current " +
@@ -440,8 +435,9 @@ class Generic(object):
                 # not self.encoding_and_locale_set --> nested context managers
                 raise SPSSIOError("Error setting IO interface", retcode)
         except TypeError:
-            msg = "Invalid interface encoding: %r (must be bool)"
-            raise SPSSIOError(msg % ioUtf8)
+            raise Exception("Invalid interface encoding: %r (must be bool)")
+        if retcode < 0:
+            checkErrsWarns("Problem setting ioUtf8", retcode)
 
     @property
     def fileEncoding(self):
@@ -455,8 +451,7 @@ class Generic(object):
             pszEncoding = create_string_buffer(20)  # is 20 enough??
             func = self.spssio.spssGetFileEncoding
             retcode = func(c_int(self.fh), byref(pszEncoding))
-            if retcode > 0:
-                raise SPSSIOError("Error getting file encoding", retcode)
+            checkErrsWarns("Problem getting file encoding", retcode)
             iana_codes = encodings.aliases.aliases
             rawEncoding = pszEncoding.value.lower()
             if rawEncoding.replace("-", "") in iana_codes:
@@ -477,10 +472,10 @@ class Generic(object):
     @property
     def record(self):
         """Get/Set a whole record from/to a pre-allocated buffer"""
-        retcode = self.wholeCaseIn(c_int(self.fh),
-                                   byref(self.caseBuffer))
-        if retcode > 0:
-            raise SPSSIOError("Problem reading row", retcode)
+        args = c_int(self.fh), byref(self.caseBuffer)
+        retcode = self.wholeCaseIn(*args)
+        if retcode != 0:
+            checkErrsWarns("Problem reading row", retcode)
         record = list(self.unpack_from(self.caseBuffer))
         return record
 
@@ -491,11 +486,10 @@ class Generic(object):
         except struct.error, e:
             msg = "Use ioUtf8=True to write unicode strings [%s]" % e
             raise TypeError(msg)
-        retcode = self.wholeCaseOut(c_int(self.fh),
-                                    c_char_p(self.caseBuffer.raw))
-        if retcode > 0:
-            raise SPSSIOError("Problem writing row:\n" + \
-                              unicode(record, "utf-8"), retcode)
+        args = c_int(self.fh), c_char_p(self.caseBuffer.raw)
+        retcode = self.wholeCaseOut(*args)
+        if retcode != 0:
+            checkErrsWarns("Problem writing row\n" + record, retcode)
 
     def printPctProgress(self, nominator, denominator):
         """This function prints the % progress when reading and writing

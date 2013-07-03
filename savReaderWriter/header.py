@@ -30,32 +30,6 @@ class Header(Generic):
         super class"""
         return self.fh
 
-##    def decode(func):
-##        """Decorator to Utf-8 decode all str items contained in a dictionary
-##        If ioUtf8=True, the dictionary's keys and values are decoded, but only
-##        values that are strs, lists, or dicts. For example:
-##        {'v1': {'y': 'yy', 'z': 666}}-->{u'v1': {u'y': u'yy', u'z': 666}}"""
-##        uS = lambda x: x.decode("utf-8") if isinstance(x, str) else x
-##        uL = lambda x: map(uS, x) if isinstance(x, list) else x
-##
-##        @functools.wraps(func)
-##        def wrapper(arg):
-##            result = func(arg)
-##            if not arg.ioUtf8:
-##                return result  # unchanged
-##            if isinstance(result, str):
-##                return uS(result)
-##            utf8ifiedDict = {}
-##            for k, v in result.iteritems():
-##                k, v = uS(k), uS(v)
-##                if isinstance(v, list):
-##                    v = map(uS, v)
-##                elif isinstance(v, dict):
-##                    v = dict([(uS(x), uL(uS(y))) for x, y in v.items()])
-##                utf8ifiedDict[k] = v
-##            return utf8ifiedDict
-##        return wrapper
-
     def decode(func):
         """Decorator to Utf-8 decode all str items contained in a dictionary
         If ioUtf8=True, the dictionary's keys and values are decoded, but only
@@ -119,9 +93,8 @@ class Header(Generic):
         #print ".. freeing" , funcName[8:]
         func = getattr(self.spssio, funcName)
         retcode = func(*args)
-        if retcode > 0:
-            msg = "Error freeing memory using %s" % funcName
-            raise SPSSIOError(msg, retcode)
+        if retcode:
+            checkErrsWarns("Problem freeing memory using %s" % funcName, retcode)
 
     @property
     def numberofCases(self):
@@ -134,8 +107,8 @@ class Header(Generic):
         if nCases.value == -1:
             func = self.spssio.spssGetEstimatedNofCases
             retcode = func(c_int(self.fh), byref(nCases))
-        if retcode > 0:
-            raise SPSSIOError("Error getting number of cases", retcode)
+        if retcode:
+            checkErrsWarns("Problem getting number of cases", retcode)
         return nCases.value
 
     @property
@@ -145,8 +118,8 @@ class Header(Generic):
         numVars = c_int()
         func = self.spssio.spssGetNumberofVariables
         retcode = func(c_int(self.fh), byref(numVars))
-        if retcode > 0:
-            raise SPSSIOError("Error getting number of variables", retcode)
+        if retcode:
+            checkErrsWarns("Problem getting number of variables", retcode)
         return numVars.value
 
     @property
@@ -170,8 +143,8 @@ class Header(Generic):
         func = self.spssio.spssGetVarNames
         retcode = func(c_int(self.fh), byref(numVars_),
                        byref(varNamesArr), byref(varTypesArr))
-        if retcode > 0:
-            raise SPSSIOError("Error getting variable names & types", retcode)
+        if retcode:
+            checkErrsWarns("Problem getting variable names & types", retcode)
 
         # get array contents
         varNames = [varNamesArr[0][i] for i in xrange(numVars)]
@@ -203,14 +176,14 @@ class Header(Generic):
         for varName in self.varNames:
             varLength = self.varTypes[varName]
             retcode = validate(c_char_p(varName))
-            if retcode > 0:
+            if retcode:
                 msg = "%r is an invalid variable name [%r]" % \
                       (varName, ": ".join(varNameRetcodes.get(retcode)))
                 raise SPSSIOError(msg, retcode)
             retcode = func(c_int(self.fh), c_char_p(varName), c_int(varLength))
-            if retcode > 0:
+            if retcode:
                 msg = "Problem setting variable name %r" % varName
-                raise SPSSIOError(msg, retcode)
+                checkErrsWarns(msg, retcode)
 
     @property
     @decode
@@ -252,9 +225,9 @@ class Header(Generic):
             # step 2: get labels with array of proper size
             retcode = func(c_int(self.fh), c_char_p(vName), byref(valuesArr),
                            byref(labelsArr), byref(numLabels))
-            if retcode > 0:
-                msg = "Error getting value labels of variable %r"
-                raise SPSSIOError(msg % varName, retcode)
+            if retcode:
+                msg = "Problem getting value labels of variable %r"  % varName
+                checkErrsWarns(msg, retcode)
 
             # get array contents
             if not numLabels.value:
@@ -289,9 +262,9 @@ class Header(Generic):
                 else:
                     retcode = valLabC(c_int(self.fh), c_char_p(varName),
                                       c_char_p(value), c_char_p(label))
-                if retcode > 0:
-                    msg = "Problem with setting value labels of variable %r"
-                    raise SPSSIOError(msg % varName, retcode)
+                if retcode:
+                    msg = "Problem setting value labels of variable %r"
+                    checkErrsWarns(msg % varName, retcode)
 
     @property
     @decode
@@ -314,9 +287,9 @@ class Header(Generic):
                 retcode = funcL(c_int(self.fh), c_char_p(varName),
                                 byref(varLabel), c_int(lenBuff), byref(c_int))
             varLabels[varName] = varLabel.value
-            if retcode > 0:
-                msg = "Error getting variable label of variable %r" % varName
-                raise SPSSIOError(msg, retcode)
+            if retcode:
+                msg = "Problem getting variable label of variable %r" % varName
+                checkErrsWarns(msg, retcode)
         return varLabels
 
     @varLabels.setter
@@ -328,10 +301,10 @@ class Header(Generic):
         for varName, varLabel in varLabels.iteritems():
             retcode = func(c_int(self.fh), c_char_p(varName),
                            c_char_p(varLabel))
-            if retcode > 0:
+            if retcode:
                 msg = ("Problem with setting variable label %r of variable %r"
                        % (varLabel, varName))
-                raise SPSSIOError(msg, retcode)
+                checkErrsWarns(msg, retcode)
 
     @property
     @decode
@@ -350,9 +323,10 @@ class Header(Generic):
             retcode = func(c_int(self.fh), c_char_p(vName),
                            byref(printFormat_), byref(printDec_),
                            byref(printWid_))
-            if retcode > 0:
-                msg = "Error getting print format for variable %r"
-                raise SPSSIOError(msg % vName, retcode)
+            if retcode:
+                msg = "Error getting print format for variable %r" % vName
+                checkErrsWarns(msg, retcode)
+
             printFormat = allFormats.get(printFormat_.value)[0]
             printFormat = printFormat.split("_")[-1]
             format_ = printFormat + str(printWid_.value)
@@ -365,7 +339,7 @@ class Header(Generic):
 
     def _splitformats(self):
         """This function returns the 'bare' formats + variable widths,
-        e.g. format_ F5.3 is returned as 'F' and '5'"""
+        e.g. format F5.3 is returned as 'F' and '5'"""
         regex = re.compile("\w+(?P<varWid>\d+)[.]?\d?", re.I)
         bareformats, varWids = {}, {}
         for varName, format_ in self.formats.iteritems():
@@ -389,7 +363,7 @@ class Header(Generic):
             format_ = format_.upper()
             gotString = isStringVar.match(format_)
             gotAny = isAnyVar.match(format_)
-            msg = ("Unknown format_ %r for variable %r. " +
+            msg = ("Unknown format %r for variable %r. " +
                    "Valid formats are: %s")
             msg = msg % (", ".join(validValues), format_, varName)
             if gotString:
@@ -414,11 +388,11 @@ class Header(Generic):
             retcode1, retcode2 = funcP(*args), funcW(*args)
             if retcodes.get(retcode1) == "SPSS_INVALID_PRFOR":
                 # invalid PRint FORmat
-                msg = "format_ for %r misspecified (%r)"
+                msg = "format for %r misspecified (%r)"
                 raise SPSSIOError(msg % (varName, format_), retcode1)
-            elif retcode1 > 0:
-                msg = "Error setting format_ %r for %r"
-                raise SPSSIOError(msg % (format_, varName), retcode1)
+            if retcode1:
+                msg = "Problem setting format_ %r for %r" % (format_, varName)
+                checkErrsWarns(msg, retcode1)
 
     def _getMissingValue(self, varName):
         """This is a helper function for the missingValues getter
@@ -437,9 +411,9 @@ class Header(Generic):
         vName = self.vNames[varName]
         retcode = func(c_int(self.fh), c_char_p(vName),
                        byref(missingFmt), *map(byref, args))
-        if retcode > 0:
-            msg = "Error getting missing value for variable %r"
-            raise SPSSIOError(msg % varName, retcode)
+        if retcode:
+            msg = "Error getting missing value for variable %r" % varName
+            checkErrsWarns(msg, retcode)
 
         v1, v2, v3 = [v.value for v in args]
         userMiss = dict([(v, k) for k, v in userMissingValues.iteritems()])
@@ -528,9 +502,9 @@ class Header(Generic):
                              c_char_p, c_char_p, c_char_p]
 
         retcode = func(self.fh, varName, userMissingValues[missingFmt], *args)
-        if retcode > 0:
-            msg = "Problem setting missing value of variable %r"
-            raise SPSSIOError(msg % varName, retcode)
+        if retcode:
+            msg = "Problem setting missing value of variable %r" % varName
+            checkErrsWarns(msg, retcode)
 
     @property
     @decode
@@ -577,9 +551,9 @@ class Header(Generic):
             retcode = func(c_int(self.fh), c_char_p(vName),
                            byref(measureLevel))
             varMeasureLevels[varName] = levels.get(measureLevel.value)
-            if retcode > 0:
-                msg = "Error getting variable measurement level: %r"
-                raise SPSSIOError(msg % varName, retcode)
+            if retcode:
+                msg = "Problem getting variable measurement level: %r"
+                checkErrsWarns(msg % varName, retcode)
 
         return varMeasureLevels
 
@@ -596,10 +570,10 @@ class Header(Generic):
                 raise ValueError(msg % ", ".join(levels.keys()))
             level = levels.get(level.lower())
             retcode = func(c_int(self.fh), c_char_p(varName), c_int(level))
-            if retcode > 0:
-                msg = ("Error setting variable mesasurement level. " +
+            if retcode:
+                msg = ("Problem setting variable mesasurement level. " +
                        "Valid levels are: %s")
-                raise SPSSIOError(msg % ", ".join(levels.keys()), retcode)
+                checkErrsWarns(msg % ", ".join(levels.keys()), retcode)
 
     @property
     @decode
@@ -617,9 +591,9 @@ class Header(Generic):
             vName = self.vNames[varName]
             retcode = func(c_int(self.fh), c_char_p(vName),
                            byref(varColumnWidth))
-            if retcode > 0:
-                msg = ("Error getting column width: %r" % varName)
-                raise SPSSIOError(msg, retcode)
+            if retcode:
+                msg = "Problem getting column width: %r" % varName
+                checkErrsWarns(msg, retcode)
             varColumnWidths[varName] = varColumnWidth.value
         return varColumnWidths
 
@@ -631,9 +605,9 @@ class Header(Generic):
         for varName, varColumnWidth in varColumnWidths.iteritems():
             retcode = func(c_int(self.fh), c_char_p(varName),
                            c_int(varColumnWidth))
-            if retcode > 0:
+            if retcode:
                 msg = "Error setting variable colunm width"
-                raise SPSSIOError(msg, retcode)
+                checkErrsWarns(msg, retcode)
 
     def _setColWidth10(self):
         """Set the variable display width of string values to at least 10
@@ -668,9 +642,9 @@ class Header(Generic):
                            byref(alignment_))
             alignment = alignments[alignment_.value]
             varAlignments[varName] = alignment
-            if retcode > 0:
-                msg = ("Error getting variable alignment: %r" % varName)
-                raise SPSSIOError(msg, retcode)
+            if retcode:
+                msg = "Problem getting variable alignment: %r" % varName
+                checkErrsWarns(msg, retcode)
         return varAlignments
 
     @alignments.setter
@@ -685,9 +659,9 @@ class Header(Generic):
                 raise ValueError(msg % ", ".join(alignments.keys()))
             alignment = alignments.get(varAlignment.lower())
             retcode = func(c_int(self.fh), c_char_p(varName), c_int(alignment))
-            if retcode > 0:
-                msg = "Error setting variable alignment for variable %r"
-                raise SPSSIOError(msg % varName, retcode)
+            if retcode:
+                msg = "Problem setting variable alignment for variable %r"
+                checkErrsWarns(msg % varName, retcode)
 
     @property
     @decode
@@ -699,9 +673,10 @@ class Header(Generic):
         varSets = c_char_p()
         func = self.spssio.spssGetVariableSets
         retcode = func(c_int(self.fh), byref(varSets))
-        if retcode > 0:
+        if retcode:
             msg = "Problem getting variable set information"
-            raise SPSSIOError(msg, retcode)
+            checkErrsWarns(msg, retcode)
+
         if not varSets.value:
             return {}
         varSets_ = {}
@@ -723,9 +698,9 @@ class Header(Generic):
             varSets_.append("%s= %s" % (varName, " ".join(varSet)))
         varSets_ = c_char_p("\n".join(varSets_))
         retcode = self.spssio.spssSetVariableSets(c_int(self.fh), varSets_)
-        if retcode > 0:
+        if retcode:
             msg = "Problem setting variable set information"
-            raise SPSSIOError(msg, retcode)
+            checkErrsWarns(msg, retcode)
 
     @property
     @decode
@@ -744,9 +719,9 @@ class Header(Generic):
             retcode = func(c_int(self.fh), c_char_p(vName), byref(varRole_))
             varRole = roles.get(varRole_.value)
             varRoles[varName] = varRole
-            if retcode > 0:
+            if retcode:
                 msg = "Problem getting variable role for variable %r"
-                raise SPSSIOError(msg % varName, retcode)
+                checkErrsWarns(msg, retcode)
         return varRoles
 
     @varRoles.setter
@@ -759,9 +734,9 @@ class Header(Generic):
         for varName, varRole in varRoles.iteritems():
             varRole = roles.get(varRole)
             retcode = func(c_int(self.fh), c_char_p(varName), c_int(varRole))
-            if retcode > 0:
+            if retcode:
                 msg = "Problem setting variable role %r for variable %r"
-                raise SPSSIOError(msg % (varRole, varName), retcode)
+                checkErrsWarns(msg % (varRole, varName), retcode)
 
     @property
     @decode
@@ -788,9 +763,9 @@ class Header(Generic):
             retcode = func(c_int(self.fh), c_char_p(vName),
                            byref(attrNamesArr), byref(attrValuesArr),
                            byref(nAttr))
-            if retcode > 0:
-                msg = "@Problem getting attributes of variable %r (step 1)"
-                raise SPSSIOError(msg % varName, retcode)
+            if retcode:
+                msg = "Problem getting attributes of variable %r (step 1)"
+                checkErrsWarns(msg % varName, retcode)
 
             # step 2: get attributes with arrays of proper size
             nAttr = c_int(nAttr.value)
@@ -799,9 +774,9 @@ class Header(Generic):
             retcode = func(c_int(self.fh), c_char_p(vName),
                            byref(attrNamesArr), byref(attrValuesArr),
                            byref(nAttr))
-            if retcode > 0:
+            if retcode:
                 msg = "Problem getting attributes of variable %r (step 2)"
-                raise SPSSIOError(msg % varName, retcode)
+                checkErrsWarns(msg % varName, retcode)
 
             # get array contents
             if not nAttr.value:
@@ -831,9 +806,9 @@ class Header(Generic):
             retcode = func(c_int(self.fh), c_char_p(varName),
                            pointer(attrNames), pointer(attrValues),
                            c_int(nAttr))
-            if retcode > 0:
+            if retcode:
                 msg = "Problem setting variable attributes for variable %r"
-                raise SPSSIOError(msg % varName, retcode)
+                checkErrsWarns(msg % varName, retcode)
 
     @property
     @decode
@@ -860,8 +835,8 @@ class Header(Generic):
         attrValuesArr = (POINTER(c_char_p * nAttr.value))()
         retcode = func(c_int(self.fh), byref(attrNamesArr),
                        byref(attrValuesArr), byref(nAttr))
-        if retcode > 0:
-            raise SPSSIOError("Problem getting file attributes", retcode)
+        if retcode:
+            checkErrsWarns("Problem getting file attributes", retcode)
 
         # get array contents
         if not nAttr.value:
@@ -891,8 +866,8 @@ class Header(Generic):
         func = self.spssio.spssSetFileAttributes
         retcode = func(c_int(self.fh), pointer(attrNames),
                        pointer(attrValues), c_int(nAttr))
-        if retcode > 0:
-            raise SPSSIOError("Problem setting file attributes", retcode)
+        if retcode:
+            checkErrsWarns("Problem setting file attributes", retcode)
 
     def _getMultRespDef(self, mrDef):
         """Get 'normal' multiple response defintions.
@@ -1031,9 +1006,9 @@ class Header(Generic):
         func = self.spssio.spssGetMultRespDefs
         mrDefs = c_char_p()
         retcode = func(c_int(self.fh), pointer(mrDefs))
-        if retcode > 0:
+        if retcode:
             msg = "Problem getting multiple response definitions"
-            raise SPSSIOError(msg, retcode)
+            checkErrsWarns(msg, retcode)
 
         multRespDefs = {}
         if mrDefs.value:
@@ -1046,9 +1021,9 @@ class Header(Generic):
         mrDefsEx = c_char_p()
         func = self.spssio.spssGetMultRespDefsEx
         retcode = func(c_int(self.fh), pointer(mrDefsEx))
-        if retcode > 0:
+        if retcode:
             msg = "Problem getting extended multiple response definitions"
-            raise SPSSIOError(msg, retcode)
+            checkErrsWarns(msg, retcode)
 
         multRespDefsEx = {}
         if mrDefsEx.value:
@@ -1067,9 +1042,9 @@ class Header(Generic):
         multRespDefs = self._setMultRespDefs(multRespDefs)
         func = self.spssio.spssSetMultRespDefs
         retcode = func(c_int(self.fh), c_char_p(multRespDefs))
-        if retcode > 0:
+        if retcode:
             msg = "Problem setting multiple response definitions"
-            raise SPSSIOError(msg, retcode)
+            checkErrsWarns(msg, retcode)
 
     @property
     @decode
@@ -1091,9 +1066,9 @@ class Header(Generic):
             return
         func = self.spssio.spssSetCaseWeightVar
         retcode = func(c_int(self.fh), c_char_p(varName))
-        if retcode > 0:
+        if retcode:
             msg = "Problem setting case weight variable name %r" % varName
-            raise SPSSIOError(msg, retcode)
+            checkErrsWarns(msg, retcode)
 
     @property
     @decode
@@ -1111,8 +1086,8 @@ class Header(Generic):
         # step 2: get date info with array of proper size
         dateInfoArr = (POINTER(c_long * nElements.value))()
         retcode = func(c_int(self.fh), byref(nElements), byref(dateInfoArr))
-        if retcode > 0:
-            raise SPSSIOError("Error getting TRENDS information", retcode)
+        if retcode:
+            checkErrsWarns("Problem getting TRENDS information", retcode)
 
         # get array contents
         nElem = nElements.value
@@ -1144,8 +1119,8 @@ class Header(Generic):
         nElements = len(dateInfo)
         dateInfoArr = (c_long * nElements)(*dateInfo)
         retcode = func(c_int(self.fh), c_int(nElements), dateInfoArr)
-        if retcode > 0:
-            raise SPSSIOError("Error setting TRENDS information", retcode)
+        if retcode:
+            checkErrsWarns("Problem setting TRENDS information", retcode)
 
     @property
     @decode
@@ -1156,8 +1131,8 @@ class Header(Generic):
         *not* equivalent to the SPSS syntax command DISPLAY DOCUMENTS"""
         textInfo = create_string_buffer(256)
         retcode = self.spssio.spssGetTextInfo(c_int(self.fh), byref(textInfo))
-        if retcode > 0:
-            raise SPSSIOError("Error getting textInfo", retcode)
+        if retcode:
+            checkErrsWarns("Problem getting textInfo", retcode)
         return textInfo.value
 
     @textInfo.setter
@@ -1169,8 +1144,8 @@ class Header(Generic):
             textInfo = textInfo.encode("utf-8")
         func = self.spssio.spssSetTextInfo
         retcode = func(c_int(self.fh), c_char_p(textInfo[:256]))
-        if retcode > 0:
-            raise SPSSIOError("Error setting textInfo", retcode)
+        if retcode:
+            checkErrsWarns("Problem setting textInfo", retcode)
 
     @property
     @decode
@@ -1180,8 +1155,8 @@ class Header(Generic):
         a string."""
         idStr = create_string_buffer(65)
         retcode = self.spssio.spssGetIdString(c_int(self.fh), byref(idStr))
-        if retcode > 0:
-            raise SPSSIOError("Error getting file label (id string)", retcode)
+        if retcode:
+            checkErrsWarns("Error getting file label (id string)", retcode)
         return idStr.value
 
     @fileLabel.setter
@@ -1192,8 +1167,8 @@ class Header(Generic):
         if self.ioUtf8 and isinstance(idStr, unicode):
             idStr = idStr.encode("utf-8")
         retcode = self.spssio.spssSetIdString(c_int(self.fh), c_char_p(idStr))
-        if retcode > 0:
-            raise SPSSIOError("Error setting file label (id string)", retcode)
+        if retcode:
+            checkErrsWarns("Problem setting file label (id string)", retcode)
 
     @property
     def queryType7(self):
@@ -1216,8 +1191,8 @@ class Header(Generic):
             bFound = c_int()
             args = c_int(self.fh), c_int(subtype), byref(bFound)
             retcode = self.spssio.spssQueryType7(*args)
-            if retcode > 0:
-                raise SPSSIOError("Error retrieving type7 info", retcode)
+            if retcode:
+                checkErrsWarns("Problem retrieving type7 info", retcode)
             type7info[subtype] = (label, bool(bFound.value))
         return type7info
 
@@ -1277,9 +1252,9 @@ class Header(Generic):
             asciiGUID = create_string_buffer(257)
             retcode = func(c_int(self.fh), byref(asciiGUID))
 
-        if retcode > 0:
-            msg = "Error getting Data Entry info with function %r"
-            raise SPSSIOError(msg % func.__name__, retcode)
+        if retcode:
+            msg = "Problem getting Data Entry info with function %r"
+            checkErrsWarns(msg % func.__name__, retcode)
         return dict(data=dew_information, GUID=asciiGUID.value)
 
     @dataEntryInfo.setter
@@ -1330,6 +1305,6 @@ class Header(Generic):
             func = self.spssio.spssSetDEWGUID
             retcode = func(*args)
 
-        if retcode > 0:
-            msg = "Error setting Data Entry info with function %r"
-            raise SPSSIOError(msg % func.__name__, retcode)
+        if retcode:
+            msg = "Problem setting Data Entry info with function %r"
+            checkErrsWarns(msg % func.__name__, retcode)
