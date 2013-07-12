@@ -266,6 +266,8 @@ class Header(Generic):
                     msg = "Problem setting value labels of variable %r"
                     checkErrsWarns(msg % varName, retcode)
 
+
+
     @property
     @decode
     def varLabels(self):
@@ -273,19 +275,14 @@ class Header(Generic):
         Returns/takes a dictionary of the form {varName: varLabel}.
         For example: varLabels = {'salary': 'Salary (dollars)',
                                   'educ': 'Educational level (years)'}"""
-        SPSS_VARLABEL_SHORT = 120  # fixed amount
-        funcS = self.spssio.spssGetVarLabel
-        funcL = self.spssio.spssGetVarLabelLong
+        lenBuff = MAXLENGTHS['SPSS_MAX_VARLABEL']
+        varLabel = create_string_buffer(lenBuff)
+        func = self.spssio.spssGetVarLabelLong
         varLabels = {}
         for varName in self.varNames:
-            varLabel = create_string_buffer(SPSS_VARLABEL_SHORT + 1)
             vName = self.vNames[varName]
-            retcode = funcS(c_int(self.fh), c_char_p(vName), byref(varLabel))
-            if varLabel.value and len(varLabel.value) > SPSS_VARLABEL_SHORT:
-                lenBuff = MAXLENGTHS['SPSS_MAX_VARLABEL']
-                varLabel = create_string_buffer(lenBuff)
-                retcode = funcL(c_int(self.fh), c_char_p(varName),
-                                byref(varLabel), c_int(lenBuff), byref(c_int))
+            retcode = func(c_int(self.fh), c_char_p(vName),
+                           byref(varLabel), c_int(lenBuff), byref(c_int()))
             varLabels[varName] = varLabel.value
             if retcode:
                 msg = "Problem getting variable label of variable %r" % varName
