@@ -266,8 +266,6 @@ class Header(Generic):
                     msg = "Problem setting value labels of variable %r"
                     checkErrsWarns(msg % varName, retcode)
 
-
-
     @property
     @decode
     def varLabels(self):
@@ -275,7 +273,7 @@ class Header(Generic):
         Returns/takes a dictionary of the form {varName: varLabel}.
         For example: varLabels = {'salary': 'Salary (dollars)',
                                   'educ': 'Educational level (years)'}"""
-        lenBuff = MAXLENGTHS['SPSS_MAX_VARLABEL']
+        lenBuff = MAXLENGTHS['SPSS_MAX_VARLABEL'][0]
         varLabel = create_string_buffer(lenBuff)
         func = self.spssio.spssGetVarLabelLong
         varLabels = {}
