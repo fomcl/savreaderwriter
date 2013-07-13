@@ -189,7 +189,13 @@ supportedDates = {  # uses ISO dates wherever applicable.
     "WKDAY": "%A",
     "MONTH": "%B",
     "MOYR": "%B %Y",
-    "WKYR": "%W WK %Y"}
+    "WKYR": "%W WK %Y",
+    "QYR": "%m Q %Y",  # %m (month) is converted to quarter, see next dict.
+    "TIME": "%H:%M:%S.%f",
+    "DTIME": "%d %H:%M:%S"}
+
+QUARTERS = {'01': '1', '02': '1', '03': '1', '04': '2', '05': '2', '06': '2',
+            '07': '3', '08': '3', '09': '3', '10': '4', '11': '4', '12': '4'}
 
 userMissingValues = {
     "SPSS_NO_MISSVAL": 0,
