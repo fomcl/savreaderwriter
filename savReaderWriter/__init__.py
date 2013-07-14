@@ -148,7 +148,7 @@ allFormats = {
     17: ("SPSS_FMT_E", "E Format- with explicit power of 10"),
     20: ("SPSS_FMT_DATE", "Date format dd-mmm-yyyy"),
     21: ("SPSS_FMT_TIME", "Time format hh:mm:ss.s"),
-    22: ("SPSS_FMT_DATE_TIME", "Date and Time"),
+    22: ("SPSS_FMT_DATETIME", "Date and Time"),
     23: ("SPSS_FMT_ADATE", "Date format dd-mmm-yyyy"),
     24: ("SPSS_FMT_JDATE", "Julian date - yyyyddd"),
     25: ("SPSS_FMT_DTIME", "Date-time dd hh:mm:ss.s"),

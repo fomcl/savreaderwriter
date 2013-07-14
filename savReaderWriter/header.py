@@ -358,9 +358,9 @@ class Header(Generic):
             format_ = format_.upper()
             gotString = isStringVar.match(format_)
             gotAny = isAnyVar.match(format_)
-            msg = ("Unknown format %r for variable %r. " +
+            msg = ("Unknown format %r or invalid width for variable %r. " +
                    "Valid formats are: %s")
-            msg = msg % (", ".join(validValues), format_, varName)
+            msg = msg % (format_, varName, ", ".join(validValues))
             if gotString:
                 printFormat = gotString.group("printFormat")
                 printFormat = reverseFormats.get(printFormat)
