@@ -242,7 +242,10 @@ class SavWriter(Header):
     def spssDateTime(self, datetimeStr="2001-12-08", strptimeFmt="%Y-%m-%d"):
         """ This function converts a date/time string into an SPSS date,
         using a strptime format."""
-        dt = time.strptime(datetimeStr, strptimeFmt)
+        try:
+            dt = time.strptime(datetimeStr, strptimeFmt)
+        except (ValueError, TypeError):
+            return self.sysmis
         day, month, year = dt.tm_mday, dt.tm_mon, dt.tm_year
         hour, minute, second = dt.tm_hour, dt.tm_min, dt.tm_sec
         return (self.convertDate(day, month, year) +

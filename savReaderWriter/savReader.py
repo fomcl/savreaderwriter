@@ -168,7 +168,10 @@ class SavReader(Header):
                     if bareformat_ == "QYR" and record[i]:
                         # convert month to quarter, e.g. 12 Q 1990 --> 4 Q 1990
                         # There is no such thing as a %q strftime directive
-                        record[i] = QUARTERS[record[i][:2]] + record[i][2:]
+                        try:
+                            record[i] = QUARTERS[record[i][:2]] + record[i][2:]
+                        except KeyError:
+                            record[i] = self.recodeSysmisTo
             elif varType > 0:
                 value = value[:varType]
                 if self.ioUtf8_:

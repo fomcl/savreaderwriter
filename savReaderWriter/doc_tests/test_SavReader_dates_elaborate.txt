@@ -19,7 +19,9 @@
 ...             'TIME10', 'ADATE10', 'WKDAY10']
 >>> formats = dict(zip(varNames, spssfmts))
 >>> savFileName = os.path.join(tempfile.gettempdir(), "test_dates.sav")
->>> records = [['2010-08-11'] * len(varNames), ['1910-01-12'] * len(varNames)]
+>>> records = [['2010-08-11'] * len(varNames), ['1910-01-12'] * len(varNames),
+...            [""] * len(varNames), [None] * len(varNames)]
+
 >>> with SavWriter(savFileName, varNames, varTypes, formats=formats) as writer:
 ...     for record in records:
 ...         for pos, value in enumerate(record):
@@ -69,6 +71,75 @@ MOYR10 --> %B %Y --> January 1910
 TIME10 --> %H:%M:%S.%f --> 00:00:00.000000
 ADATE10 --> %Y-%m-%d --> 1910-01-12
 WKDAY10 --> %A --> Wednesday
+-----------------------------------Record 2-----------------------------------
+DATETIME40 --> %Y-%m-%d %H:%M:%S --> None
+WKYR10 --> %W WK %Y --> None
+DATE10 --> %Y-%m-%d --> None
+QYR10 --> %m Q %Y --> None
+EDATE10 --> %Y-%m-%d --> None
+SDATE10 --> %Y-%m-%d --> None
+DTIME10 --> %d %H:%M:%S --> None
+JDATE10 --> %Y-%m-%d --> None
+MONTH10 --> %B --> None
+MOYR10 --> %B %Y --> None
+TIME10 --> %H:%M:%S.%f --> None
+ADATE10 --> %Y-%m-%d --> None
+WKDAY10 --> %A --> None
+-----------------------------------Record 3-----------------------------------
+DATETIME40 --> %Y-%m-%d %H:%M:%S --> None
+WKYR10 --> %W WK %Y --> None
+DATE10 --> %Y-%m-%d --> None
+QYR10 --> %m Q %Y --> None
+EDATE10 --> %Y-%m-%d --> None
+SDATE10 --> %Y-%m-%d --> None
+DTIME10 --> %d %H:%M:%S --> None
+JDATE10 --> %Y-%m-%d --> None
+MONTH10 --> %B --> None
+MOYR10 --> %B %Y --> None
+TIME10 --> %H:%M:%S.%f --> None
+ADATE10 --> %Y-%m-%d --> None
+WKDAY10 --> %A --> None
+
+
+## Test if recodeSysmisTo arg does what it is supposed to.
+>>> data = SavReader(savFileName, recodeSysmisTo="999")
+>>> with data:
+...     records = data.all()
+...     #formats = formats.items()
+...     for n, record in enumerate(records):
+...         if n >= 2:
+...             print "Record %d".center(79, "-") % n
+...             for i, value in enumerate(record):
+...                 print "%s --> %s --> %s" % (spssfmts[i], strftimefmts[i], value)
+-----------------------------------Record 2-----------------------------------
+DATETIME40 --> %Y-%m-%d %H:%M:%S --> 999
+WKYR10 --> %W WK %Y --> 999
+DATE10 --> %Y-%m-%d --> 999
+QYR10 --> %m Q %Y --> 999
+EDATE10 --> %Y-%m-%d --> 999
+SDATE10 --> %Y-%m-%d --> 999
+DTIME10 --> %d %H:%M:%S --> 999
+JDATE10 --> %Y-%m-%d --> 999
+MONTH10 --> %B --> 999
+MOYR10 --> %B %Y --> 999
+TIME10 --> %H:%M:%S.%f --> 999
+ADATE10 --> %Y-%m-%d --> 999
+WKDAY10 --> %A --> 999
+-----------------------------------Record 3-----------------------------------
+DATETIME40 --> %Y-%m-%d %H:%M:%S --> 999
+WKYR10 --> %W WK %Y --> 999
+DATE10 --> %Y-%m-%d --> 999
+QYR10 --> %m Q %Y --> 999
+EDATE10 --> %Y-%m-%d --> 999
+SDATE10 --> %Y-%m-%d --> 999
+DTIME10 --> %d %H:%M:%S --> 999
+JDATE10 --> %Y-%m-%d --> 999
+MONTH10 --> %B --> 999
+MOYR10 --> %B %Y --> 999
+TIME10 --> %H:%M:%S.%f --> 999
+ADATE10 --> %Y-%m-%d --> 999
+WKDAY10 --> %A --> 999
+
 
 # clean up
 >>> os.remove(savFileName)
