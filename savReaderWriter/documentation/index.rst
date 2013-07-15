@@ -252,6 +252,38 @@ Typical use::
 
     More code examples can be found in the ``doc_tests`` folder
 
+Formats
+----------
+
+SPSS knows just two different data types: string and numerical data. These datatypes can be *displayed* in several different ways.
+**String** data can be alphanumeric characters (``A`` format) or the hexadecimal representation of alphanumeric characters (``AHEX`` format).
+``savReaderWriter`` maps both of these formats to a regular alphanumeric string format.
+**Numerical** data formats include: default numeric (``F``) format, scientific notation (``E``), percent (``PCT``), dollar (``DOLLAR``), decimal comma (``COMMA``), decimal dot (``DOT``), zero-padded (``N``). 
+
+``savReaderWriter.SavReader`` formats the ``N`` as a zero-padded version, but does no formatting for the other formats. Formatting implies a lot of additional processing time and e.g. appending a percent sign to a value (``PCT`` format) renders it useless for calculations. Format names are followed by total width (w) and an optional number of decimal positions (d). For example, a format of ``F5.2`` represents a numeric value with a total width of 5, including two decimal positions and a decimal indicator.
+
+Date formats are another group of numerical formats. SPSS stores dates as the number of seconds since midnight, Oct 14, 1582 (the beginning of the Gregorian calendar). The user can make these seconds understandable by giving them a print and/or write format (usually these are set at the same time using the ``FORMATS`` command). Examples of such display formats include ``ADATE`` (American date) and European date, for *mmddyyyy*- and *ddmmyyyy*-style display formats in the SPSS data editor, respectively. ``savReaderWriter`` deliberately does *not* honour these different formats, but tries to convert them to the more practical (sortable) and less ambibiguous ISO 8601 format (*yyyymmdd*). The table below shows how ``savReaderWriter`` converts SPSS dates.
+
+With ``savReaderWriter.SavWriter`` a Python date string value (e.g. "2010-10-25") can be converted to an SPSS Gregorian date (i.e., just a whole bunch of seconds) by using e.g.::
+
+    kwargs = dict(savFileName="/tmp/date.sav", varNames=['aDate'], varTypes={'aDate': 0}, formats={'aDate': 'EDATE40'})
+    with SavWriter(**kwargs) as writer:
+        spssDateValue = writer.spssDateTime("2010-10-25", "%Y-%m-%d")
+        writer.writerow([spssDateValue])
+
+The display format of the date (i.e., the way it looks in the SPSS data editor after opening the .sav file) may be set by using the ``savReaderWriter.SavWriter.formats`` setter property. This is one of the optional arguments of the ``SavWriter`` initializer.
+
+
+.. exceltable:: Date formats in SPSS and savReaderWriter 
+   :file: ./dates.xls
+   :header: 1
+   :selection: A1:I25
+*Note.*
+[1] ISO 8601 format dates are used wherever possible, e.g. mmddyyyy (ADATE) and ddmmyyyy (EDATE) is not maintained.
+[2] Months are converted to quarters using a simple lookup table
+[3] http://docs.python.org/2/library/datetime.html
+[4] ftp://public.dhe.ibm.com/software/analytics/spss/documentation/statistics/20.0/en/client/Manuals/IBM_SPSS_Statistics_Command_Syntax_Reference.pdf
+
 Indices and tables
 ==================
 
