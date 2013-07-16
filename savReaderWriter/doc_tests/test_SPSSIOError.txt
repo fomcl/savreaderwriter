@@ -1,0 +1,22 @@
+##############################################################################
+## Check if the custom error class does its job
+##############################################################################
+
+>>> import os, tempfile, sys
+>>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
+<skipline> ...
+>>> import doctest
+
+>>> badSavFile = os.path.join(tempfile.gettempdir(), "yields_error.sav")
+>>> with open(badSavFile, "wb") as f:
+...     line = 79 * "*" + "\n"
+...     for i in range(1000):
+...         f.write(line)
+>>> with SavReader(badSavFile) as reader:
+...     for line in reader:
+...        pass   # doctest:+ELLIPSIS
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+SPSSIOError: Problem opening file '...yields_error.sav' in mode 'rb' [SPSS_INVALID_FILE]
+
+

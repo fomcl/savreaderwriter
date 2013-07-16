@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import warnings
-from savReaderWriter import *
+from savReaderWriter import retcodes
 
 class SPSSIOError(Exception):
     """
@@ -23,7 +24,8 @@ class SPSSIOWarning(UserWarning):
     pass
 
 # Warnings are usually harmless!
-SAVRW_DISPLAY_WARNS = bool(os.environ.get("SAVRW_DISPLAY_WARNS"))
+env = os.environ.get("SAVRW_DISPLAY_WARNS")
+SAVRW_DISPLAY_WARNS = bool(int(env)) if str(env).isdigit() else False
 action = "default" if SAVRW_DISPLAY_WARNS else "ignore"
 warnings.simplefilter(action, SPSSIOWarning)
 
