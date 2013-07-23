@@ -12,7 +12,7 @@ Welcome to savReaderWriter's documentation!
 .. moduleauthor:: Albert-Jan Roskam <fomcl@yahoo.com>
 
 .. _`IBM SPSS Statistics Command Syntax Reference.pdf`: ftp://public.dhe.ibm.com/software/analytics/spss/documentation/statistics/20.0/en/client/Manuals/IBM_SPSS_Statistics_Command_Syntax_Reference.pdf
-.. _`International License Agreement`: ./LA_en
+.. _`International License Agreement`: ./_static/LA_en
 
 In the documentation below, the associated SPSS commands are given in ``CAPS``.
 See also the `IBM SPSS Statistics Command Syntax Reference.pdf`_ for info about SPSS syntax.
@@ -24,6 +24,7 @@ See also the `IBM SPSS Statistics Command Syntax Reference.pdf`_ for info about 
 
 .. toctree::
    :maxdepth: 2
+
 
 Installation
 ============================================================================
@@ -112,7 +113,7 @@ The ``psyco`` package should be installed if you intend to use array slicing (e.
          missingValues = {"someNumvar1": {"values": [999, -1, -2]},  # discrete values
                           "someNumvar2": {"lower": -9, "upper": -1}, # range, cf. MISSING VALUES x (-9 THRU -1)
                           "someNumvar3": {"lower": -9, "upper": -1, "value": 999},
-                          "someStrvar1": {"values": ["foo', "bar", "baz"]},
+                          "someStrvar1": {"values": ["foo", "bar", "baz"]},
                           "someStrvar2": {"values': "bletch"}}
      
       .. warning:: *measureLevels, columnWidths, alignments must all three be set, if used*
@@ -127,29 +128,29 @@ The ``psyco`` package should be installed if you intend to use array slicing (e.
 
    :param varRoles: variable roles dictionary ``{varName: varRole}``. VarRoles may be any of the following:  'both', 'frequency', 'input', 'none', 'partition', 'record ID', 'split', 'target'. Cf. ``VARIABLE ROLE``  (default: ``None``). 
 
-   :param varAttributes: variable attributes dictionary ``{varName: {attribName: attribValue}`` (default:  None). Cf. ``VARIABLE  ATTRIBUTES``. (default: ``None``). For example:
+   :param varAttributes: variable attributes dictionary ``{varName: {attribName: attribValue}`` Cf. ``VARIABLE  ATTRIBUTES``. (default: ``None``). For example:
 
       .. code:: python
 
          varAttributes = {'gender': {'Binary': 'Yes'}, 'educ': {'DemographicVars': '1'}}
 
-   :param fileAttributes: file attributes dictionary ``{attribName: attribValue}``. Square brackets indicate  attribute arrays, which must  start with 1. Cf. ``FILE ATTRIBUTES``. (default: None). For example:
+   :param fileAttributes: file attributes dictionary ``{attribName: attribValue}``. Square brackets indicate  attribute arrays, which must  start with 1. Cf. ``FILE ATTRIBUTES``. (default: ``None``). For example:
 
       .. code:: python
 
          fileAttributes = {'RevisionDate[1]': '10/29/2004', 'RevisionDate[2]': '10/21/2005'} 
 
-   :param fileLabel: file label string, which defaults to "File created by user <username> at <datetime>" if  file label is None. Cf. ``FILE LABEL`` (default: ``None``). 
+   :param fileLabel: file label string, which defaults to "File created by user <username> at <datetime>" if file label is ``None``. Cf. ``FILE LABEL`` (default: ``None``). 
 
    :param multRespDefs: Multiple response sets definitions (dichotomy groups or category groups) dictionary ``{setName: <set definition>}``. In SPSS syntax, 'setName' has a dollar prefix ('$someSet'). See also  docstring of multRespDefs method. Cf. ``MRSETS``. (default: ``None``). 
 
-   :param caseWeightVar: valid varName that is set as case weight. Cf. ``WEIGHT BY`` command). 
+   :param caseWeightVar: valid varName that is set as case weight. Cf. ``WEIGHT BY`` command. 
 
    :param overwrite: Boolean that indicates whether an existing Spss file should be overwritten (default: ``True``). 
 
-   :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will  be. Valid values are True (UTF-8/unicode mode, cf. ``SET UNICODE=ON``) or False (Codepage mode, ``SET  UNICODE=OFF``) (default: ``False``). 
+   :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will  be. Valid values are ``True`` (UTF-8/unicode mode, cf. ``SET UNICODE=ON``) or ``False`` (Codepage mode, ``SET  UNICODE=OFF``) (default: ``False``). 
 
-   :param ioLocale: indicates the locale of the I/O module, cf. ``SET LOCALE`` (default: None, which is the  same as ``".".join(locale.getlocale())``. Locale specification is OS-dependent. 
+   :param ioLocale: indicates the locale of the I/O module, cf. ``SET LOCALE`` (default: ``None``, which is the  same as ``".".join(locale.getlocale())``. Locale specification is OS-dependent. 
 
    :param mode: indicates the mode in which <savFileName> should be opened. Possible values are "wb" (write),  "ab" (append), "cp" (copy: initialize header using <refSavFileName> as a reference file, cf. ``APPLY DICTIONARY``). (default: "wb"). 
 
@@ -201,9 +202,9 @@ Typical use::
 Typical use::
     
     savFileName = "someFile.sav"
-    with SavReader(savFileName, returnHeader=True) as sav:
-        header = sav.next()
-        for line in sav:
+    with SavReader(savFileName, returnHeader=True) as reader:
+        header = next(reader)
+        for line in reader:
             process(line)
 
 Use of ``__getitem__`` and other methods::
@@ -236,7 +237,7 @@ Use of ``__getitem__`` and other methods::
 
    :param savFileName: the file name of the spss data file
 
-   :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will be. Valid values are True (UTF-8 mode aka Unicode mode) and False (Codepage mode). Cf. ``SET UNICODE=ON/OFF`` (default = ``False``)
+   :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will be. Valid values are ``True`` (UTF-8 mode aka Unicode mode) and ``False`` (Codepage mode). Cf. ``SET UNICODE=ON/OFF`` (default = ``False``)
 
    :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = ``None``, which corresponds to ``".".join(locale.getlocale())``)
 
@@ -248,7 +249,7 @@ Typical use::
 
     with SavHeaderReader(savFileName) as header:
         metadata = header.dataDictionary()
-        report = unicode(spssDict)
+        report = unicode(header)
         print report 
 
 .. seealso::
@@ -262,12 +263,12 @@ SPSS knows just two different data types: string and numerical data. These data 
 
 **String** data can be alphanumeric characters (``A`` format) or the hexadecimal representation of alphanumeric characters (``AHEX`` format). Currently, ``SavReader`` maps both of these formats to a regular alphanumeric string format. String formats do not have any decimal positions (d).
 
-**Numerical** data formats include default numeric (``F``) format, scientific notation (``E``) and zero-padded (``N``). For example, a format of ``F5.2`` represents a numeric value with a total width of 5, including two decimal positions and a decimal indicator. ``SavReader`` does not format numerical values, except for the ``N`` format, which is a zero-padded value (e.g. SPSS format ``N8`` is formatted as Python format ``%08d``, e.g. '00001234'). For most numerical values, formatting means *loss of precision*. For instance, formatting SPSS ``F5.3`` to Python ``%5.3f`` means that only the first three digits are retained. In addition, formatting incurs a lot of *additional processing time*. Finally, e.g. appending a percent sign to a value (``PCT`` format) renders the value *less useful for calculations*. **Table 1** below shows a complete list of all the available formats.  
+**Numerical** data formats include the default numeric format (``F``), scientific notation (``E``) and zero-padded (``N``). For example, a format of ``F5.2`` represents a numeric value with a total width of 5, including two decimal positions and a decimal indicator. ``SavReader`` does not format numerical values, except for the ``N`` format, and dates/times (see below). The ``N`` format is a zero-padded value (e.g. SPSS format ``N8`` is formatted as Python format ``%08d``, e.g. '00001234'). For most numerical values, formatting means *loss of precision*. For instance, formatting SPSS ``F5.3`` to Python ``%5.3f`` means that only the first three digits are retained. In addition, formatting incurs a lot of *additional processing time*. Finally, e.g. appending a percent sign to a value (``PCT`` format) renders the value *less useful for calculations*. **Table 1** below shows a complete list of all the available formats.  
 
 .. exceltable:: **Table 1.** string and numerical formats in SPSS and ``savReaderWriter`` 
    :file: ./formats.xls
    :header: 1
-   :selection: A1:B36
+   :selection: A1:D19
 
 Date formats
 -------------
@@ -284,6 +285,7 @@ Date formats
 [2] Months are converted to quarters using a simple lookup table
 [3] http://docs.python.org/2/library/datetime.html
 [4] ftp://public.dhe.ibm.com/software/analytics/spss/documentation/statistics/20.0/en/client/Manuals/IBM_SPSS_Statistics_Command_Syntax_Reference.pdf
+[5] weekday, month names depend on host locale (not on ioLocale argument)
 
 **Writing dates.** With ``SavWriter`` a Python date string value (e.g. "2010-10-25") can be converted to an SPSS Gregorian date (i.e., just a whole bunch of seconds) by using e.g.::
 
