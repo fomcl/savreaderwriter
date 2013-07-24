@@ -7,8 +7,8 @@ Welcome to savReaderWriter's documentation!
 =================================================================================
 
 .. module:: savReaderWriter
-   :platform: Unix, Windows, Mac
-   :synopsis: Read/Write Spss system files (.sav, .zsav)
+   :platform: Linux, Windows, Mac OS, HP-UX, AIX, Solaris, zLinux
+   :synopsis: Read/Write SPSS system files (.sav, .zsav)
 .. moduleauthor:: Albert-Jan Roskam <fomcl@yahoo.com>
 
 .. _`IBM SPSS Statistics Command Syntax Reference.pdf`: ftp://public.dhe.ibm.com/software/analytics/spss/documentation/statistics/20.0/en/client/Manuals/IBM_SPSS_Statistics_Command_Syntax_Reference.pdf
@@ -24,14 +24,14 @@ See also the `IBM SPSS Statistics Command Syntax Reference.pdf`_ for info about 
 
 .. toctree::
    :maxdepth: 2
-
+   
 
 Installation
 ============================================================================
 
 Platforms
 ----------
-As shown in the table below, this program works for Linux (incl. z/Linux), Windows, MacOS (32 and 64 bit), AIX-64, HP-UX and Solaris-64. However, it has only been tested on Linux 32 (Ubuntu and Mint), Windows (mostly on Windows XP 32, but also a few times on Windows 7 64), and MacOS (with an earlier version of savReaderWriter). The other OSs are entirely untested.
+As shown in the table below, this program works for Linux (incl. z/Linux), Windows, Mac OS (32 and 64 bit), AIX-64, HP-UX and Solaris-64. However, it has only been tested on Linux 32 (Ubuntu and Mint), Windows (mostly on Windows XP 32, but also a few times on Windows 7 64), and Mac OS (with an earlier version of savReaderWriter). The other OSs are entirely untested.
 
 +------------------+------------+-----------+
 | Operating System |       Architecture     |
@@ -44,7 +44,7 @@ As shown in the table below, this program works for Linux (incl. z/Linux), Windo
 +------------------+------------+-----------+
 | Linux            |     X      |    X      |
 +------------------+------------+-----------+
-| MAC OS           |     X      |    X?     |
+| Mac OS           |     X      |    X?     |
 +------------------+------------+-----------+
 | Solaris          |            |    X      |
 +------------------+------------+-----------+
@@ -88,11 +88,11 @@ The ``psyco`` package may be installed to speed up reading (66 % faster).
 **numpy.**
 The ``psyco`` package should be installed if you intend to use array slicing (e.g ``data[:2,2:4]``).
 
-:mod:`SavWriter` -- Write Spss system files
+:mod:`SavWriter` -- Write SPSS system files
 ============================================================================
 .. function:: SavWriter(savFileName, varNames, varTypes, [valueLabels=None, varLabels=None, formats=None, missingValues=None, measureLevels=None, columnWidths=None, alignments=None, varSets=None, varRoles=None, varAttributes=None, fileAttributes=None, fileLabel=None, multRespDefs=None, caseWeightVar=None, overwrite=True, ioUtf8=False, ioLocale=None, mode="wb", refSavFileName=None])
    
-   **Write Spss system files (.sav, .zsav)**
+   **Write SPSS system files (.sav, .zsav)**
 
    :param savFileName: the file name of the spss data file. File names that end with '.zsav' are   compressed using the ZLIB (ZSAV) compression scheme (requires v21 SPSS I/O files), while for file    names that end with '.sav' the 'old' compression scheme is used (it is not possible to generate uncompressed files unless you modify the source code).
 
@@ -146,11 +146,11 @@ The ``psyco`` package should be installed if you intend to use array slicing (e.
 
    :param caseWeightVar: valid varName that is set as case weight. Cf. ``WEIGHT BY`` command. 
 
-   :param overwrite: Boolean that indicates whether an existing Spss file should be overwritten (default: ``True``). 
+   :param overwrite: Boolean that indicates whether an existing SPSS file should be overwritten (default: ``True``). 
 
    :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will  be. Valid values are ``True`` (UTF-8/unicode mode, cf. ``SET UNICODE=ON``) or ``False`` (Codepage mode, ``SET  UNICODE=OFF``) (default: ``False``). 
 
-   :param ioLocale: indicates the locale of the I/O module, cf. ``SET LOCALE`` (default: ``None``, which is the  same as ``".".join(locale.getlocale())``. Locale specification is OS-dependent. 
+   :param ioLocale: indicates the locale of the I/O module, cf. ``SET LOCALE`` (default: ``None``, which is the  same as ``".".join(locale.getlocale())``. Locale specification is OS-dependent. in
 
    :param mode: indicates the mode in which <savFileName> should be opened. Possible values are "wb" (write),  "ab" (append), "cp" (copy: initialize header using <refSavFileName> as a reference file, cf. ``APPLY DICTIONARY``). (default: "wb"). 
 
@@ -171,11 +171,11 @@ Typical use::
 
     More code examples can be found in the ``doc_tests`` folder
 
-:mod:`SavReader` -- Read Spss system files
+:mod:`SavReader` -- Read SPSS system files
 ============================================================================
 .. function:: SavReader(savFileName, [returnHeader=False, recodeSysmisTo=None,                 verbose=False, selectVars=None, idVar=None, rawMode=False, ioUtf8=False, ioLocale=None])
 
-   **Read Spss system files (.sav, .zsav)**
+   **Read SPSS system files (.sav, .zsav)**
 
    :param savFileName: the file name of the spss data file
 
@@ -228,11 +228,11 @@ Use of ``__getitem__`` and other methods::
 
     More code examples can be found in the ``doc_tests`` folder
 
-:mod:`SavHeaderReader` -- Read Spss file meta data
+:mod:`SavHeaderReader` -- Read SPSS file meta data
 ============================================================================
 .. function:: SavHeaderReader(savFileName[, ioUtf8=False, ioLocale=None])
 	
-   **Read Spss file meta data. Yields the same information as the Spss command ``DISPLAY DICTIONARY``**
+   **Read SPSS file meta data. Yields the same information as the SPSS command ``DISPLAY DICTIONARY``**
 
 
    :param savFileName: the file name of the spss data file
@@ -259,20 +259,21 @@ Typical use::
 Formats
 ----------
 
-SPSS knows just two different data types: string and numerical data. These data types can be *formatted* by SPSS in several different ways. Format names are followed by total width (w) and an optional number of decimal positions (d). 
+SPSS knows just two different data types: string and numerical data. These data types can be *formatted* (displayed) by SPSS in several different ways. Format names are followed by total width (w) and an optional number of decimal positions (d). 
 
 **String** data can be alphanumeric characters (``A`` format) or the hexadecimal representation of alphanumeric characters (``AHEX`` format). Currently, ``SavReader`` maps both of these formats to a regular alphanumeric string format. String formats do not have any decimal positions (d).
 
-**Numerical** data formats include the default numeric format (``F``), scientific notation (``E``) and zero-padded (``N``). For example, a format of ``F5.2`` represents a numeric value with a total width of 5, including two decimal positions and a decimal indicator. ``SavReader`` does not format numerical values, except for the ``N`` format, and dates/times (see below). The ``N`` format is a zero-padded value (e.g. SPSS format ``N8`` is formatted as Python format ``%08d``, e.g. '00001234'). For most numerical values, formatting means *loss of precision*. For instance, formatting SPSS ``F5.3`` to Python ``%5.3f`` means that only the first three digits are retained. In addition, formatting incurs a lot of *additional processing time*. Finally, e.g. appending a percent sign to a value (``PCT`` format) renders the value *less useful for calculations*. **Table 1** below shows a complete list of all the available formats.  
+**Numerical** data formats include the default numeric format (``F``), scientific notation (``E``) and zero-padded (``N``). For example, a format of ``F5.2`` represents a numeric value with a total width of 5, including two decimal positions and a decimal indicator. ``SavReader`` does not format numerical values, except for the ``N`` format, and dates/times (see under `Date formats`_). The ``N`` format is a zero-padded value (e.g. SPSS format ``N8`` is formatted as Python format ``%08d``, e.g. '00001234'). For most numerical values, formatting means *loss of precision*. For instance, formatting SPSS ``F5.3`` to Python ``%5.3f`` means that only the first three digits are retained. In addition, formatting incurs *additional processing time*. Finally, e.g. appending a percent sign to a value (``PCT`` format) renders the value *less useful for calculations*. **Table 1** below shows a complete list of all the available formats.  
 
 .. exceltable:: **Table 1.** string and numerical formats in SPSS and ``savReaderWriter`` 
    :file: ./formats.xls
    :header: 1
    :selection: A1:D19
+*Note.* The User Programmable currency formats (CCA, CCB, CCC and CCD) cannot be defined or written by ``SavWriter`` and existing definitions cannot be read by ``SavReader``.
 
 Date formats
 -------------
-**Dates in SPSS.** Date formats are a group of numerical formats. SPSS stores dates as the number of seconds since midnight, Oct 14, 1582 (the beginning of the Gregorian calendar). In SPSS, the user can make these seconds understandable by giving them a print and/or write format (usually these are set at the same time using the ``FORMATS`` command). Examples of such display formats include ``ADATE`` (American date, *mmddyyyy*) and ``EDATE`` (European date, *ddmmyyyy*), ``SDATE`` (Asian/Sortable date, *yyyymmdd*) and ``JDATE`` (Julian date). 
+**Dates in SPSS.** Date formats are a group of numerical formats. SPSS stores dates as the number of seconds since midnight, Oct 14, 1582 (the beginning of the Gregorian calendar). In SPSS, the user can make these seconds human-readable by giving them a print and/or write format (usually these are set at the same time using the ``FORMATS`` command). Examples of such display formats include ``ADATE`` (American date, *mmddyyyy*) and ``EDATE`` (European date, *ddmmyyyy*), ``SDATE`` (Asian/Sortable date, *yyyymmdd*) and ``JDATE`` (Julian date). 
 
 **Reading dates.** ``SavReader`` deliberately does *not* honour the different SPSS date display formats, but instead tries to convert them to the more practical (sortable) and less ambibiguous ISO 8601 format (*yyyy-mm-dd*). You can easily change this behavior by modifying the ``supportedDates`` dictionary in ``__init__.py``. **Table 2** below shows how ``SavReader`` converts SPSS dates. Where applicable, the SPSS-to-Python conversion always results in the 'long' version of a date/time. For instance, ``TIME5`` and ``TIME10.40`` both result in a ``%H:%M:%S.%f``-style format.
 
@@ -287,14 +288,14 @@ Date formats
 [4] ftp://public.dhe.ibm.com/software/analytics/spss/documentation/statistics/20.0/en/client/Manuals/IBM_SPSS_Statistics_Command_Syntax_Reference.pdf
 [5] weekday, month names depend on host locale (not on ioLocale argument)
 
-**Writing dates.** With ``SavWriter`` a Python date string value (e.g. "2010-10-25") can be converted to an SPSS Gregorian date (i.e., just a whole bunch of seconds) by using e.g.::
+**Writing dates.** With ``SavWriter`` a Python date string value (e.g. "2010-10-25") can be converted to an SPSS Gregorian date (i.e., just a whole bunch of seconds) by using the ``spssDateTime`` method, e.g.::
 
     kwargs = dict(savFileName="/tmp/date.sav", varNames=['aDate'], varTypes={'aDate': 0}, formats={'aDate': 'EDATE10'})
     with SavWriter(**kwargs) as writer:
         spssDateValue = writer.spssDateTime("2010-10-25", "%Y-%m-%d")
         writer.writerow([spssDateValue])
 
-The display format of the date (i.e., the way it looks in the SPSS data editor after opening the .sav file) may be set by specifying the ``formats`` dictionary (see also **Table 1**). This is one of the optional arguments of the ``SavWriter`` initializer.
+The display format of the date (i.e., the way it looks in the SPSS data editor after opening the .sav file) may be set by specifying the ``formats`` dictionary (see also **Table 1**). This is one of the optional arguments of the ``SavWriter`` initializer. Without such a specification, the date will look like a large integer (the number of seconds since the beginning of the Gregorian calendar).
 
 
 
