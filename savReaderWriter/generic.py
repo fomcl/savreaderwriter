@@ -435,7 +435,8 @@ class Generic(object):
                 # not self.encoding_and_locale_set --> nested context managers
                 raise SPSSIOError("Error setting IO interface", retcode)
         except TypeError:
-            raise Exception("Invalid interface encoding: %r (must be bool)")
+            msg = "Invalid interface encoding: %r (must be bool)" % ioUtf8
+            raise Exception(msg)
         if retcode < 0:
             checkErrsWarns("Problem setting ioUtf8", retcode)
 
@@ -474,7 +475,7 @@ class Generic(object):
         """Get/Set a whole record from/to a pre-allocated buffer"""
         args = c_int(self.fh), byref(self.caseBuffer)
         retcode = self.wholeCaseIn(*args)
-        if retcode != 0:
+        if retcode:
             checkErrsWarns("Problem reading row", retcode)
         record = list(self.unpack_from(self.caseBuffer))
         return record
@@ -488,7 +489,7 @@ class Generic(object):
             raise TypeError(msg)
         args = c_int(self.fh), c_char_p(self.caseBuffer.raw)
         retcode = self.wholeCaseOut(*args)
-        if retcode != 0:
+        if retcode:
             checkErrsWarns("Problem writing row\n" + record, retcode)
 
     def printPctProgress(self, nominator, denominator):
