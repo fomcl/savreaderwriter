@@ -3,6 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. toctree::
+   :maxdepth: 2
+
 Welcome to savReaderWriter's documentation!
 =================================================================================
 
@@ -19,39 +22,21 @@ See also the `IBM SPSS Statistics Command Syntax Reference.pdf`_ for info about 
 
 .. seealso::
 
-   The :mod:`savReaderWriter` program uses the SPSS I/O module (``.so``, ``.dll``, ``.dylib``, depending on your Operating  System). Users of the SPSS I/O module should read the `International License Agreement`_ before using the SPSS I/O module. By downloading, installing, copying, accessing, or otherwise using the  SPSS I/O module, licensee agrees to the terms of this agreement. Copyright © IBM Corporation™ 1989, 2012 --- all rights reserved.
-
-
-.. toctree::
-   :maxdepth: 2
-   
+   The :mod:`savReaderWriter` program uses the SPSS I/O module (``.so``, ``.dll``, ``.dylib``, depending on your Operating  System). Users of the SPSS I/O
+   module should read the `International License Agreement`_ before using the SPSS I/O module. By downloading, installing, copying, accessing, or otherwise
+   using the  SPSS I/O module, licensee agrees to the terms of this agreement. Copyright © IBM Corporation™ 1989, 2012 --- all rights reserved.
 
 Installation
 ============================================================================
 
 Platforms
 ----------
-As shown in the table below, this program works for Linux (incl. z/Linux), Windows, Mac OS (32 and 64 bit), AIX-64, HP-UX and Solaris-64. However, it has only been tested on Linux 32 (Ubuntu and Mint), Windows (mostly on Windows XP 32, but also a few times on Windows 7 64), and Mac OS (with an earlier version of savReaderWriter). The other OSs are entirely untested.
+As shown in **Table 0** below, this program works for Linux (incl. z/Linux), Windows, Mac OS (32 and 64 bit), AIX-64, HP-UX and Solaris-64. However, it has only been tested on Linux 32 (Ubuntu and Mint), Windows (mostly on Windows XP 32, but also a few times on Windows 7 64), and Mac OS (with an earlier version of savReaderWriter). The other OSs are entirely untested.
 
-+------------------+------------+-----------+
-| Operating System |       Architecture     |
-|                  +------------+-----------+
-|                  |   32 bit   |  64 bit   |
-+==================+============+===========+
-| AIX              |            |    X      |
-+------------------+------------+-----------+
-| HP-UX            |            |    X      |
-+------------------+------------+-----------+
-| Linux            |     X      |    X      |
-+------------------+------------+-----------+
-| Mac OS           |     X      |    X?     |
-+------------------+------------+-----------+
-| Solaris          |            |    X      |
-+------------------+------------+-----------+
-| Windows          |     X      |    X      |
-+------------------+------------+-----------+
-| zLinux           |            |    X      |
-+------------------+------------+-----------+
+.. exceltable:: **Table 0.** supported platforms for ``savReaderWriter`` 
+   :file: ./platforms.xls
+   :header: 2
+   :selection: A1:C9
 
 Setup
 -------------------
@@ -86,7 +71,7 @@ The ``cWriterow`` package is a faster Cython implementation of the pyWriterow me
 The ``psyco`` package may be installed to speed up reading (66 % faster).
 
 **numpy.**
-The ``psyco`` package should be installed if you intend to use array slicing (e.g ``data[:2,2:4]``).
+The ``numpy`` package should be installed if you intend to use array slicing (e.g ``data[:2,2:4]``).
 
 :mod:`SavWriter` -- Write SPSS system files
 ============================================================================
@@ -259,11 +244,11 @@ Typical use::
 Formats
 ----------
 
-SPSS knows just two different data types: string and numerical data. These data types can be *formatted* (displayed) by SPSS in several different ways. Format names are followed by total width (w) and an optional number of decimal positions (d). 
+SPSS knows just two different data types: string and numerical data. These data types can be *formatted* (displayed) by SPSS in several different ways. Format names are followed by total width (w) and an optional number of decimal positions (d). **Table 1** below shows a complete list of all the available formats.
 
 **String** data can be alphanumeric characters (``A`` format) or the hexadecimal representation of alphanumeric characters (``AHEX`` format). Currently, ``SavReader`` maps both of these formats to a regular alphanumeric string format. String formats do not have any decimal positions (d).
 
-**Numerical** data formats include the default numeric format (``F``), scientific notation (``E``) and zero-padded (``N``). For example, a format of ``F5.2`` represents a numeric value with a total width of 5, including two decimal positions and a decimal indicator. ``SavReader`` does not format numerical values, except for the ``N`` format, and dates/times (see under `Date formats`_). The ``N`` format is a zero-padded value (e.g. SPSS format ``N8`` is formatted as Python format ``%08d``, e.g. '00001234'). For most numerical values, formatting means *loss of precision*. For instance, formatting SPSS ``F5.3`` to Python ``%5.3f`` means that only the first three digits are retained. In addition, formatting incurs *additional processing time*. Finally, e.g. appending a percent sign to a value (``PCT`` format) renders the value *less useful for calculations*. **Table 1** below shows a complete list of all the available formats.  
+**Numerical** data formats include the default numeric format (``F``), scientific notation (``E``) and zero-padded (``N``). For example, a format of ``F5.2`` represents a numeric value with a total width of 5, including two decimal positions and a decimal indicator. ``SavReader`` does not format numerical values, except for the ``N`` format, and dates/times (see under `Date formats`_). The ``N`` format is a zero-padded value (e.g. SPSS format ``N8`` is formatted as Python format ``%08d``, e.g. '00001234'). For most numerical values, formatting means *loss of precision*. For instance, formatting SPSS ``F5.3`` to Python ``%5.3f`` means that only the first three digits are retained. In addition, formatting incurs *additional processing time*. Finally, e.g. appending a percent sign to a value (``PCT`` format) renders the value *less useful for calculations*.
 
 .. exceltable:: **Table 1.** string and numerical formats in SPSS and ``savReaderWriter`` 
    :file: ./formats.xls
@@ -282,10 +267,10 @@ Date formats
    :header: 1
    :selection: A1:I25
 *Note.*
-[1] ISO 8601 format dates are used wherever possible, e.g. mmddyyyy (``ADATE``) and ddmmyyyy (``EDATE``) is not maintained.
-[2] Months are converted to quarters using a simple lookup table
-[3] http://docs.python.org/2/library/datetime.html
-[4] ftp://public.dhe.ibm.com/software/analytics/spss/documentation/statistics/20.0/en/client/Manuals/IBM_SPSS_Statistics_Command_Syntax_Reference.pdf
+[1] `IBM SPSS Statistics Command Syntax Reference.pdf`_
+[2] http://docs.python.org/2/library/datetime.html
+[3] ISO 8601 format dates are used wherever possible, e.g. mmddyyyy (``ADATE``) and ddmmyyyy (``EDATE``) is not maintained.
+[4] Months are converted to quarters using a simple lookup table
 [5] weekday, month names depend on host locale (not on ioLocale argument)
 
 **Writing dates.** With ``SavWriter`` a Python date string value (e.g. "2010-10-25") can be converted to an SPSS Gregorian date (i.e., just a whole bunch of seconds) by using the ``spssDateTime`` method, e.g.::
