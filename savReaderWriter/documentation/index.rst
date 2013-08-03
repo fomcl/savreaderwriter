@@ -20,6 +20,37 @@ Welcome to savReaderWriter's documentation!
 In the documentation below, the associated SPSS commands are given in ``CAPS``.
 See also the `IBM SPSS Statistics Command Syntax Reference.pdf`_ for info about SPSS syntax.
 
+.. raw:: html
+
+    <embed>
+    </p>I always appreciate getting
+    <script type="text/javascript" language="javascript">
+    <!--
+    // Email obfuscator script 2.1 by Tim Williams, University of Arizona
+    // Random encryption key feature by Andrew Moulden, Site Engineering Ltd
+    // This code is freeware provided these four comment lines remain intact
+    // A wizard to generate this code is at http://www.jottings.com/obfuscator/
+    { coded = "KNMT1@S8oNN.TNM"
+      key = "NVXDIRH5nwJ1dLckfsjZFzbCv79xYTWKh3qytUuam0O4PpioEASG628MerlQgB"
+      shift=coded.length
+      link=""
+      for (i=0; i<coded.length; i++) {
+        if (key.indexOf(coded.charAt(i))==-1) {
+          ltr = coded.charAt(i)
+          link += (ltr)
+        }
+        else {     
+          ltr = (key.indexOf(coded.charAt(i))-shift+key.length) % key.length
+          link += (key.charAt(ltr))
+        }
+      }
+    document.write("<a href='mailto:"+link+"?subject=feedback on savReaderWriter'>feedback</a>")
+    }
+    //-->
+    </script><noscript>Sorry, you need Javascript on to email me.</noscript>
+    on this package, so I can keep improving it!</p>
+    </embed>
+
 .. seealso::
 
    The :mod:`savReaderWriter` program uses the SPSS I/O module (``.so``, ``.dll``, ``.dylib``, depending on your Operating  System). Users of the SPSS I/O
@@ -246,9 +277,9 @@ Formats
 
 SPSS knows just two different data types: string and numerical data. These data types can be *formatted* (displayed) by SPSS in several different ways. Format names are followed by total width (w) and an optional number of decimal positions (d). **Table 1** below shows a complete list of all the available formats.
 
-**String** data can be alphanumeric characters (``A`` format) or the hexadecimal representation of alphanumeric characters (``AHEX`` format). Currently, ``SavReader`` maps both of these formats to a regular alphanumeric string format. String formats do not have any decimal positions (d).
+**String** data can be alphanumeric characters (``A`` format) or the hexadecimal representation of alphanumeric characters (``AHEX`` format). The maximum size of a string value is 32767 bytes. String formats do not have any decimal positions (d). Currently, ``SavReader`` maps both of the string formats to a regular alphanumeric string format. 
 
-**Numerical** data formats include the default numeric format (``F``), scientific notation (``E``) and zero-padded (``N``). For example, a format of ``F5.2`` represents a numeric value with a total width of 5, including two decimal positions and a decimal indicator. ``SavReader`` does not format numerical values, except for the ``N`` format, and dates/times (see under `Date formats`_). The ``N`` format is a zero-padded value (e.g. SPSS format ``N8`` is formatted as Python format ``%08d``, e.g. '00001234'). For most numerical values, formatting means *loss of precision*. For instance, formatting SPSS ``F5.3`` to Python ``%5.3f`` means that only the first three digits are retained. In addition, formatting incurs *additional processing time*. Finally, e.g. appending a percent sign to a value (``PCT`` format) renders the value *less useful for calculations*.
+**Numerical** data formats include the default numeric format (``F``), scientific notation (``E``) and zero-padded (``N``). For example, a format of ``F5.2`` represents a numeric value with a total width of 5, including two decimal positions and a decimal indicator. For all numeric formats, the maximum width (w) is 40. For numeric formats where decimals are allowed, the maximum number of decimals (d) is 16.``SavReader`` does not format numerical values, except for the ``N`` format, and dates/times (see under `Date formats`_). The ``N`` format is a zero-padded value (e.g. SPSS format ``N8`` is formatted as Python format ``%08d``, e.g. '00001234'). For most numerical values, formatting means *loss of precision*. For instance, formatting SPSS ``F5.3`` to Python ``%5.3f`` means that only the first three digits are retained. In addition, formatting incurs *additional processing time*. Finally, e.g. appending a percent sign to a value (``PCT`` format) renders the value *less useful for calculations*.
 
 .. exceltable:: **Table 1.** string and numerical formats in SPSS and ``savReaderWriter`` 
    :file: ./formats.xls
@@ -258,9 +289,9 @@ SPSS knows just two different data types: string and numerical data. These data 
 
 Date formats
 -------------
-**Dates in SPSS.** Date formats are a group of numerical formats. SPSS stores dates as the number of seconds since midnight, Oct 14, 1582 (the beginning of the Gregorian calendar). In SPSS, the user can make these seconds human-readable by giving them a print and/or write format (usually these are set at the same time using the ``FORMATS`` command). Examples of such display formats include ``ADATE`` (American date, *mmddyyyy*) and ``EDATE`` (European date, *ddmmyyyy*), ``SDATE`` (Asian/Sortable date, *yyyymmdd*) and ``JDATE`` (Julian date). 
+**Dates in SPSS.** Date formats are a group of numerical formats. SPSS stores dates as the number of seconds since midnight, October 14, 1582 (the beginning of the Gregorian calendar). In SPSS, the user can make these seconds human-readable by giving them a print and/or write format (usually these are set at the same time using the ``FORMATS`` command). Examples of such display formats include ``ADATE`` (American date, *mmddyyyy*) and ``EDATE`` (European date, *ddmmyyyy*), ``SDATE`` (Asian/Sortable date, *yyyymmdd*) and ``JDATE`` (Julian date). 
 
-**Reading dates.** ``SavReader`` deliberately does *not* honour the different SPSS date display formats, but instead tries to convert them to the more practical (sortable) and less ambibiguous ISO 8601 format (*yyyy-mm-dd*). You can easily change this behavior by modifying the ``supportedDates`` dictionary in ``__init__.py``. **Table 2** below shows how ``SavReader`` converts SPSS dates. Where applicable, the SPSS-to-Python conversion always results in the 'long' version of a date/time. For instance, ``TIME5`` and ``TIME10.40`` both result in a ``%H:%M:%S.%f``-style format.
+**Reading dates.** ``SavReader`` deliberately does *not* honor the different SPSS date display formats, but instead tries to convert them to the more practical (sortable) and less ambibiguous ISO 8601 format (*yyyy-mm-dd*). You can easily change this behavior by modifying the ``supportedDates`` dictionary in ``__init__.py``. **Table 2** below shows how ``SavReader`` converts SPSS dates. Where applicable, the SPSS-to-Python conversion always results in the 'long' version of a date/time. For instance, ``TIME5`` and ``TIME40.16`` both result in a ``%H:%M:%S.%f``-style format.
 
 .. exceltable:: **Table 2.** Date formats in SPSS and ``SavReader`` 
    :file: ./dates.xls
@@ -275,7 +306,7 @@ Date formats
 
 **Writing dates.** With ``SavWriter`` a Python date string value (e.g. "2010-10-25") can be converted to an SPSS Gregorian date (i.e., just a whole bunch of seconds) by using the ``spssDateTime`` method, e.g.::
 
-    kwargs = dict(savFileName="/tmp/date.sav", varNames=['aDate'], varTypes={'aDate': 0}, formats={'aDate': 'EDATE10'})
+    kwargs = dict(savFileName="/tmp/date.sav", varNames=['aDate'], varTypes={'aDate': 0}, formats={'aDate': 'EDATE40'})
     with SavWriter(**kwargs) as writer:
         spssDateValue = writer.spssDateTime("2010-10-25", "%Y-%m-%d")
         writer.writerow([spssDateValue])
