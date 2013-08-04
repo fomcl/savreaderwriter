@@ -23,7 +23,7 @@ See also the `IBM SPSS Statistics Command Syntax Reference.pdf`_ for info about 
 .. raw:: html
 
     <embed>
-    I always appreciate getting
+    </p>I always appreciate getting
     <script type="text/javascript" language="javascript">
     <!--
     // Email obfuscator script 2.1 by Tim Williams, University of Arizona
