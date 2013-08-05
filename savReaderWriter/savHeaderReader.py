@@ -64,8 +64,8 @@ class SavHeaderReader(Header):
         """ This function returns all the dictionary items. It returns
         a Python dictionary based on the Spss dictionary of the given
         Spss file. This is equivalent to the Spss command 'DISPLAY
-        DICTIONARY'. If asNamedtuple=True, one can specify things like
-        metadata.valueLabels"""
+        DICTIONARY'. If asNamedtuple=True, this function returns a namedtuple,
+        so one can retrieve metadata like e.g. 'metadata.valueLabels'"""
         items = ["varNames", "varTypes", "valueLabels", "varLabels",
                  "formats", "missingValues", "measureLevels",
                  "columnWidths", "alignments", "varSets", "varRoles",
