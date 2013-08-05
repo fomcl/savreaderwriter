@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import collections
 
 from savReaderWriter import *
 from header import *
@@ -59,11 +60,12 @@ class SavHeaderReader(Header):
         if not segfaults:
             self.closeSavFile(self.fh, mode="rb")
 
-    def dataDictionary(self):
+    def dataDictionary(self, asNamedtuple=False):
         """ This function returns all the dictionary items. It returns
         a Python dictionary based on the Spss dictionary of the given
         Spss file. This is equivalent to the Spss command 'DISPLAY
-        DICTIONARY'."""
+        DICTIONARY'. If asNamedtuple=True, one can specify things like
+        metadata.valueLabels"""
         items = ["varNames", "varTypes", "valueLabels", "varLabels",
                  "formats", "missingValues", "measureLevels",
                  "columnWidths", "alignments", "varSets", "varRoles",
@@ -71,8 +73,11 @@ class SavHeaderReader(Header):
                  "multRespDefs", "caseWeightVar"] # "dateVariables"]
         if self.ioUtf8:
             items = map(unicode, items)
-        dataDictionary = dict([(item, getattr(self, item)) for item in items])
-        return dataDictionary
+        metadata = dict([(item, getattr(self, item)) for item in items])
+        if asNamedtuple:
+            Meta = collections.namedtuple("Meta", " ".join(metadata.keys()))
+            return Meta(*metadata.values())
+        return metadata
 
     def reportSpssDataDictionary(self, dataDict):
         """ This function reports information from the Spss dictionary
