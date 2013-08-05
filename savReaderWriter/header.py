@@ -965,7 +965,7 @@ class Header(Generic):
         --extended multiple dichotomy sets: {setName: {"setType": "E",
           "label": lbl, "varNames": [<list_of_varNames>], "countedValue":
            countedValue, 'firstVarIsLabel': <bool>}}
-	    Note. You can get values of extended multiple dichotomy sets with
+	Note. You can get values of extended multiple dichotomy sets with 
         getMultRespSetsDefEx, but you cannot write extended multiple dichotomy
         sets.
 
@@ -1061,9 +1061,9 @@ class Header(Generic):
         varNameBuff = create_string_buffer(65)
         func = self.spssio.spssGetCaseWeightVar
         retcode = func(c_int(self.fh), byref(varNameBuff))
-        if retcode:
+        if retcode > 0:
             msg = "Problem getting case weight variable name"
-            checkErrsWarns(msg, retcode)
+            raise SPSSIOError(msg, retcode)
         return varNameBuff.value
 
     @caseWeightVar.setter
@@ -1310,6 +1310,7 @@ class Header(Generic):
             args = c_int(self.fh), c_char_p(asciiGUID)
             func = self.spssio.spssSetDEWGUID
             retcode = func(*args)
-        else:
+
+        if retcode:
             msg = "Problem setting Data Entry info with function %r"
             checkErrsWarns(msg % func.__name__, retcode)

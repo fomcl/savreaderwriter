@@ -5,7 +5,6 @@ from ctypes import *
 import os
 import time
 
-
 from header import *
 if cWriterowOK:
     cWriterow = cWriterow.cWriterow
@@ -79,7 +78,7 @@ class SavWriter(Header):
       I/O Module will be. Valid values are True (UTF-8/unicode mode, cf. SET
       UNICODE=ON) or False (Codepage mode, SET UNICODE=OFF) (default: False)
     -ioLocale: indicates the locale of the I/O module, cf. SET LOCALE (default:
-      None, which is the same as ".".join(locale.getlocale())
+      None, which is the same as locale.getlocale()[0])
     -mode: indicates the mode in which <savFileName> should be opened. Possible
       values are "wb" (write), "ab" (append), "cp" (copy: initialize header
       using <refSavFileName> as a reference file, cf. APPLY DICTIONARY).
@@ -94,9 +93,8 @@ class SavWriter(Header):
     varNames = ['var1', 'v2', 'v3']
     varTypes = {'var1': 5, 'v2': 0, 'v3': 0}
     savFileName = "test.sav"
-    with SavWriter(savFileName, varNames, varTypes) as writer:
-        for record in records:
-            writer.writerow(record)
+    with SavWriter(savFileName, varNames, varTypes) as sav:
+        sav.writerows(records)
     """
     def __init__(self, savFileName, varNames, varTypes, valueLabels=None,
                  varLabels=None, formats=None, missingValues=None,

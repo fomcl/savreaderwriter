@@ -36,13 +36,13 @@ class SavReader(Header):
         I/O Module will be. Valid values are True (UTF-8 mode aka Unicode mode)
         and False (Codepage mode). Cf. SET UNICODE=ON/OFF (default = False)
     -ioLocale: indicates the locale of the I/O module. Cf. SET LOCALE (default
-        = None, which corresponds to ".".join(locale.getlocale())
+        = None, which corresponds to locale.getlocale()[0])
 
     Typical use:
-    savFileName = "someFile.sav"
-    with SavReader(savFileName, returnHeader=True) as reader:
-        header = next(reader)
-        for line in reader:
+    savFileName = "d:/someFile.sav"
+    with SavReader(savFileName, returnHeader=True) as sav:
+        header = sav.next()
+        for line in sav:
             process(line)
     """
 
