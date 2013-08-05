@@ -1,6 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from ctypes import *
+import ctypes.util
+import struct
+import sys
+import platform
+import os
+import re
+import math
+import locale
+import encodings
+
 from savReaderWriter import *
 
 class Generic(object):

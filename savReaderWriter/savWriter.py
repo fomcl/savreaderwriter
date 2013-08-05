@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from savReaderWriter import *
+from ctypes import *
+import os
+import time
+
 from header import *
 if cWriterowOK:
     cWriterow = cWriterow.cWriterow

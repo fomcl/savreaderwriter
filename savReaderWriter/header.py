@@ -1,6 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from ctypes import *
+import ctypes.util
+import struct
+import sys
+import os
+import re
+import time
+import getpass
+import functools
+import gc
+
 from savReaderWriter import *
 from generic import *
 
@@ -166,7 +177,7 @@ class Header(Generic):
         varNameRetcodes = {
             0: ('SPSS_NAME_OK', 'Valid standard name'),
             1: ('SPSS_NAME_SCRATCH', 'Valid scratch var name'),
-            2: ('SPSS_NAME_SYSTEM' 'Valid system var name'),
+            2: ('SPSS_NAME_SYSTEM', 'Valid system var name'),
             3: ('SPSS_NAME_BADLTH', badLengthMsg),
             4: ('SPSS_NAME_BADCHAR', 'Invalid character or embedded blank'),
             5: ('SPSS_NAME_RESERVED', 'Name is a reserved word'),
