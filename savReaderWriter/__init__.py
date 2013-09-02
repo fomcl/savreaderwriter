@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-SavReaderWriter.py: A cross-platform Python interface to the IBM SPSS
+savReaderWriter: A cross-platform Python interface to the IBM SPSS
 Statistics Input Output Module. Read or Write SPSS system files (.sav, .zsav)
 
-.. moduleauthor:: Albert-Jan Roskam <fomcl@yahoo.com>
+.. moduleauthor:: Albert-Jan Roskam <fomcl "at" yahoo "dot" com>
 
 """
 
@@ -14,6 +14,7 @@ Statistics Input Output Module. Read or Write SPSS system files (.sav, .zsav)
 segfaults = False
 
 import os
+import sys
 
 try:
     import psyco
@@ -118,6 +119,8 @@ userMissingValues = {
 
 version = __version__
 
+sys.path.insert(0, os.path.dirname(__file__))
+from py3k import *
 from error import *
 from generic import *
 from header import *

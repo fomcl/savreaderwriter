@@ -85,7 +85,7 @@ class SPSSIOError(Exception):
     """
     Error class for the IBM SPSS Statistics Input Output Module
     """
-    def __init__(self, msg=u"Unknown", retcode=None):
+    def __init__(self, msg="Unknown", retcode=None):
         self.retcode = retcode
         Exception.__init__(self, msg)
 

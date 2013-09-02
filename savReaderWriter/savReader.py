@@ -6,6 +6,7 @@ import os
 import operator
 import locale
 import datetime
+import collections
 
 from savReaderWriter import *
 from header import *
@@ -80,9 +81,9 @@ class SavReader(Header):
     def __enter__(self):
         """ This function opens the spss data file (context manager)."""
         if self.verbose and self.ioUtf8_:
-            print unicode(self).replace(os.linesep, "\n")
+            print(self.replace(os.linesep, "\n"))
         elif self.verbose:
-            print str(self).replace(os.linesep, "\n")
+            print(str(self).replace(os.linesep, "\n"))
         return iter(self)
 
     def __exit__(self, type, value, tb):
@@ -133,6 +134,13 @@ class SavReader(Header):
                                              self.varTypes, self.formats,
                                              self.nCases)
         return self.fileReport
+
+    @property
+    def shape(self):
+        """This function returns the number of rows (nrows) and columns
+        (ncols) as a namedtuple"""
+        dim = (self.nCases, self.numVars)
+        return collections.namedtuple("_", "nrows ncols")(*dim)
 
     def _isAutoRawMode(self):
         """Helper function for formatValues function. Determines whether
@@ -261,6 +269,7 @@ class SavReader(Header):
 
         is_index = False
         rstart = cstart = 0
+        cstop = cstep = None
         try:
             row, col = key
             if row < 0:
@@ -457,11 +466,7 @@ class SavReader(Header):
             theDate = (self.gregorianEpoch +
                        datetime.timedelta(seconds=spssDateValue))
             return datetime.datetime.strftime(theDate, fmt)
-        except OverflowError:
-            return recodeSysmisTo
-        except TypeError:
-            return recodeSysmisTo
-        except ValueError:
+        except (OverflowError, TypeError, ValueError):
             return recodeSysmisTo
 
     def getFileReport(self, savFileName, varNames, varTypes,
@@ -526,7 +531,7 @@ class SavReader(Header):
             if diff:
                 msg = "Variable names misspecified (%r)" % ", ".join(diff)
                 raise NameError(msg)
-            varPos = [varNames.index(v) for v in self.varNames
+            varPos = [self.varNames.index(v) for v in self.varNames
                       if v in selectVars]
             self.selector = operator.itemgetter(*varPos)
             header = self.selector(self.varNames)
