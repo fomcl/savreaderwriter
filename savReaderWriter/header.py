@@ -73,10 +73,10 @@ class Header(Generic):
             if isinstance(result, str):
                 return uS(result)
             uresult = {}
-            for k, v in result.iteritems():
+            for k, v in result.items():
                 uresult[uS(k)] = {}
                 try:
-                    for i, j in v.iteritems():  # or wrapper(j) recursion?
+                    for i, j in v.items():  # or wrapper(j) recursion?
                         uresult[uS(k)][uS(i)] = uS(uL(j))
                 except AttributeError:
                     uresult[uS(k)] = uL(uS(v))
@@ -264,9 +264,9 @@ class Header(Generic):
         valLabN = self.spssio.spssSetVarNValueLabel
         valLabC = self.spssio.spssSetVarCValueLabel
         valueLabels = self.encode(valueLabels)
-        for varName, valueLabelsX in valueLabels.iteritems():
+        for varName, valueLabelsX in valueLabels.items():
             valueLabelsX = self.encode(valueLabelsX)
-            for value, label in valueLabelsX.iteritems():
+            for value, label in valueLabelsX.items():
                 if self.varTypes[varName] == 0:
                     retcode = valLabN(c_int(self.fh), c_char_p_(varName),
                                       c_double(value), c_char_p_(label))
@@ -304,7 +304,7 @@ class Header(Generic):
             return
         func = self.spssio.spssSetVarLabel
         varLabels = self.encode(varLabels)
-        for varName, varLabel in varLabels.iteritems():
+        for varName, varLabel in varLabels.items():
             retcode = func(c_int(self.fh), c_char_p_(varName),
                            c_char_p_(varLabel))
             if retcode:
@@ -422,7 +422,7 @@ class Header(Generic):
             checkErrsWarns(msg, retcode)
 
         v1, v2, v3 = [v.value for v in args]
-        userMiss = dict([(v, k) for k, v in userMissingValues.iteritems()])
+        userMiss = dict([(v, k) for k, v in userMissingValues.items()])
         missingFmt = userMiss[missingFmt.value]
         if missingFmt == "SPSS_NO_MISSVAL":
             return {}
@@ -535,7 +535,7 @@ class Header(Generic):
     @missingValues.setter
     def missingValues(self, missingValues):
         if missingValues:
-            for varName, kwargs in missingValues.iteritems():
+            for varName, kwargs in missingValues.items():
                 self._setMissingValue(varName, **kwargs)
 
     # measurelevel, colwidth and alignment must all be set or not at all.
@@ -570,7 +570,7 @@ class Header(Generic):
         func = self.spssio.spssSetVarMeasureLevel
         levels = {"unknown": 0, "nominal": 1, "ordinal": 2, "scale": 3,
                   "ratio": 3, "flag": 4, "typeless": 5}
-        for varName, level in self.encode(varMeasureLevels).iteritems():
+        for varName, level in self.encode(varMeasureLevels).items():
             if level.lower() not in levels:
                 msg = "Valid levels are %"
                 raise ValueError(msg % ", ".join(levels.keys()))
@@ -608,7 +608,7 @@ class Header(Generic):
         if not varColumnWidths:
             return
         func = self.spssio.spssSetVarColumnWidth
-        for varName, varColumnWidth in varColumnWidths.iteritems():
+        for varName, varColumnWidth in varColumnWidths.items():
             retcode = func(c_int(self.fh), c_char_p_(varName),
                            c_int(varColumnWidth))
             if retcode:
@@ -623,7 +623,7 @@ class Header(Generic):
         only called if column widths, measurement levels and variable
         alignments are None."""
         columnWidths = {}
-        for varName, varType in self.varTypes.iteritems():
+        for varName, varType in self.varTypes.items():
             # zero = appropriate width determined by spss
             columnWidths[varName] = 10 if 0 < varType < 10 else 0
         self.columnWidths = columnWidths
@@ -659,7 +659,7 @@ class Header(Generic):
             return
         func = self.spssio.spssSetVarAlignment
         alignments = {"left": 0, "right": 1, "center": 2}
-        for varName, varAlignment in varAlignments.iteritems():
+        for varName, varAlignment in varAlignments.items():
             if varAlignment.lower() not in alignments:
                 msg = "Valid alignments are %"
                 raise ValueError(msg % ", ".join(alignments.keys()))
@@ -676,7 +676,7 @@ class Header(Generic):
         Returns/Takes a dictionary with SETNAME as keys and a list of SPSS
         variables as values. For example: {'SALARY': ['salbegin',
         'salary'], 'DEMOGR': ['gender', 'minority', 'educ']}"""
-        varSets = c_char_p_()
+        varSets = c_char_p()
         func = self.spssio.spssGetVariableSets
         retcode = func(c_int(self.fh), byref(varSets))
         if retcode:
@@ -700,7 +700,7 @@ class Header(Generic):
         if not varSets:
             return
         varSets_ = []
-        for varName, varSet in varSets.iteritems():
+        for varName, varSet in varSets.items():
             varSets_.append("%s= %s" % (varName, " ".join(varSet)))
         varSets_ = c_char_p_("\n".join(varSets_))
         retcode = self.spssio.spssSetVariableSets(c_int(self.fh), varSets_)
@@ -737,7 +737,7 @@ class Header(Generic):
         roles = {"input": 0, "target": 1, "both": 2, "none": 3, "partition": 4,
                  "split": 5,  "frequency": 6, "record ID": 7}
         func = self.spssio.spssSetVarRole
-        for varName, varRole in varRoles.iteritems():
+        for varName, varRole in varRoles.items():
             varRole = roles.get(varRole)
             retcode = func(c_int(self.fh), c_char_p_(varName), c_int(varRole))
             if retcode:
@@ -861,7 +861,7 @@ class Header(Generic):
         if not fileAttributes:
             return
         attributes, valueLens = {}, []
-        for name, values in fileAttributes.iteritems():
+        for name, values in fileAttributes.items():
             #valueLens.append(len(values))
             for value in values:
                 attributes[name] = value
@@ -915,7 +915,7 @@ class Header(Generic):
         It translates the multiple response definition, specified as a
         dictionary, into a string that the IO module can use"""
         mrespDefs = []
-        for setName, rest in multRespDefs.iteritems():
+        for setName, rest in multRespDefs.items():
             rest = self.encode(rest)
             if rest["setType"] not in ("C", "D"):
                 continue
@@ -1008,7 +1008,7 @@ class Header(Generic):
             self.freeMemory("spssFreeMultRespDefs", mrDefs)
 
         ## Extended Multiple response definitions
-        mrDefsEx = c_char_p_()
+        mrDefsEx = c_char_p()
         func = self.spssio.spssGetMultRespDefsEx
         retcode = func(c_int(self.fh), pointer(mrDefsEx))
         if retcode:
@@ -1018,7 +1018,7 @@ class Header(Generic):
         multRespDefsEx = {}
         if mrDefsEx.value:
             for mrDefEx in mrDefsEx.value.split("\n"):
-                for setName, rest in self._getMultRespDef(mrDefEx).iteritems():
+                for setName, rest in self._getMultRespDef(mrDefEx).items():
                     multRespDefsEx[setName] = rest
             self.freeMemory("spssFreeMultRespDefs", mrDefsEx)
 

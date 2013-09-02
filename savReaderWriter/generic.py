@@ -266,7 +266,7 @@ class Generic(object):
 
     @fileCompression.setter
     def fileCompression(self, compSwitch):
-        compression = {"uncompressed": 0, "standard": 1, "zlib": 2}
+        compression = {b"uncompressed": 0, b"standard": 1, b"zlib": 2}
         compSwitch = compression.get(compSwitch)
         func = self.spssio.spssSetCompression
         retcode = func(c_int(self.fh), c_int(compSwitch))
