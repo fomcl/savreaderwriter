@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import unittest
 import sys
 from savReaderWriter import *
@@ -127,7 +130,6 @@ class test_SavHeaderReader_dataDictionary_namedtuple(unittest.TestCase):
                          'aShortStringVar': 'nominal',
                          'someDate': 'ratio',
                          'weightVar': 'nominal'}
-
         self.assertEqual(metadata.measureLevels, measureLevels)
 
         sysmis = -1 * sys.float_info.max
