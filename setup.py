@@ -126,8 +126,8 @@ setup(name='savReaderWriter',
       )
 
 # ugly, but it works
-for f in ['README','VERSION', 'TODO', 'COPYRIGHT']:
-    p = os.path.dirname(__file__)
-    src = os.path.join(p, f)
-    dst = os.path.join(p, "savReaderWriter", f)
-    shutil.copy(src, dst)
+# for f in ['README','VERSION', 'TODO', 'COPYRIGHT']:
+#     p = os.path.dirname(__file__)
+#     src = os.path.join(p, f)
+#     dst = os.path.join(p, "savReaderWriter", f)
+#     shutil.copy(src, dst)
