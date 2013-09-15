@@ -41,7 +41,7 @@ class Generic(object):
     def _encodeFileName(self, fn):
         """Helper function to encode unicode file names into bytestring file
         names encoded in the file system's encoding. Needed for C functions
-        that have a c_char_p_ filename argument.
+        that have a c_char_p filename argument.
         http://effbot.org/pyref/sys.getfilesystemencoding.htm
         http://docs.python.org/2/howto/unicode.html under 'unicode filenames'"""
         if not isinstance(fn, unicode):
@@ -198,10 +198,10 @@ class Generic(object):
 
         savFileName = self._encodeFileName(savFileName)
         refSavFileName = self._encodeFileName(refSavFileName)
-        sav = c_char_p_(savFileName)
+        sav = c_char_py3k(savFileName)
         fh = c_int(self.fd)
         if mode == "cp":
-            retcode = spssOpen(sav, c_char_p_(refSavFileName), pointer(fh))
+            retcode = spssOpen(sav, c_char_py3k(refSavFileName), pointer(fh))
         else:
             retcode = spssOpen(sav, pointer(fh))
 
@@ -249,7 +249,7 @@ class Generic(object):
         minor = info["release subnumber"]
         fixpack = info["fixpack number"]
         ver_info = (major, minor, fixpack)
-        return collections.namedtuple("_", "major minor fixpack")(*ver_info)
+        return collections.namedtuple("ver", "major minor fixpack")(*ver_info)
 
     @property
     def fileCompression(self):
@@ -257,7 +257,7 @@ class Generic(object):
         Returns/Takes a compression switch which may be any of the following:
         'uncompressed', 'standard', or 'zlib'. Zlib comression requires SPSS
         v21 I/O files."""
-        compression = {0: "uncompressed", 1: "standard", 2: "zlib"}
+        compression = {0: b"uncompressed", 1: b"standard", 2: b"zlib"}
         compSwitch = c_int()
         func = self.spssio.spssGetCompression
         retcode = func(c_int(self.fh), byref(compSwitch))
@@ -348,7 +348,8 @@ class Generic(object):
         func = self.spssio.spssLowHighVal
         retcode = func(byref(lowest), byref(highest))
         checkErrsWarns("Problem getting min/max missing values", retcode)
-        return lowest.value, highest.value
+        ranges = (lowest.value, highest.value)
+        return collections.namedtuple("range", "lo hi")(*ranges)
 
     @property
     def ioLocale(self):
@@ -378,7 +379,7 @@ class Generic(object):
             localeName = ".".join(locale.getlocale())
         func = self.spssio.spssSetLocale
         func.restype = c_char_p
-        self.setLocale = func(c_int(locale.LC_ALL), c_char_p_(localeName))
+        self.setLocale = func(c_int(locale.LC_ALL), c_char_py3k(localeName))
         if self.setLocale is None:
             raise ValueError("Invalid ioLocale: %r" % localeName)
         return self.setLocale
@@ -482,7 +483,7 @@ class Generic(object):
         except struct.error:
             msg = "Use ioUtf8=True to write unicode strings [%s]"
             raise TypeError(msg % sys.exc_info()[1])
-        args = c_int(self.fh), c_char_p_(self.caseBuffer.raw)
+        args = c_int(self.fh), c_char_py3k(self.caseBuffer.raw)
         retcode = self.wholeCaseOut(*args)
         if retcode:
             checkErrsWarns("Problem writing row\n" + record, retcode)

@@ -172,7 +172,7 @@ class SavWriter(Header):
         varHandle = c_double()
         func = self.spssio.spssGetVarHandle
         for varName in self.varNames:
-            retcode = func(c_int(self.fh), c_char_p_(varName), byref(varHandle))
+            retcode = func(c_int(self.fh), c_char_py3k(varName), byref(varHandle))
             varHandles[varName] = varHandle.value
             if retcode:
                 msg = "Problem getting variable handle for variable %r"
@@ -197,7 +197,7 @@ class SavWriter(Header):
         else:
             funcC = self.spssio.spssSetValueChar
             retcode = funcC(c_int(self.fh), c_double(varHandle),
-                            c_char_p_(value))
+                            c_char_py3k(value))
         if retcode:
             isString = isinstance(value, basestring)
             valType = "character" if isString else "numerical"

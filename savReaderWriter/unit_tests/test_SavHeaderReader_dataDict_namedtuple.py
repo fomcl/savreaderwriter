@@ -310,3 +310,6 @@ class test_SavHeaderReader_dataDictionary_namedtuple(unittest.TestCase):
                     'someDate': 0,
                     'weightVar': 0}
         self.assertEqual(self.metadata.varTypes, varTypes)
+
+if __name__ == "__main__":
+    unittest.main()
