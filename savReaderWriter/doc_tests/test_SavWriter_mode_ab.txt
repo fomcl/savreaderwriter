@@ -11,7 +11,7 @@
 ## Append some records to an existing file
 ## First make a copy to work with (append records to)
 ## Also retrieve varNames and varTypes as these are mandatory args
->>> savFileName = "../test_data/Employee data.sav"
+>>> savFileName = "../savReaderWriter/test_data/Employee data.sav"
 >>> shutil.copy(savFileName, "Employee data copy.sav")
 >>> try:  # doctest: +ELLIPSIS
 ...     r = SavReader(savFileName, rawMode=True)

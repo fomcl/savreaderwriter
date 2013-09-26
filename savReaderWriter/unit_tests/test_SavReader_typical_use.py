@@ -491,7 +491,7 @@ class test_SavReader_typical_use(unittest.TestCase):
 
     def test_SavReader_typical(self):
 
-        savFileName = "../test_data/Employee data.sav"
+        savFileName = "../savReaderWriter/test_data/Employee data.sav"
         records_got = []
         with SavReader(savFileName, returnHeader=True) as reader:
             for record in reader:

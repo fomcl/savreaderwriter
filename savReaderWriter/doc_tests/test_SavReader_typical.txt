@@ -7,7 +7,7 @@
 <skipline> ...
 
 ## ----- Typical use
->>> savFileName = "../test_data/Employee data.sav"
+>>> savFileName = "../savReaderWriter/test_data/Employee data.sav"
 >>> with SavReader(savFileName, returnHeader=True) as sav: # doctest: +ELLIPSIS
 ...     header = sav.next()
 ...     print header

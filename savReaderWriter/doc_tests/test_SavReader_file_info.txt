@@ -7,7 +7,7 @@
 <skipline> ...
 
 ## ... Get some basic file info
->>> savFileName = "../test_data/Employee data.sav"
+>>> savFileName = "../savReaderWriter/test_data/Employee data.sav"
 >>> try:  # doctest: +ELLIPSIS
 ...     reader = SavReader(savFileName)      
 ...     numVars, nCases, varNames, varTypes, formats, \

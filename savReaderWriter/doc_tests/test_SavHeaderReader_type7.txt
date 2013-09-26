@@ -8,7 +8,7 @@
 
 # e.g. Record subtype 3, which contains 'Release information' is present (True)
 # This file contains release info, but no date variable info, etc. etc.
->>> savFileName = "../test_data/Employee data.sav"
+>>> savFileName = "../savReaderWriter/test_data/Employee data.sav"
 >>> with SavHeaderReader(savFileName) as spssDict:
 ...    type7info = spssDict.queryType7
 >>> desired = \

@@ -7,7 +7,7 @@
 <skipline> ...
 
 ## ... get number of cases by using __len__
->>> savFileName = "../test_data/Employee data.sav"
+>>> savFileName = "../savReaderWriter/test_data/Employee data.sav"
 >>> try:    # doctest: +ELLIPSIS
 ...     reader = SavReader(savFileName)        
 ...     print "The file contains %d records" % len(reader)

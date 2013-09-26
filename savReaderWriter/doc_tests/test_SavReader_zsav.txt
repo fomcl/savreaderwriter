@@ -9,7 +9,7 @@
 ## It's a good idea not to change the .zsav extension
 ## SPSS versions 20 or older are NOT compatible with zsav
 ## The latest SPSS version is 21, so older versions are pretty common!
->>> savFileName = "../test_data/zlib_compressed.zsav"
+>>> savFileName = "../savReaderWriter/test_data/zlib_compressed.zsav"
 >>> with SavReader(savFileName) as zsav: # doctest: +ELLIPSIS
 ...     for lino, line in enumerate(zsav):
 ...             print line

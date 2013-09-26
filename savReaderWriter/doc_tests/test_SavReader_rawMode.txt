@@ -9,7 +9,7 @@
 ## ----- Typical use
 ## rawMode means date and certain values are not converted/formatted
 ## Dates are now shown as the number of seconds since the Gregorian epoch
->>> savFileName = "../test_data/Employee data.sav"
+>>> savFileName = "../savReaderWriter/test_data/Employee data.sav"
 >>> with SavReader(savFileName, rawMode=True) as sav: # doctest: +ELLIPSIS
 ...     for lino, line in enumerate(sav):
 ...         if lino < 100:

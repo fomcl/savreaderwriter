@@ -50,8 +50,9 @@ True
 
 # check if the header info is okay
 >>> with SavHeaderReader(savFileName) as h:
-...     print unicode(h)  # doctest: +ELLIPSIS
+...     print(unicode(h))  # doctest: +ELLIPSIS
 ...
+File 'employee data_OUT.sav' built using savReaderWriter version ... (...:...:...)
 #ALIGNMENTS
 salary -- left
 jobcat -- left

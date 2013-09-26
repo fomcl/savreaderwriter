@@ -7,7 +7,7 @@
 <skipline> ...
 
 ## ... conveniently get all the records
->>> savFileName = "../test_data/Employee data.sav"
+>>> savFileName = "../savReaderWriter/test_data/Employee data.sav"
 >>> data = SavReader(savFileName)   # doctest: +ELLIPSIS
 >>> with data:
 ...    records = data.all()             

@@ -8,7 +8,7 @@
 <skipline> ...
 
 ## ... Get some basic file info
->>> savFileName = "../test_data/Employee data.sav"
+>>> savFileName = "../savReaderWriter/test_data/Employee data.sav"
 >>> try:  # doctest: +ELLIPSIS
 ...     reader = SavReader(savFileName, ioLocale='en_US.UTF-8')      
 ...     print str(reader)
@@ -17,7 +17,7 @@
 ...     reader.close()
 ...
 **********************************************************************
-*File '../test_data/Employee data.sav' (24.32 kB) has 10 columns (variables) and 474 rows (4740 values)
+*File '../savReaderWriter/test_data/Employee data.sav' (24.32 kB) has 10 columns (variables) and 474 rows (4740 values)
 *The file was created with SPSS version: MS Windows Release 11.0 spssio32.dll (11.1.0)
 *The interface locale is: 'en_US.UTF-8'
 *The interface mode is: Codepage (UTF-8)
@@ -38,7 +38,7 @@
 **********************************************************************
 <BLANKLINE>
 **********************************************************************
-*File '../test_data/Employee data.sav' (24.32 kB) has 10 columns (variables) and 474 rows (4740 values)
+*File '../savReaderWriter/test_data/Employee data.sav' (24.32 kB) has 10 columns (variables) and 474 rows (4740 values)
 *The file was created with SPSS version: MS Windows Release 11.0 spssio32.dll (11.1.0)
 *The interface locale is: 'en_US.UTF-8'
 *The interface mode is: Codepage (UTF-8)

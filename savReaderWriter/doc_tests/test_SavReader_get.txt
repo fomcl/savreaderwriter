@@ -8,7 +8,7 @@
 <skipline> ...
 
 ## ... Do a binary search for records --> idVar
->>> savFileName = "../test_data/Employee data.sav"
+>>> savFileName = "../savReaderWriter/test_data/Employee data.sav"
 >>> try:    # doctest: +ELLIPSIS
 ...     reader = SavReader(savFileName, idVar="id")       
 ...     print reader.get(4, "not found")            # gets first record where id==4

@@ -6,9 +6,9 @@
 >>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
 <skipline> ...
 
->>> savFileName = "../test_data/spssio_test.sav"
+>>> savFileName = "../savReaderWriter/test_data/spssio_test.sav"
 >>> with SavHeaderReader(savFileName) as spssDict: # doctest: +ELLIPSIS
-...     print unicode(spssDict)
+...     print(unicode(spssDict))
 ...     wholeDict = spssDict.dataDictionary()
 #ALIGNMENTS
 AGE3 -- right

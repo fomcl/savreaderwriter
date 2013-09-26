@@ -111,5 +111,5 @@ class SavHeaderReader(Header):
                     allValues = [allValues]
                 for varName in allValues:
                     report.append(varName)
-        print(os.linesep.join(report))
+        #print(os.linesep.join(report))
         return os.linesep.join(report)

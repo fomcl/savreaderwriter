@@ -12,7 +12,7 @@ class test_SavHeaderReader_dataDictionary_namedtuple(unittest.TestCase):
     """
     def setUp(self):
         self.maxDiff = None
-        with SavHeaderReader('../test_data/spssio_test.sav') as header:
+        with SavHeaderReader('../savReaderWriter/test_data/spssio_test.sav') as header:
             self.metadata = header.dataDictionary(True)
 
     def test_alignments(self):

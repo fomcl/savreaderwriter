@@ -15,7 +15,7 @@
 
 
 ## ... Use indexing, slicing to access records using __getitem__
->>> savFileName = "../test_data/Employee data.sav"
+>>> savFileName = "../savReaderWriter/test_data/Employee data.sav"
 >>> reader = SavReader(savFileName)
 >>> with reader:
 ...     print "The first six records look like this\n", reader[:6]
@@ -66,7 +66,7 @@ Row 4 & 5, first three cols
 [1.0, 'm', '1952-02-03', 15.0, 3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0]]
 
 
->>> savFileName = "../test_data/Employee data.sav"
+>>> savFileName = "../savReaderWriter/test_data/Employee data.sav"
 >>> try:    # doctest: +ELLIPSIS
 ...     reader = SavReader(savFileName)        
 ...     print "This yields an IndexError", reader[len(reader) + 1] # doctest: +ELLIPSIS

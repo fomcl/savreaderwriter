@@ -6,7 +6,7 @@
 >>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
 <skipline> ...
 
->>> savFileName = "../test_data/Employee data.sav"
+>>> savFileName = "../savReaderWriter/test_data/Employee data.sav"
 >>> with SavHeaderReader(savFileName) as spssDict: # doctest: +ELLIPSIS
 ...     wholeDict = spssDict.dataDictionary()
 >>> desired = \

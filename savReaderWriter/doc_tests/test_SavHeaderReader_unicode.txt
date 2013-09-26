@@ -7,10 +7,9 @@
 <skipline> ...
 
 
->>> savFileName = "../test_data/greetings.sav"
+>>> savFileName = "../savReaderWriter/test_data/greetings.sav"
 >>> with SavHeaderReader(savFileName, ioUtf8=True) as spssDict: # doctest: +ELLIPSIS
-...     wholeDict = spssDict.dataDictionary()
-...     really = wholeDict
+...     really = spssDict.dataDictionary()
 
 >>> thai = u'\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35'
 >>> arabic = (u'\u0627\u0644\u0633\u0644\u0627\u0645 '+ 
