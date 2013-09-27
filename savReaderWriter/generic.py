@@ -64,7 +64,11 @@ class Generic(object):
         # Using regex patterns ought to be more resilient to updates of the
         # I/O modules, compared to hardcoding the names
         debug = False
-        path = os.path.join(os.path.dirname(__file__), "spssio", folder)
+        if getattr(sys, 'frozen', False):
+            # The application is frozen by cx_freeze, py2exe or something
+            path = os.path.join(os.path.dirname(sys.executable), "savReaderWriter", "spssio", folder)
+        else:
+            path = os.path.join(os.path.dirname(__file__), "spssio", folder)
         libs = sorted(os.listdir(path))
         pats = ['(lib)?icuda?t', '(lib)?icuuc', '(lib)?icui',
                 '(lib)?zlib', '(lib)?spssd?io', '(lib)?spssjdio']
