@@ -38,9 +38,14 @@ except ImportError:
     cWriterowOK = False
 
 __author__ = "Albert-Jan Roskam" + " " + "@".join(["fomcl", "yahoo.com"])
-__version__ = open(os.path.join(os.path.dirname(__file__),
-                                "VERSION")).read().strip()
 
+if getattr(sys, 'frozen', False):
+    # The application is frozen by cx_freeze, py2exe or something
+    __version__ = open(os.path.join(os.path.dirname(sys.executable),
+                        "savReaderWriter", "VERSION")).read().strip()
+else:
+    __version__ = open(os.path.join(os.path.dirname(__file__),
+                        "VERSION")).read().strip()
 
 allFormats = {
     1: ("SPSS_FMT_A", "Alphanumeric"),
