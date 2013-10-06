@@ -45,12 +45,13 @@ class Header(Generic):
         """Decorator to Utf-8 decode all str items contained in a dictionary
         If ioUtf8=True, the dictionary's keys and values are decoded, but only
         values that are strs, lists, or dicts. For example:
-        >>> @decode
+        >>> @decode   # doctest: +SKIP
         ... def test(d):
         ...     return d
         >>> # test 1
-        >>> test({'v1': {'y': 'yy', 'z': 666}})
-        {u'v1': {u'y': u'yy', u'z': 666}}
+        >>> expected = {u'v1': {u'y': u'yy', u'z': 666}}
+        >>> test({'v1': {'y': 'yy', 'z': 666}}) == expected  # doctest: +SKIP
+        True
         >>> # test 2
         >>> thai = ('\xe0\xb8\xaa\xe0\xb8\xa7\xe0\xb8\xb1' +
         ...         '\xe0\xb8\xaa\xe0\xb8\x94\xe0\xb8\xb5')
@@ -60,9 +61,9 @@ class Header(Generic):
         >>> test(d) == {u'dichotomous3': {u'countedValue': uthai,
         ...             u'label': uthai,
         ...             u'setType': u'D',
-        ...             u'varNames': [u'v1', u'v2']}}
+        ...             u'varNames': [u'v1', u'v2']}}  # doctest: +SKIP
         True
-        """
+        """ 
         uS = lambda x: x.decode("utf-8") if isinstance(x, str) else x
         uL = lambda x: map(uS, x) if isinstance(x, list) else x
         @functools.wraps(func)

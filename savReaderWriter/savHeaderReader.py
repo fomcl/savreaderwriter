@@ -7,6 +7,7 @@ import collections
 from savReaderWriter import *
 from header import *
 
+@implements_to_string
 class SavHeaderReader(Header):
     """
     This class contains methods that read the data dictionary of an SPSS
@@ -15,9 +16,9 @@ class SavHeaderReader(Header):
     dictionary!
 
     Typical use:
-    with SavHeaderReader(savFileName) as spssDict:
-        wholeDict = spssDict.dataDictionary()
-        print unicode(spssDict)
+    with SavHeaderReader(savFileName) as header:
+        metadata = header.dataDictionary(True)
+        print(str(header))
     """
 
     def __init__(self, savFileName, ioUtf8=False, ioLocale=None):

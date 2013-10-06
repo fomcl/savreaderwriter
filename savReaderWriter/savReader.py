@@ -11,6 +11,7 @@ import collections
 from savReaderWriter import *
 from header import *
 
+@implements_to_string
 class SavReader(Header):
     """ Read Spss system files (.sav, .zsav)
 

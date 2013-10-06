@@ -5,11 +5,6 @@
 # sudo python setup.py register -r https://testpypi.python.org/pypi sdist --formats=gztar bdist --formats=egg upload -r https://testpypi.python.org/pypi
 # sudo python setup.py check build_sphinx --source-dir=savReaderWriter/documentation -v
 # sudo python setup.py check upload_sphinx --upload-dir=build/sphinx/html
-#cd /home/antonia/Desktop/savReaderWriter/dist
-#sudo python setup.py --command-packages=stdeb.command bdist_deb
-#sudo py2dsc savReaderWriter-3.1.2b.tar.gz
-#cd deb_dist/savreaderwriter-3.1.2b/
-#sudo dpkg-buildpackage -rfakeroot -uc -us
 
 import os
 import shutil
@@ -27,15 +22,10 @@ def read(fname):
 #####
 ## Set package_data values, depending on install/build
 #####
-args = sys.argv
 
 is_32bit = platform.architecture()[0] == "32bit"
 is_64bit = platform.architecture()[0] == "64bit"
-is_install_mode = 'install' in args
-is_only_bdist = 'bdist' in args and not 'sdist' in args
-is_msi32 = is_only_bdist and ('--formats=wininst' in args or '--formats=msi' in args)
-is_rpm32 = is_only_bdist and '--formats=rpm' in args
-is_deb = args[-2:] == ['--command-packages=stdeb.command', 'bdist_deb']
+is_install_mode = 'install' in sys.argv
 pf = sys.platform.lower()
 
 ## This is included in every platform
@@ -72,13 +62,6 @@ if is_install_mode:
     else:
         msg = "Your platform (%r) is not supported" % pf
         raise NotImplementedError(msg)
-
-## Two 'light-weight' binary distributions
-elif is_rpm32 or is_deb:
-    package_data['savReaderWriter'].append('spssio/lin32/*.*')
-
-elif is_msi32:
-    package_data['savReaderWriter'].append('spssio/win32/*.*')
 
 ## *building* the package: include all the libraries
 else: 
@@ -121,6 +104,7 @@ setup(name='savReaderWriter',
                    'Programming Language :: Cython',
                    'Programming Language :: Python :: 2.6',
                    'Programming Language :: Python :: 2.7',
+                   'Programming Language :: Python :: 3.3', 
                    'Programming Language :: Python :: Implementation :: CPython',
                    'Topic :: Database']
       )

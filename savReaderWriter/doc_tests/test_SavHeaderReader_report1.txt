@@ -137,12 +137,12 @@ V: countedValue -- 1
 V: label -- 
 V: setType -- D
 V: varNames -- v1, v2, v3
-incomes: label -- three kinds of income
-incomes: setType -- C
-incomes: varNames -- income1, income2, income3, age, age2, age3
 ages: label -- the ages
 ages: setType -- C
 ages: varNames -- age, age2, age3
+incomes: label -- three kinds of income
+incomes: setType -- C
+incomes: varNames -- income1, income2, income3, age, age2, age3
 #VALUELABELS
 Age: 27.0 -- 27 y.o. 
 Age: 34.0 -- 34 y.o.
