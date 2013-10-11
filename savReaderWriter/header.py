@@ -335,11 +335,11 @@ class Header(Generic):
                 checkErrsWarns(msg, retcode)
 
             printFormat = allFormats.get(printFormat_.value)[0]
-            printFormat = printFormat.split("_")[-1]
-            format_ = printFormat + str(printWid_.value)
+            printFormat = printFormat.split(b"_")[-1]
+            format_ = printFormat + bytes(str(printWid_.value))
             if self.varTypes[varName] == 0:
-                format_ += ("." + str(printDec_.value))
-            if format_.endswith(".0"):
+                format_ += (b"." + bytes(str(printDec_.value)))
+            if format_.endswith(b".0"):
                 format_ = format_[:-2]
             self.formats_[varName] = format_
         return self.formats_
@@ -549,8 +549,8 @@ class Header(Generic):
         "ratio", "flag", "typeless". This is used in Spss procedures such as
         CTABLES."""
         func = self.spssio.spssGetVarMeasureLevel
-        levels = {0: "unknown", 1: "nominal", 2: "ordinal", 3: "scale",
-                  3: "ratio", 4: "flag", 5: "typeless"}
+        levels = {0: b"unknown", 1: b"nominal", 2: b"ordinal", 3: b"scale",
+                  3: b"ratio", 4: b"flag", 5: b"typeless"}
         measureLevel = c_int()
         varMeasureLevels = {}
         for varName in self.varNames:
@@ -569,18 +569,17 @@ class Header(Generic):
         if not varMeasureLevels:
             return
         func = self.spssio.spssSetVarMeasureLevel
-        levels = {"unknown": 0, "nominal": 1, "ordinal": 2, "scale": 3,
-                  "ratio": 3, "flag": 4, "typeless": 5}
+        levels = {b"unknown": 0, b"nominal": 1, b"ordinal": 2, b"scale": 3,
+                  b"ratio": 3, b"flag": 4, b"typeless": 5}
         for varName, level in self.encode(varMeasureLevels).items():
             if level.lower() not in levels:
-                msg = "Valid levels are %"
-                raise ValueError(msg % ", ".join(levels.keys()))
+                msg = "Valid levels are %s"
+                raise ValueError(msg % b", ".join(levels.keys()).decode())
             level = levels.get(level.lower())
             retcode = func(c_int(self.fh), c_char_py3k(varName), c_int(level))
             if retcode:
-                msg = ("Problem setting variable mesasurement level. " +
-                       "Valid levels are: %s")
-                checkErrsWarns(msg % ", ".join(levels.keys()), retcode)
+                msg = "Problem setting variable mesasurement level: '%s'"
+                checkErrsWarns(msg % varName.decode(), retcode)
 
     @property
     @decode
@@ -599,8 +598,8 @@ class Header(Generic):
             retcode = func(c_int(self.fh), c_char_py3k(vName),
                            byref(varColumnWidth))
             if retcode:
-                msg = "Problem getting column width: %r" % varName
-                checkErrsWarns(msg, retcode)
+                msg = "Problem getting column width: '%s'"
+                checkErrsWarns(msg % varName.decode(), retcode)
             varColumnWidths[varName] = varColumnWidth.value
         return varColumnWidths
 
@@ -613,8 +612,8 @@ class Header(Generic):
             retcode = func(c_int(self.fh), c_char_py3k(varName),
                            c_int(varColumnWidth))
             if retcode:
-                msg = "Error setting variable colunm width"
-                checkErrsWarns(msg, retcode)
+                msg = "Error setting variable column width: '%s'"
+                checkErrsWarns(msg % varName.decode(), retcode)
 
     def _setColWidth10(self):
         """Set the variable display width of string values to at least 10
@@ -628,8 +627,8 @@ class Header(Generic):
             # zero = appropriate width determined by spss
             columnWidths[varName] = 10 if 0 < varType < 10 else 0
         self.columnWidths = columnWidths
-        self.measureLevels = dict([(v, "unknown") for v in self.varNames])
-        self.alignments = dict([(v, "left") for v in self.varNames])
+        self.measureLevels = dict([(v, b"unknown") for v in self.varNames])
+        self.alignments = dict([(v, b"left") for v in self.varNames])
 
     @property
     @decode
@@ -640,7 +639,7 @@ class Header(Generic):
         alignment, measurement level and column width all need to be set.
         """
         func = self.spssio.spssGetVarAlignment
-        alignments = {0: "left", 1: "right", 2: "center"}
+        alignments = {0: b"left", 1: b"right", 2: b"center"}
         alignment_ = c_int()
         varAlignments = {}
         for varName in self.varNames:
@@ -650,8 +649,8 @@ class Header(Generic):
             alignment = alignments[alignment_.value]
             varAlignments[varName] = alignment
             if retcode:
-                msg = "Problem getting variable alignment: %r" % varName
-                checkErrsWarns(msg, retcode)
+                msg = "Problem getting variable alignment: '%s'"
+                checkErrsWarns(msg % varName.decode(), retcode)
         return varAlignments
 
     @alignments.setter
@@ -659,16 +658,16 @@ class Header(Generic):
         if not varAlignments:
             return
         func = self.spssio.spssSetVarAlignment
-        alignments = {"left": 0, "right": 1, "center": 2}
+        alignments = {b"left": 0, b"right": 1, b"center": 2}
         for varName, varAlignment in varAlignments.items():
             if varAlignment.lower() not in alignments:
-                msg = "Valid alignments are %"
-                raise ValueError(msg % ", ".join(alignments.keys()))
+                ukeys = b", ".join(alignments.keys()).decode()
+                raise ValueError("Valid alignments are %s" % ukeys)
             alignment = alignments.get(varAlignment.lower())
             retcode = func(c_int(self.fh), c_char_py3k(varName), c_int(alignment))
             if retcode:
-                msg = "Problem setting variable alignment for variable %r"
-                checkErrsWarns(msg % varName, retcode)
+                msg = "Problem setting variable alignment for variable '%s'"
+                checkErrsWarns(msg % varName.decode(), retcode)
 
     @property
     @decode
@@ -687,8 +686,8 @@ class Header(Generic):
         if not varSets.value:
             return {}
         varSets_ = {}
-        for varSet in varSets.value.split("\n")[:-1]:
-            k, v = varSet.split("= ")
+        for varSet in varSets.value.split(b"\n")[:-1]:
+            k, v = varSet.split(b"= ")
             varSets_[k] = v.split()
 
         # clean up
@@ -702,8 +701,8 @@ class Header(Generic):
             return
         varSets_ = []
         for varName, varSet in varSets.items():
-            varSets_.append("%s= %s" % (varName, " ".join(varSet)))
-        varSets_ = c_char_py3k("\n".join(varSets_))
+            varSets_.append(b"%s= %s" % (varName, " ".join(varSet)))
+        varSets_ = c_char_py3k(b"\n".join(varSets_))
         retcode = self.spssio.spssSetVariableSets(c_int(self.fh), varSets_)
         if retcode:
             msg = "Problem setting variable set information"
@@ -717,8 +716,8 @@ class Header(Generic):
         varRoles may be any of the following: 'both', 'frequency', 'input',
         'none', 'partition', 'record ID', 'split', 'target'"""
         func = self.spssio.spssGetVarRole
-        roles = {0: "input", 1: "target", 2: "both", 3: "none", 4: "partition",
-                 5: "split", 6: "frequency", 7: "record ID"}
+        roles = {0: b"input", 1: b"target", 2: b"both", 3: b"none", 4: b"partition",
+                 5: b"split", 6: b"frequency", 7: b"record ID"}
         varRoles = {}
         varRole_ = c_int()
         for varName in self.varNames:
@@ -771,8 +770,8 @@ class Header(Generic):
                            byref(attrNamesArr), byref(attrValuesArr),
                            byref(nAttr))
             if retcode:
-                msg = "Problem getting attributes of variable %r (step 1)"
-                checkErrsWarns(msg % varName, retcode)
+                msg = "Problem getting attributes of variable '%s' (step 1/2)"
+                checkErrsWarns(msg % varName.decode(), retcode)
 
             # step 2: get attributes with arrays of proper size
             nAttr = c_int(nAttr.value)
@@ -782,8 +781,8 @@ class Header(Generic):
                            byref(attrNamesArr), byref(attrValuesArr),
                            byref(nAttr))
             if retcode:
-                msg = "Problem getting attributes of variable %r (step 2)"
-                checkErrsWarns(msg % varName, retcode)
+                msg = "Problem getting attributes of variable '%s' (step 2/2)"
+                checkErrsWarns(msg % varName.decode(), retcode)
 
             # get array contents
             if not nAttr.value:
@@ -904,10 +903,10 @@ class Header(Generic):
             countedValue, lblLen, lblVarNames = matches[0][3:]
         lbl = lblVarNames[:int(lblLen)]
         varNames = lblVarNames[int(lblLen):].split()
-        multRespSet = {setName: {"setType": setType, "label": lbl,
-                                 "varNames": varNames}}
+        multRespSet = {setName: {b"setType": setType, b"label": lbl,
+                                 b"varNames": varNames}}
         if setType == b"D":
-            multRespSet[setName]["countedValue"] = countedValue
+            multRespSet[setName][b"countedValue"] = countedValue
         return multRespSet
 
     def _setMultRespDefs(self, multRespDefs):
