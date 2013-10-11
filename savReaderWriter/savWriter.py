@@ -122,7 +122,6 @@ class SavWriter(Header):
         self.sysmis_ = self.sysmis
         self.ioUtf8_ = ioUtf8
         self.pad_8_lookup = self._getPaddingLookupTable(self.varTypes)
-        #self._getVarHandles()
 
         if self.mode == "wb":
             self._openWrite(self.savFileName, self.overwrite)
@@ -160,49 +159,6 @@ class SavWriter(Header):
         if type is not None:
             pass  # Exception occurred
         self.closeSavFile(self.fh, mode="wb")
-
-    def _getVarHandles(self):
-        """This function returns a handle for a variable, which can then be
-        used to read or write (depending on how the file was opened) values
-        of the variable. If handle is associated with an output file, the
-        dictionary must be written with spssCommitHeader before variable
-        handles can be obtained via spssGetVarHandle. Helper function for
-        __setitem__. *Not currently used*"""
-        varHandles = {}
-        varHandle = c_double()
-        func = self.spssio.spssGetVarHandle
-        for varName in self.varNames:
-            retcode = func(c_int(self.fh), c_char_py3k(varName), byref(varHandle))
-            varHandles[varName] = varHandle.value
-            if retcode:
-                msg = "Problem getting variable handle for variable %r"
-                checkErrsWarns(msg, retcode)
-        return varHandles
-
-    def __setitem__(self, varName, value):
-        """This function sets the value of a variable for the current case.
-        The current case is not written out to the data file until
-        spssCommitCaseRecord is called. *Not currently used*, but it was just
-        begging to be implemented. ;-) Do NOT use in conjunction with
-        wholeCaseOut. For example: self['someNumVar'] = 10
-                                   self['someStrVar'] = 'foo'"""
-        if not isinstance(value, (float, int, basestring)):
-            raise ValueError("Value %r has wrong type: %s" %
-                             value, type(value))
-        varHandle = self.varHandles[varName]
-        if self.varTypes[varName] == 0:
-            funcN = self.spssio.spssSetValueNumeric
-            retcode = funcN(c_int(self.fh), c_double(varHandle),
-                            c_double(value))
-        else:
-            funcC = self.spssio.spssSetValueChar
-            retcode = funcC(c_int(self.fh), c_double(varHandle),
-                            c_char_py3k(value))
-        if retcode:
-            isString = isinstance(value, basestring)
-            valType = "character" if isString else "numerical"
-            msg = "Error setting %s value %r for variable %r"
-            checkErrsWarns(msg % (valType, value, varName), retcode)
 
     def _openWrite(self, savFileName, overwrite):
         """ This function opens a file in preparation for creating a new IBM
