@@ -12,7 +12,7 @@ Welcome to savReaderWriter's documentation!
 .. module:: savReaderWriter
    :platform: Linux, Windows, Mac OS, HP-UX, AIX, Solaris, zLinux
    :synopsis: Read/Write SPSS system files (.sav, .zsav)
-.. moduleauthor:: Albert-Jan Roskam <fomcl@yahoo.com>
+.. moduleauthor:: Albert-Jan Roskam
 
 .. _`IBM SPSS Statistics Command Syntax Reference.pdf`: ftp://public.dhe.ibm.com/software/analytics/spss/documentation/statistics/20.0/en/client/Manuals/IBM_SPSS_Statistics_Command_Syntax_Reference.pdf
 .. _`International License Agreement`: ./_static/LA_en
@@ -82,6 +82,12 @@ Or alternatively::
 To get the 'bleeding edge' version straight from the repository do::
 
     pip install -U -e git+https://bitbucket.org/fomcl/savreaderwriter.git#egg=savreaderwriter
+
+.. versionchanged:: 3.3
+* The ``savReaderWriter`` program now runs on Python 2 and 3. It is tested with Python 2.7 and 3.3.
+It also appears to work with PyPy.
+* ``savReaderWriter`` now uses version 22.0.0.0 of the I/O modules.
+* Several bugs were removed, notably two that prevented the I/O modules from loading in 64-bit Linux and 64-bit Windows systems (NB: these bugs were entirely unrelated). In addition, long variable labels were truncated to 120 characters, which is now fixed.
 
 .. versionchanged:: 3.2
 
@@ -166,7 +172,7 @@ The ``numpy`` package should be installed if you intend to use array slicing (e.
 
    :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will  be. Valid values are ``True`` (UTF-8/unicode mode, cf. ``SET UNICODE=ON``) or ``False`` (Codepage mode, ``SET  UNICODE=OFF``) (default: ``False``). 
 
-   :param ioLocale: indicates the locale of the I/O module, cf. ``SET LOCALE`` (default: ``None``, which is the  same as ``".".join(locale.getlocale())``. Locale specification is OS-dependent. in
+   :param ioLocale: indicates the locale of the I/O module, cf. ``SET LOCALE`` (default: ``None``, which is the  same as ``".".join(locale.getlocale())``. Locale specification is OS-dependent. See also under ``SavHeaderReader``.
 
    :param mode: indicates the mode in which <savFileName> should be opened. Possible values are "wb" (write),  "ab" (append), "cp" (copy: initialize header using <refSavFileName> as a reference file, cf. ``APPLY DICTIONARY``). (default: "wb"). 
 
@@ -175,7 +181,7 @@ The ``numpy`` package should be installed if you intend to use array slicing (e.
 
 Typical use::
     
-    savFileName = "someFile.sav"
+    savFileName = 'someFile.sav'
     records = [['Test1', 1, 1], ['Test2', 2, 1]]
     varNames = ['var1', 'v2', 'v3']
     varTypes = {'var1': 5, 'v2': 0, 'v3': 0}
@@ -209,7 +215,7 @@ Typical use::
 
    :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will be. Valid values are True (UTF-8 mode aka Unicode mode) and False (Codepage mode). Cf. ``SET UNICODE=ON/OFF`` (default = ``False``)
 
-   :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = ``None``, which corresponds to ``".".join(locale.getlocale())``)
+   :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = ``None``, which corresponds to ``".".join(locale.getlocale())``). See also under ``SavHeaderReader``.
 
 .. warning::
 
@@ -228,7 +234,7 @@ Use of ``__getitem__`` and other methods::
     data = SavReader(savFileName, idVar="id")
     with data:
         print "The file contains %d records" % len(data)
-        print unicode(data)  # prints a file report
+        print str(data)  # prints a file report
         print "The first six records look like this\n", data[:6]
         print "The first record looks like this\n", data[0]
         print "The last four records look like this\n", data.tail(4)
@@ -255,7 +261,20 @@ Use of ``__getitem__`` and other methods::
 
    :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will be. Valid values are ``True`` (UTF-8 mode aka Unicode mode) and ``False`` (Codepage mode). Cf. ``SET UNICODE=ON/OFF`` (default = ``False``)
 
-   :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = ``None``, which corresponds to ``".".join(locale.getlocale())``)
+   :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = ``None``, which corresponds to ``".".join(locale.getlocale())``). Example where this may be needed::
+
+      .. code:: python
+
+         # wrong:  variables are returned as v1, v2, v3
+         >>> with SavHeaderReader('german.sav') as header:
+         ...     print(header.varNames)
+         [b'python', b'programmieren', b'macht', b'v1', b'v2', b'v3']
+         # correct: variable names contain non-ascii characters
+         # locale definition and presence is OS-specific
+         # Linux: sudo localedef -f CP1252 -i de_DE /usr/lib/locale/de_DE.cp1252
+         >>> with SavHeaderReader('german.sav', ioLocale='de_DE.cp1252') as header:
+         ...     print(header.varNames)
+         [b'python', b'programmieren', b'macht', b'\xfcberhaupt', b'v\xf6llig', b'spa\xdf']
 
 .. warning::
 
@@ -265,8 +284,8 @@ Typical use::
 
     with SavHeaderReader(savFileName) as header:
         metadata = header.dataDictionary()
-        report = unicode(header)
-        print report 
+        report = str(header)
+        print(report)
 
 .. seealso::
 
@@ -302,13 +321,13 @@ Date formats
 [2] http://docs.python.org/2/library/datetime.html
 [3] ISO 8601 format dates are used wherever possible, e.g. mmddyyyy (``ADATE``) and ddmmyyyy (``EDATE``) is not maintained.
 [4] Months are converted to quarters using a simple lookup table
-[5] weekday, month names depend on host locale (not on ioLocale argument)
+[5] weekday, month names depend on host locale (not on ``ioLocale`` argument)
 
 **Writing dates.** With ``SavWriter`` a Python date string value (e.g. "2010-10-25") can be converted to an SPSS Gregorian date (i.e., just a whole bunch of seconds) by using the ``spssDateTime`` method, e.g.::
 
-    kwargs = dict(savFileName="/tmp/date.sav", varNames=['aDate'], varTypes={'aDate': 0}, formats={'aDate': 'EDATE40'})
+    kwargs = dict(savFileName='/tmp/date.sav', varNames=['aDate'], varTypes={'aDate': 0}, formats={'aDate': 'EDATE40'})
     with SavWriter(**kwargs) as writer:
-        spssDateValue = writer.spssDateTime("2010-10-25", "%Y-%m-%d")
+        spssDateValue = writer.spssDateTime('2010-10-25', '%Y-%m-%d')
         writer.writerow([spssDateValue])
 
 The display format of the date (i.e., the way it looks in the SPSS data editor after opening the .sav file) may be set by specifying the ``formats`` dictionary (see also **Table 1**). This is one of the optional arguments of the ``SavWriter`` initializer. Without such a specification, the date will look like a large integer (the number of seconds since the beginning of the Gregorian calendar).

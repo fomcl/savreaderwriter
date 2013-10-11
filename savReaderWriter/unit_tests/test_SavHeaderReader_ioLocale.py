@@ -22,11 +22,11 @@ from savReaderWriter import *
 class test_SavHeaderReader_ioLocale(unittest.TestCase):
 
     def setUp(self):
-        self.expected = ['python', 'programmieren', 'macht',
-                         '\xfcberhaupt', 'v\xf6llig', 'spa\xdf']
+        self.expected = [b'python', b'programmieren', b'macht',
+                         b'\xfcberhaupt', b'v\xf6llig', b'spa\xdf']
         self.savFileName = "../savReaderWriter/test_data/german.sav"
         self.is_windows = sys.platform.startswith("win")
-	# any locale will do as long as the encoding is cp1252.
+	    # any locale will do as long as the encoding is cp1252.
         # iso-8859-1 and latin-1 will probably also do.
         if self.is_windows:
             self.ioLocale = "German_Germany.1252"
@@ -49,7 +49,7 @@ class test_SavHeaderReader_ioLocale(unittest.TestCase):
         v1, v2, v3, ..., v<n> because ioLocale is not compatible with file
         locale (codepage). If not specified, ioLocale is initialized to the
         host locale"""
-        wrong = ['python', 'programmieren', 'macht', 'v1', 'v2', 'v3']
+        wrong = [b'python', b'programmieren', b'macht', b'v1', b'v2', b'v3']
         codepage = locale.setlocale(locale.LC_ALL).split(".")[-1]
         incompatible = codepage not in self.ioLocale
         if incompatible:
