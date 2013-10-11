@@ -233,17 +233,17 @@ Use of ``__getitem__`` and other methods::
     
     data = SavReader(savFileName, idVar="id")
     with data:
-        print "The file contains %d records" % len(data)
-        print str(data)  # prints a file report
-        print "The first six records look like this\n", data[:6]
-        print "The first record looks like this\n", data[0]
-        print "The last four records look like this\n", data.tail(4)
-        print "The first five records look like this\n", data.head()
+        print("The file contains %d records" % len(data))
+        print(str(data))  # prints a file report
+        print("The first six records look like this\n"), data[:6]
+        print("The first record looks like this\n"), data[0]
+        print("The last four records look like this\n"), data.tail(4)
+        print("The first five records look like this\n"), data.head()
 	allData = data.all()
-        print "First column:\n", data[..., 0]  # requires numpy
-        print "Row 4 & 5, first three cols\n", data[4:6, :3]  # requires numpy
+        print("First column:\n"), data[..., 0]  # requires numpy
+        print("Row 4 & 5, first three cols\n"), data[4:6, :3]  # requires numpy
         ## ... Do a binary search for records --> idVar
-        print data.get(4, "not found")  # gets 1st record where id==4
+        print(data.get(4, "not found"))  # gets 1st record where id==4
 
 
 .. seealso::
@@ -269,6 +269,7 @@ Use of ``__getitem__`` and other methods::
          >>> with SavHeaderReader('german.sav') as header:
          ...     print(header.varNames)
          [b'python', b'programmieren', b'macht', b'v1', b'v2', b'v3']
+
          # correct: variable names contain non-ascii characters
          # locale definition and presence is OS-specific
          # Linux: sudo localedef -f CP1252 -i de_DE /usr/lib/locale/de_DE.cp1252
