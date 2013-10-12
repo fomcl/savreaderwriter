@@ -104,6 +104,25 @@ class SavReader(Header):
         file. For example: len(SavReader(savFileName))"""
         return self.nCases
 
+    # the rich comparison operators --> Python 3 --> does not use __cmp__
+    def __eq__(self, other):
+        return self.__cmp__(other) == 0
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __le__(self, other):
+        return self.__cmp__(other) in (0, -1)
+
+    def __lt__(self, other):
+        return self.__cmp__(other) == -1
+
+    def __ge__(self, other):
+        return self.__eq__(other) and not self.__lt__(other)
+
+    def __gt__(self, other):
+        return not self.__eq__(other) and not self.__lt__(other)
+
     def __cmp__(self, other):
         """ This function implements behavior for all of the comparison
         operators so comparisons can be made between SavReader instances,

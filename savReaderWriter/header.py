@@ -331,8 +331,8 @@ class Header(Generic):
                            byref(printFormat_), byref(printDec_),
                            byref(printWid_))
             if retcode:
-                msg = "Error getting print format for variable %r" % vName
-                checkErrsWarns(msg, retcode)
+                msg = "Error getting print format for variable '%s'"
+                checkErrsWarns(msg % vName.decode(), retcode)
 
             printFormat = allFormats.get(printFormat_.value)[0]
             printFormat = printFormat.split(b"_")[-1]
@@ -347,10 +347,10 @@ class Header(Generic):
     def _splitformats(self):
         """This function returns the 'bare' formats + variable widths,
         e.g. format F5.3 is returned as 'F' and '5'"""
-        regex = re.compile("\w+(?P<varWid>\d+)[.]?\d?", re.I)
+        regex = re.compile(b"\w+(?P<varWid>\d+)[.]?\d?", re.I)
         bareformats, varWids = {}, {}
         for varName, format_ in self.formats.items():
-            bareformats[varName] = re.sub(r"\d+.", "", format_)
+            bareformats[varName] = re.sub(b"\d+\.", b"", format_)
             varWids[varName] = int(regex.search(format_).group("varWid"))
         return bareformats, varWids
 
