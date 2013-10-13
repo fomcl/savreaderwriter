@@ -63,15 +63,16 @@ class Header(Generic):
         ...             u'setType': u'D',
         ...             u'varNames': [u'v1', u'v2']}}  # doctest: +SKIP
         True
-        """ 
-        uS = lambda x: x.decode("utf-8") if isinstance(x, str) else x
+        """
+        bytes_ = __builtins__["bytes"] if sys.version_info[0] > 2 else str
+        uS = lambda x: x.decode("utf-8") if isinstance(x, bytes_) else x
         uL = lambda x: map(uS, x) if isinstance(x, list) else x
         @functools.wraps(func)
         def wrapper(arg):
             result = func(arg)
             if not arg.ioUtf8:
                 return result  # unchanged
-            if isinstance(result, str):
+            if isinstance(result, bytes_):
                 return uS(result)
             uresult = {}
             for k, v in result.items():
@@ -102,7 +103,7 @@ class Header(Generic):
         gc.collect()
         if segfaults:
             return
-        #print ".. freeing" , funcName[8:]
+        #print("... freeing", funcName[8:])
         func = getattr(self.spssio, funcName)
         retcode = func(*args)
         if retcode:
@@ -347,7 +348,10 @@ class Header(Generic):
     def _splitformats(self):
         """This function returns the 'bare' formats + variable widths,
         e.g. format F5.3 is returned as 'F' and '5'"""
-        regex = re.compile(b"(?P<bareFmt>[a-z]+)(?P<varWid>\d+)[.]?\d*", re.I)
+        pattern = b"(?P<bareFmt>[a-z]+)(?P<varWid>\d+)[.]?\d*"
+        if self.ioUtf8_:
+            pattern = pattern.decode("utf-8")
+        regex = re.compile(pattern, re.I)
         bareformats, varWids = {}, {}
         for varName, format_ in self.formats.items():
             bareformat, varWid = regex.findall(format_)[0]
