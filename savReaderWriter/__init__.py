@@ -92,19 +92,19 @@ MAXLENGTHS = {
     "SPSS_MAX_ENCODING": (64, "Maximum encoding text")}
 
 supportedDates = {  # uses ISO dates wherever applicable.
-    "DATE": "%Y-%m-%d",
-    "JDATE": "%Y-%m-%d",
-    "EDATE": "%Y-%m-%d",
-    "SDATE": "%Y-%m-%d",
-    "DATETIME": "%Y-%m-%d %H:%M:%S",
-    "ADATE": "%Y-%m-%d",
-    "WKDAY": "%A",
-    "MONTH": "%B",
-    "MOYR": "%B %Y",
-    "WKYR": "%W WK %Y",
-    "QYR": "%m Q %Y",  # %m (month) is converted to quarter, see next dict.
-    "TIME": "%H:%M:%S.%f",
-    "DTIME": "%d %H:%M:%S"}
+    b"DATE": "%Y-%m-%d",
+    b"JDATE": "%Y-%m-%d",
+    b"EDATE": "%Y-%m-%d",
+    b"SDATE": "%Y-%m-%d",
+    b"DATETIME": "%Y-%m-%d %H:%M:%S",
+    b"ADATE": "%Y-%m-%d",
+    b"WKDAY": "%A",
+    b"MONTH": "%B",
+    b"MOYR": "%B %Y",
+    b"WKYR": "%W WK %Y",
+    b"QYR": "%m Q %Y",  # %m (month) is converted to quarter, see next dict.
+    b"TIME": "%H:%M:%S.%f",
+    b"DTIME": "%d %H:%M:%S"}
 
 QUARTERS = {'01': '1', '02': '1', '03': '1', '04': '2', '05': '2', '06': '2',
             '07': '3', '08': '3', '09': '3', '10': '4', '11': '4', '12': '4'}

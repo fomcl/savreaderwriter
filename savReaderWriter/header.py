@@ -347,11 +347,12 @@ class Header(Generic):
     def _splitformats(self):
         """This function returns the 'bare' formats + variable widths,
         e.g. format F5.3 is returned as 'F' and '5'"""
-        regex = re.compile(b"\w+(?P<varWid>\d+)[.]?\d?", re.I)
+        regex = re.compile(b"(?P<bareFmt>[a-z]+)(?P<varWid>\d+)[.]?\d*", re.I)
         bareformats, varWids = {}, {}
         for varName, format_ in self.formats.items():
-            bareformats[varName] = re.sub(b"\d+\.", b"", format_)
-            varWids[varName] = int(regex.search(format_).group("varWid"))
+            bareformat, varWid = regex.findall(format_)[0]
+            bareformats[varName] = bareformat
+            varWids[varName] = int(varWid)
         return bareformats, varWids
 
     @formats.setter

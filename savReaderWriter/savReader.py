@@ -145,14 +145,12 @@ class SavReader(Header):
     def __str__(self):
         """This function returns a conscise file report of the spss data file
         For example str(SavReader(savFileName))"""
-        return unicode(self).encode(self.fileEncoding)
+        return self.__unicode__.encode(self.fileEncoding)
 
     def __unicode__(self):
         """This function returns a conscise file report of the spss data file,
         For example unicode(SavReader(savFileName))"""
-        self.fileReport = self.getFileReport(self.savFileName, self.varNames,
-                                             self.varTypes, self.formats,
-                                             self.nCases)
+        self.fileReport = self.getFileReport()
         return self.fileReport
 
     @property
@@ -166,7 +164,7 @@ class SavReader(Header):
         """Helper function for formatValues function. Determines whether
         iterating over each individual value is really needed"""
         hasDates = bool(set(self.bareformats.values()) & set(supportedDates))
-        hasNfmt = "N" in self.bareformats
+        hasNfmt = b"N" in self.bareformats
         hasRecodeSysmis = self.recodeSysmisTo is not None
         items = [hasDates, hasNfmt, hasRecodeSysmis, self.ioUtf8_]
         return False if any(items) else True
@@ -178,7 +176,6 @@ class SavReader(Header):
         to <recodeSysmisTo>. If rawMode==True, this function does nothing"""
         if self.rawMode or self.autoRawMode:
             return record  # 6-7 times faster!
-
         for i, value in enumerate(record):
             varName = self.header[i]
             varType = self.varTypes[varName]
@@ -485,14 +482,13 @@ class SavReader(Header):
                 self.gregorianEpoch = datetime.datetime(1582, 10, 14, 0, 0, 0)
             theDate = (self.gregorianEpoch +
                        datetime.timedelta(seconds=spssDateValue))
-            return datetime.datetime.strftime(theDate, fmt)
+            return bytes(datetime.datetime.strftime(theDate, fmt))
         except (OverflowError, TypeError, ValueError):
             return recodeSysmisTo
 
-    def getFileReport(self, savFileName, varNames, varTypes,
-                      formats, nCases):
+    def getFileReport(self):
         """ This function prints a report about basic file characteristics """
-        bytes = os.path.getsize(savFileName)
+        bytes = os.path.getsize(self.savFileName)
         kb = float(bytes) / 2**10
         mb = float(bytes) / 2**20
         (fileSize, label) = (mb, "MB") if mb > 1 else (kb, "kB")
@@ -501,17 +497,17 @@ class SavReader(Header):
         lang, cp = locale.getlocale()
         intEnc = "Utf-8/Unicode" if self.ioUtf8 else "Codepage (%s)" % cp
         varlist = []
-        line = "  %%0%sd. %%s (%%s - %%s)" % len(str(len(varNames) + 1))
-        for cnt, varName in enumerate(varNames):
-            lbl = "string" if varTypes[varName] > 0 else "numerical"
-            format_ = formats[varName]
+        line = "  %%0%sd. %%s (%%s - %%s)" % len(str(len(self.varNames) + 1))
+        for cnt, varName in enumerate(self.varNames):
+            lbl = "string" if self.varTypes[varName] > 0 else "numerical"
+            format_ = self.formats[varName]
             varlist.append(line % (cnt + 1, varName, format_, lbl))
-        info = {"savFileName": savFileName,
+        info = {"savFileName": self.savFileName,
                 "fileSize": fileSize,
                 "label": label,
-                "nCases": nCases,
-                "nCols": len(varNames),
-                "nValues": nCases * len(varNames),
+                "nCases": self.nCases,
+                "nCols": len(self.varNames),
+                "nValues": self.nCases * len(self.varNames),
                 "spssVersion": "%s (%s)" % (systemString, spssVersion),
                 "ioLocale": self.ioLocale,
                 "ioUtf8": intEnc,
