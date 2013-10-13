@@ -48,3 +48,29 @@ implements_to_string.__doc__ = ("class decorator that replaces __unicode__ "
                                 "and __str__ methods in Python 2 with __str__"
                                 " and __bytes__ methods, respectively, in "
                                 "Python 3")
+
+if isPy3k:
+    def rich_comparison(cls):
+        assert hasattr(cls, "__cmp__")
+        def __eq__(self, other):
+            return self.__cmp__(other) == 0
+        def __ne__(self, other):
+            return not self.__eq__(other)
+        def __le__(self, other):
+            return self.__cmp__(other) in (0, -1)
+        def __lt__(self, other):
+            return self.__cmp__(other) == -1
+        def __ge__(self, other):
+            return self.__eq__(other) and not self.__lt__(other)
+        def __gt__(self, other):
+            return not self.__eq__(other) and not self.__lt__(other)
+        for op in "__eq__ __ne__ __le__ __lt__ __ge__ __gt__".split():
+            setattr(cls, op, eval(op))
+        return cls
+else:
+    rich_comparison = lambda cls: cls
+rich_comparison.__doc__ = ("class decorator that implements rich comparison "
+                           "operators as this can not be done with __cmp__ in "
+                           "Python 3. Does nothing in Python 2.")
+
+
