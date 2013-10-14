@@ -454,7 +454,7 @@ class Generic(object):
             retcode = func(c_int(self.fh), byref(pszEncoding))
             checkErrsWarns("Problem getting file encoding", retcode)
             iana_codes = encodings.aliases.aliases
-            rawEncoding = pszEncoding.value.lower()
+            rawEncoding = pszEncoding.value.lower().decode("utf-8")
             if rawEncoding.replace("-", "") in iana_codes:
                 iana_code = rawEncoding.replace("-", "")
             else:

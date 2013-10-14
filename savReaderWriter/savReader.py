@@ -128,13 +128,12 @@ class SavReader(Header):
     def __str__(self):
         """This function returns a conscise file report of the spss data file
         For example str(SavReader(savFileName))"""
-        return self.__unicode__.encode(self.fileEncoding)
+        return self.__unicode__().encode(self.fileEncoding)
 
     def __unicode__(self):
         """This function returns a conscise file report of the spss data file,
         For example unicode(SavReader(savFileName))"""
-        self.fileReport = self.getFileReport()
-        return self.fileReport
+        return self.getFileReport()
 
     @property
     def shape(self):
@@ -471,11 +470,11 @@ class SavReader(Header):
 
     def getFileReport(self):
         """ This function prints a report about basic file characteristics """
-        bytes = os.path.getsize(self.savFileName)
-        kb = float(bytes) / 2**10
-        mb = float(bytes) / 2**20
+        filesize = os.path.getsize(self.savFileName)
+        kb = float(filesize) / 2**10
+        mb = float(filesize) / 2**20
         (fileSize, label) = (mb, "MB") if mb > 1 else (kb, "kB")
-        systemString = self.systemString
+        systemString = self.systemString.decode(self.fileEncoding)
         spssVersion = ".".join(map(str, self.spssVersion))
         lang, cp = locale.getlocale()
         intEnc = "Utf-8/Unicode" if self.ioUtf8 else "Codepage (%s)" % cp
@@ -483,7 +482,8 @@ class SavReader(Header):
         line = "  %%0%sd. %%s (%%s - %%s)" % len(str(len(self.varNames) + 1))
         for cnt, varName in enumerate(self.varNames):
             lbl = "string" if self.varTypes[varName] > 0 else "numerical"
-            format_ = self.formats[varName]
+            format_ = self.formats[varName].decode(self.fileEncoding)
+            varName = varName.decode(self.fileEncoding) 
             varlist.append(line % (cnt + 1, varName, format_, lbl))
         info = {"savFileName": self.savFileName,
                 "fileSize": fileSize,
@@ -492,7 +492,7 @@ class SavReader(Header):
                 "nCols": len(self.varNames),
                 "nValues": self.nCases * len(self.varNames),
                 "spssVersion": "%s (%s)" % (systemString, spssVersion),
-                "ioLocale": self.ioLocale,
+                "ioLocale": self.ioLocale.decode(self.fileEncoding),
                 "ioUtf8": intEnc,
                 "fileEncoding": self.fileEncoding,
                 "fileCodePage": self.fileCodePage,
@@ -503,22 +503,24 @@ class SavReader(Header):
                 "sep": os.linesep,
                 "asterisks": 70 * "*"}
         report = ("%(asterisks)s%(sep)s" +
-                  "*File %(savFileName)r (%(fileSize)3.2f %(label)s) has " +
+                  "*File '%(savFileName)s' (%(fileSize)3.2f %(label)s) has " +
                   "%(nCols)s columns (variables) and %(nCases)s rows " +
                   "(%(nValues)s values)%(sep)s" +
                   "*The file was created with SPSS version: %(spssVersion)s%" +
                   "(sep)s" +
-                  "*The interface locale is: %(ioLocale)r%(sep)s" +
+                  "*The interface locale is: '%(ioLocale)s'%(sep)s" +
                   "*The interface mode is: %(ioUtf8)s%(sep)s" +
-                  "*The file encoding is: %(fileEncoding)r (Code page: " +
+                  "*The file encoding is: '%(fileEncoding)s' (Code page: " +
                   "%(fileCodePage)s)%(sep)s" +
                   "*File encoding and the interface encoding are compatible:" +
                   " %(isCompatible)s%(sep)s" +
-                  "*Your computer's locale is: %(local_language)r (Code " +
+                  "*Your computer's locale is: '%(local_language)s' (Code " +
                   "page: %(local_encoding)s)%(sep)s" +
                   "*The file contains the following variables:%(sep)s" +
-                  "%(varlist)s%(sep)s%(asterisks)s%(sep)s")
-        return report % info
+                  "%(varlist)s%(sep)s%(asterisks)s%(sep)s") % info
+        if hasattr(report, "decode"):
+            report = report.decode(self.fileEncoding)
+        return report
 
     def getHeader(self, selectVars):
         """This function returns the variable names, or a selection thereof

@@ -49,6 +49,7 @@ implements_to_string.__doc__ = ("class decorator that replaces __unicode__ "
                                 " and __bytes__ methods, respectively, in "
                                 "Python 3")
 
+# implement rich comparison operators in Python 3 (SavReader)
 if isPy3k:
     def rich_comparison(cls):
         assert hasattr(cls, "__cmp__")
