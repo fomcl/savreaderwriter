@@ -20,22 +20,17 @@ try:
     import psyco
     psycoOk = True  # reading 66 % faster
 except ImportError:
-    print ("NOTE. Psyco module not found. Install this module " +
-           "to increase reader performance")
     psycoOk = False
 try:
     import numpy
     numpyOk = True
 except ImportError:
-    print ("NOTE. Numpy module not found. Install this module " +
-           "to use array slicing")
     numpyOk = False
+
 try:
     from cWriterow import cWriterow  # writing 66 % faster
     cWriterowOK = True
 except ImportError:
-    print ("NOTE. cWriterow module not found. Install this module " +
-            "to increase writer performance")
     cWriterowOK = False
 
 __author__ = "Albert-Jan Roskam" + " " + "@".join(["fomcl", "yahoo.com"])
