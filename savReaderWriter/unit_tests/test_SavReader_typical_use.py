@@ -486,17 +486,44 @@ records_expected = \
      [473.0, b'f', b'1937-11-25', 12.0, 1.0, 21450.0, 12750.0, 63.0, 139.0, 0.0],
      [474.0, b'f', b'1968-11-05', 12.0, 1.0, 29400.0, 14250.0, 63.0, 9.0, 0.0]]
 
+records_expected_raw = \
+    [[1.0, b'm       ', 11654150400.0, 15.0, 3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0],
+     [2.0, b'm       ', 11852956800.0, 16.0, 1.0, 40200.0, 18750.0, 98.0, 36.0, 0.0],
+     [3.0, b'f       ', 10943337600.0, 12.0, 1.0, 21450.0, 12000.0, 98.0, 381.0, 0.0],
+     [4.0, b'f       ', 11502518400.0, 8.0, 1.0, 21900.0, 13200.0, 98.0, 190.0, 0.0],
+     [5.0, b'm       ', 11749363200.0, 15.0, 1.0, 45000.0, 21000.0, 98.0, 138.0, 0.0]]
+
 class test_SavReader_typical_use(unittest.TestCase):
-    """ Read a file, typical use"""
+    """Read a file"""
+
+    def setUp(self):
+        self.savFileName = "../savReaderWriter/test_data/Employee data.sav"
 
     def test_SavReader_typical(self):
-
-        savFileName = "../savReaderWriter/test_data/Employee data.sav"
+        """Read a file, typical use"""
         records_got = []
-        with SavReader(savFileName, returnHeader=True) as reader:
+        with SavReader(self.savFileName, returnHeader=True) as reader:
             for record in reader:
                 records_got.append(record)
+        self.assertEqual(records_expected, records_got)
 
+    def test_SavReader_raw(self):
+        """Read a file, raw mode (no conversion of dates, sysmis, 
+        zero-padded values). Dates are now shown as the number of 
+        seconds since the Gregorian epoch."""
+        records_got = []
+        with SavReader(self.savFileName, rawMode=True) as reader:
+            for i, record in enumerate(reader):
+                records_got.append(record)
+                if i == 4:
+                    break
+        self.assertEqual(records_expected_raw, records_got)
+
+    def test_SavReader_all(self):
+        """Read a file and retrieve all the records in one go [all()]"""
+        data = SavReader(self.savFileName, returnHeader=True)
+        with data:
+            records_got = data.all()
         self.assertEqual(records_expected, records_got)
 
 if __name__ == "__main__":
