@@ -2,6 +2,7 @@
 ## Write a file (elaborate example)
 ##############################################################################
 
+>>> from __future__ import print_function
 >>> import os
 >>> import tempfile
 >>> import sys
@@ -37,7 +38,7 @@
 ...                missingValues=missingValues, varAttributes=varAttributes,
 ...                fileAttributes=fileAttributes) as sav:
 ...     sav.writerows(records)
-...     print "Done! %s" % os.path.basename(sav.savFileName)
+...     print("Done! %s" % os.path.basename(sav.savFileName))
 Done! employee data_OUT.sav
 
 # read it back in 
@@ -45,7 +46,7 @@ Done! employee data_OUT.sav
 ...
 >>> records_out = [line for line in iter(reader)]
 >>> reader.close()
->>> print records_out == records  # doctest: +NORMALIZE_WHITESPACE
+>>> print(records_out == records)  # doctest: +NORMALIZE_WHITESPACE
 True
 
 # check if the header info is okay

@@ -2,9 +2,7 @@
 ## Read a file and get some basic file info
 ##############################################################################
 
->>> import sys
->>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
-<skipline> ...
+>>> from savReaderWriter import *
 
 ## ... Get some basic file info
 >>> savFileName = "../savReaderWriter/test_data/Employee data.sav"

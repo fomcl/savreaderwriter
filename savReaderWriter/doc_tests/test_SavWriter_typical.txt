@@ -2,11 +2,10 @@
 ## Write a file, typical use
 ##############################################################################
 
+>>> from __future__ import print_function
 >>> import os
 >>> import tempfile
->>> import sys
->>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
-<skipline> ...
+>>> from savReaderWriter import *
 
 
 ## ----- Typical use
@@ -17,7 +16,7 @@
 >>> with SavWriter(savFileName, varNames, varTypes) as sav:
 ...     for record in records:
 ...         sav.writerow(record)
-...     print "Done! %s" % os.path.basename(sav.savFileName)
+...     print("Done! %s" % os.path.basename(sav.savFileName))
 Done! test.sav
 
 # read it back in
@@ -27,7 +26,7 @@ Done! test.sav
 ... finally:
 ...     reader.close()
 ...
->>> print records_out == records
+>>> print(records_out == records)
 True
 
 # clean up

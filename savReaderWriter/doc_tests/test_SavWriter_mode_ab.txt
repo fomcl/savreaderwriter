@@ -2,11 +2,10 @@
 ## Append some records to an existing file, using mode="ab"
 ##############################################################################
 
+>>> from __future__ import print_function
 >>> import shutil
 >>> import os
->>> import sys
->>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
-<skipline> ...
+>>> from savReaderWriter import *
 
 ## Append some records to an existing file
 ## First make a copy to work with (append records to)
@@ -33,7 +32,7 @@
 ## Demonstrate that the number of records has increased by 100.
 >>> try: # doctest: +ELLIPSIS
 ...     r = SavReader(savFileName)
-...     print len(r) == NROWS_ORIGINAL + NROWS_EXTRA 
+...     print(len(r) == NROWS_ORIGINAL + NROWS_EXTRA)
 ... finally:
 ...     r.close()
 ...

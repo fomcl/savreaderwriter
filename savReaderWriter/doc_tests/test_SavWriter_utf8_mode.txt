@@ -6,8 +6,7 @@
 >>> import tempfile
 >>> import pprint
 >>> import sys
->>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
-<skipline> ...
+>>> from savReaderWriter import *
 
 ## ... check if non-ascii encodings work well
 ## ... notice the use of 'ioUtf8'

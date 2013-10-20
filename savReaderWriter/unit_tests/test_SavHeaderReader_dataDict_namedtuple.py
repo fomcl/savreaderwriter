@@ -139,7 +139,7 @@ class test_SavHeaderReader_dataDictionary_namedtuple(unittest.TestCase):
                          b'weightVar': b'nominal'}
         self.assertEqual(self.metadata.measureLevels, measureLevels)
 
-    @unittest.skip("===========> CHECK THIS LATER!")
+    #@unittest.skip("===========> CHECK THIS LATER!")
     def test_missingValues(self):
         sysmis = -1 * sys.float_info.max
         missingValues = {b'AGE2': {},
@@ -165,8 +165,9 @@ class test_SavHeaderReader_dataDictionary_namedtuple(unittest.TestCase):
                          b'someDate': {},
                          b'weightVar': {}}
         miss = self.metadata.missingValues
-        self.assertAlmostEqual(miss[b"Income1"][b"lower"], sysmis)
-        self.assertAlmostEqual(miss[b"Income2"][b"lower"], sysmis)
+        A_VERY_SMALL_NUMBER = 10 ** -50
+        self.assertTrue(miss[b"Income1"][b"lower"] < A_VERY_SMALL_NUMBER)
+        self.assertTrue(miss[b"Income2"][b"lower"] <A_VERY_SMALL_NUMBER)
 
         del miss[b"Income1"][b"lower"]
         del miss[b"Income2"][b"lower"]

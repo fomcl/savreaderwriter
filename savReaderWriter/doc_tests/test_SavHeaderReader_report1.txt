@@ -2,14 +2,12 @@
 ## Print a report of the header information
 ##############################################################################
 
->>> import sys
->>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
-<skipline> ...
+>>> from __future__ import print_function
+>>> from savReaderWriter import *
 
 >>> savFileName = "../savReaderWriter/test_data/spssio_test.sav"
->>> with SavHeaderReader(savFileName) as spssDict: # doctest: +ELLIPSIS
-...     print(unicode(spssDict))
-...     wholeDict = spssDict.dataDictionary()
+>>> with SavHeaderReader(savFileName) as header: # doctest: +ELLIPSIS
+...     print(str(header))
 #ALIGNMENTS
 AGE3 -- right
 DATE_ -- left

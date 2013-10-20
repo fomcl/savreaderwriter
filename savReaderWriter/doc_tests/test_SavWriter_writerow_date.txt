@@ -2,11 +2,11 @@
 ## Write a file, incl. SPSS date values
 ##############################################################################
 
+>>> from __future__ import print_function
 >>> import os
 >>> import tempfile
 >>> import sys
->>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
-<skipline> ...
+>>> from savReaderWriter import *
 
 ## ----- Write one row
 # var1 is a 5-char string var, the others are numerical:
@@ -34,9 +34,9 @@
 ...     pos = varNames.index("bdate")
 ...     for record in records:
 ...         record[pos] = sav.spssDateTime(record[pos], "%Y-%m-%d")
-...         print record
+...         print(record)
 ...         sav.writerow(record)
-...     print "Done! %s" % os.path.basename(sav.savFileName)
+...     print("Done! %s" % os.path.basename(sav.savFileName))
 ['Test1', 1, 1, 13500864000.0]
 ['Test2', 2, 1, 10326873600.0]
 Done! test.sav

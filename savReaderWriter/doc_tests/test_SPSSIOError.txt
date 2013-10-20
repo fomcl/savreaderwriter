@@ -3,9 +3,7 @@
 ##############################################################################
 
 >>> import os, tempfile, sys
->>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
-<skipline> ...
->>> import doctest
+>>> from savReaderWriter import *
 
 >>> badSavFile = os.path.join(tempfile.gettempdir(), "yields_error.sav")
 >>> with open(badSavFile, "wb") as f:

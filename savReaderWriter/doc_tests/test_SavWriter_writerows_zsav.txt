@@ -2,21 +2,21 @@
 ## Write a file, in zsav compressed format
 ##############################################################################
 
+>>> from __future__ import print_function
 >>> import os
 >>> import tempfile
 >>> import sys
->>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
-<skipline> ...
+>>> from savReaderWriter import *
 
 ## ----- Write many rows
-# .zsav = zlib compressed (--> v21 libs)
+# .zsav = zlib compressed (--> >= v21 libs)
 >>> savFileName = os.path.join(tempfile.gettempdir(), "test.zsav")
 >>> records = [['Test1', 1, 1, '2010-08-11'], ['Test2', 2, 1, '1910-01-12']]
 >>> varNames = ['var1', 'var2', 'var3', 'bdate']
 >>> varTypes = {'var1': 50, 'var2': 0, 'var3': 0, 'bdate': 10}
 >>> with SavWriter(savFileName, varNames, varTypes) as sav:
 ...     sav.writerows(records)
-...     print "Done! %s" % os.path.basename(sav.savFileName)
+...     print("Done! %s" % os.path.basename(sav.savFileName))
 Done! test.zsav
 
 # read it back in
@@ -24,7 +24,7 @@ Done! test.zsav
 ...
 >>> records_out = [line for line in iter(reader)]
 >>> reader.close()
->>> print records_out == records  # doctest: +NORMALIZE_WHITESPACE
+>>> print(records_out == records)
 True
 
 # clean up

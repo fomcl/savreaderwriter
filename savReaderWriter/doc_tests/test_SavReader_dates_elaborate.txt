@@ -2,12 +2,10 @@
 ## Read a file containg all the supported date formats
 ##############################################################################
 
+>>> from __future__ import print_function
 >>> import tempfile
 >>> import os
->>> import sys
->>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
-<skipline> ...
-
+>>> from savReaderWriter import *
 
 ## first, create a test file
 >>> varNames = ['var_datetime', 'var_wkyr', 'var_date', 'var_qyr', 'var_edate',
@@ -40,9 +38,9 @@
 ...     records = data.all()
 ...     formats = formats.items()
 ...     for n, record in enumerate(records):
-...         print "Record %d".center(79, "-") % n
+...         print("Record %d".center(79, "-") % n)
 ...         for i, value in enumerate(record):
-...             print "%s --> %s --> %s" % (spssfmts[i], strftimefmts[i], value)
+...             print("%s --> %s --> %s" % (spssfmts[i], strftimefmts[i], value))
 -----------------------------------Record 0-----------------------------------
 DATETIME40 --> %Y-%m-%d %H:%M:%S --> 2010-08-11 00:00:00
 WKYR10 --> %W WK %Y --> 32 WK 2010
@@ -108,9 +106,9 @@ WKDAY10 --> %A --> None
 ...     #formats = formats.items()
 ...     for n, record in enumerate(records):
 ...         if n >= 2:
-...             print "Record %d".center(79, "-") % n
+...             print("Record %d".center(79, "-") % n)
 ...             for i, value in enumerate(record):
-...                 print "%s --> %s --> %s" % (spssfmts[i], strftimefmts[i], value)
+...                 print("%s --> %s --> %s" % (spssfmts[i], strftimefmts[i], value))
 -----------------------------------Record 2-----------------------------------
 DATETIME40 --> %Y-%m-%d %H:%M:%S --> 999
 WKYR10 --> %W WK %Y --> 999

@@ -4,9 +4,7 @@
 
 >>> import os
 >>> import tempfile
->>> import sys
->>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
-<skipline> ...
+>>> from savReaderWriter import *
 
 # preparare some data
 >>> records = [['Test1', 1, 1, 'Yes', 'No'], ['Test2', 2, 1, 'No', 'Yes']]

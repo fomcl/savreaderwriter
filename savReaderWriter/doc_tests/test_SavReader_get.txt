@@ -2,20 +2,18 @@
 ## Read a file and do a binary search for records (get)
 ##############################################################################
 
->>> import pprint
->>> import sys
->>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
-<skipline> ...
+>>> from __future__ import print_function
+>>> from savReaderWriter import *
 
 ## ... Do a binary search for records --> idVar
 >>> savFileName = "../savReaderWriter/test_data/Employee data.sav"
 >>> try:    # doctest: +ELLIPSIS
 ...     reader = SavReader(savFileName, idVar="id")       
-...     print reader.get(4, "not found")            # gets first record where id==4
-...     print reader.get(666, "not found")
-...     print reader.get(474, "not found")
-...     print reader.get(475, "not found")
-...     print reader.get(4, "not found", full=True) # gets all records where id==4
+...     print(reader.get(4, "not found"))            # gets first record where id==4
+...     print(reader.get(666, "not found"))
+...     print(reader.get(474, "not found"))
+...     print(reader.get(475, "not found"))
+...     print(reader.get(4, "not found", full=True)) # gets all records where id==4
 ... finally:
 ...     reader.close()
 ...

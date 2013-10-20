@@ -2,11 +2,10 @@
 ## Use a nested context manager and mode="cp"
 ##############################################################################
 
+>>> from __future__ import print_function
 >>> import contextlib
 >>> import os
->>> import sys
->>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
-<skipline> ...
+>>> from savReaderWriter import *
 
 ###############
 ## Copy header info from one file to another (Method #1)
@@ -42,9 +41,9 @@
 # read the data back in to see if it looks the same
 >>> with SavReader("Employee data_out.sav", returnHeader=True) as r:  # doctest: +ELLIPSIS
 ...     header = r.next()
-...     print header
+...     print(header)
 ...     for line in r:
-...         print line
+...         print(line)
 ['id', 'gender', 'bdate', 'educ', 'jobcat', 'salary', 'salbegin', 'jobtime', 'prevexp', 'minority']
 [1.0, 'm', '1952-02-03', 15.0, 3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0]
 [2.0, 'm', '1958-05-23', 16.0, 1.0, 40200.0, 18750.0, 98.0, 36.0, 0.0]
