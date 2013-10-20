@@ -424,7 +424,7 @@ class Header(Generic):
         retcode = func(c_int(self.fh), c_char_py3k(vName),
                        byref(missingFmt), *map(byref, args))
         if retcode:
-            msg = "Error getting missing value for variable %r" % varName
+            msg = "Error getting missing value for variable '%s'" % varName
             checkErrsWarns(msg, retcode)
 
         v1, v2, v3 = [v.value for v in args]
@@ -433,15 +433,15 @@ class Header(Generic):
         if missingFmt == "SPSS_NO_MISSVAL":
             return {}
         elif missingFmt == "SPSS_ONE_MISSVAL":
-            return {"values": [v1]}
+            return {b"values": [v1]}
         elif missingFmt == "SPSS_TWO_MISSVAL":
-            return {"values": [v1, v2]}
+            return {b"values": [v1, v2]}
         elif missingFmt == "SPSS_THREE_MISSVAL":
-            return {"values": [v1, v2, v3]}
+            return {b"values": [v1, v2, v3]}
         elif missingFmt == "SPSS_MISS_RANGE":
-            return {"lower": v1, "upper": v2}
+            return {b"lower": v1, b"upper": v2}
         elif missingFmt == "SPSS_MISS_RANGEANDVAL":
-            return {"lower": v1, "upper": v2, "value": v3}
+            return {b"lower": v1, b"upper": v2, b"value": v3}
 
     def _setMissingValue(self, varName, **kwargs):
         """This is a helper function for the missingValues setter
@@ -453,23 +453,24 @@ class Header(Generic):
         """
         if kwargs == {}:
             return 0
-        fargs = ["lower", "upper", "value", "values"]
+        fargs = [b"lower", b"upper", b"value", b"values"]
         if set(kwargs.keys()).difference(set(fargs)):
-            raise ValueError("Allowed keywords are: %s" % ", ".join(fargs))
+            raise ValueError(b"Allowed keywords are: %s" % b", ".join(fargs))
         varName = self.encode(varName)
         varType = self.varTypes[varName]
 
         # range of missing values, e.g. MISSING VALUES aNumVar (-9 THRU -1).
         if varType == 0:
             placeholder = 0.0
-            if "lower" in kwargs and "upper" in kwargs and "value" in kwargs:
+            if b"lower" in kwargs and b"upper" in kwargs and \
+                b"value" in kwargs:
                 missingFmt = "SPSS_MISS_RANGEANDVAL"
-                args = kwargs["lower"], kwargs["upper"], kwargs["value"]
-            elif "lower" in kwargs and "upper" in kwargs:
+                args = kwargs[b"lower"], kwargs[b"upper"], kwargs[b"value"]
+            elif b"lower" in kwargs and b"upper" in kwargs:
                 missingFmt = "SPSS_MISS_RANGE"
-                args = kwargs["lower"], kwargs["upper"], placeholder
+                args = kwargs[b"lower"], kwargs[b"upper"], placeholder
         else:
-            placeholder, args = "0", None
+            placeholder, args = b"0", None
 
         # up to three discrete missing values
         if "values" in kwargs:

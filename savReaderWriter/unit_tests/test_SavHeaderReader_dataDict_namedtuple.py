@@ -139,7 +139,6 @@ class test_SavHeaderReader_dataDictionary_namedtuple(unittest.TestCase):
                          b'weightVar': b'nominal'}
         self.assertEqual(self.metadata.measureLevels, measureLevels)
 
-    #@unittest.skip("===========> CHECK THIS LATER!")
     def test_missingValues(self):
         sysmis = -1 * sys.float_info.max
         missingValues = {b'AGE2': {},
