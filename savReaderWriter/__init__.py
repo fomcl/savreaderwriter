@@ -101,8 +101,10 @@ supportedDates = {  # uses ISO dates wherever applicable.
     b"TIME": "%H:%M:%S.%f",
     b"DTIME": "%d %H:%M:%S"}
 
-QUARTERS = {'01': '1', '02': '1', '03': '1', '04': '2', '05': '2', '06': '2',
-            '07': '3', '08': '3', '09': '3', '10': '4', '11': '4', '12': '4'}
+QUARTERS = {b'01': b'1', b'02': b'1', b'03': b'1', 
+            b'04': b'2', b'05': b'2', b'06': b'2',
+            b'07': b'3', b'08': b'3', b'09': b'3', 
+            b'10': b'4', b'11': b'4', b'12': b'4'}
 
 userMissingValues = {
     "SPSS_NO_MISSVAL": 0,

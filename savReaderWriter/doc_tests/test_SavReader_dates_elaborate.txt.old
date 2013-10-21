@@ -3,11 +3,12 @@
 ##############################################################################
 
 >>> from __future__ import print_function
->>> import tempfile
 >>> import os
 >>> from savReaderWriter import *
-
-## first, create a test file
+ 
+# these are the formats that are used internally by savReaderWriter
+# (see __init__.py)
+>>> savFileName = b"../savReaderWriter/test_data/test_dates.sav"
 >>> varNames = ['var_datetime', 'var_wkyr', 'var_date', 'var_qyr', 'var_edate',
 ...             'var_sdate', 'var_dtime', 'var_jdate', 'var_month', 'var_moyr',
 ...             'var_time', 'var_adate', 'var_wkday']
@@ -16,20 +17,6 @@
 ...             'SDATE10', 'DTIME10', 'JDATE10', 'MONTH10', 'MOYR10',
 ...             'TIME10', 'ADATE10', 'WKDAY10']
 >>> formats = dict(zip(varNames, spssfmts))
->>> savFileName = os.path.join(tempfile.gettempdir(), "test_dates.sav")
->>> records = [['2010-08-11'] * len(varNames), ['1910-01-12'] * len(varNames),
-...            [""] * len(varNames), [None] * len(varNames)]
-
->>> with SavWriter(savFileName, varNames, varTypes, formats=formats) as writer:
-...     for record in records:
-...         for pos, value in enumerate(record):
-...             record[pos] = writer.spssDateTime(record[pos], "%Y-%m-%d")
-...         writer.writerow(record)
-
- 
-## second, read the file back in
-# these are the destination formats that are used internally by savReaderWriter
-# (see __init__.py)
 >>> strftimefmts = ['%Y-%m-%d %H:%M:%S', '%W WK %Y', '%Y-%m-%d', '%m Q %Y', '%Y-%m-%d',
 ...                 '%Y-%m-%d', '%d %H:%M:%S', '%Y-%m-%d', '%B', '%B %Y', '%H:%M:%S.%f',
 ...                 '%Y-%m-%d', '%A']
@@ -40,6 +27,7 @@
 ...     for n, record in enumerate(records):
 ...         print("Record %d".center(79, "-") % n)
 ...         for i, value in enumerate(record):
+...             value = value.decode("utf-8") if value is not None else value
 ...             print("%s --> %s --> %s" % (spssfmts[i], strftimefmts[i], value))
 -----------------------------------Record 0-----------------------------------
 DATETIME40 --> %Y-%m-%d %H:%M:%S --> 2010-08-11 00:00:00
@@ -137,8 +125,3 @@ MOYR10 --> %B %Y --> 999
 TIME10 --> %H:%M:%S.%f --> 999
 ADATE10 --> %Y-%m-%d --> 999
 WKDAY10 --> %A --> 999
-
-
-# clean up
->>> #os.remove(savFileName)
->>> savFileName

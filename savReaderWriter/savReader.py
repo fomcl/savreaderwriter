@@ -178,7 +178,7 @@ class SavReader(Header):
                     fmt = supportedDates[bareformat_]
                     args = (value, fmt, self.recodeSysmisTo)
                     record[i] = self.spss2strDate(*args)
-                    if bareformat_ == "QYR" and record[i]:
+                    if bareformat_ == b"QYR" and record[i]:
                         # convert month to quarter, e.g. 12 Q 1990 --> 4 Q 1990
                         # There is no such thing as a %q strftime directive
                         try:

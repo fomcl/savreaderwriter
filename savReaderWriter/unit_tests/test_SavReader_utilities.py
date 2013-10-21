@@ -17,8 +17,8 @@ class test_SavReader_utilities(unittest.TestCase):
     """Read a file and use __len__, __getitem__"""
 
     def setUp(self):
-        savFileName = "../savReaderWriter/test_data/Employee data.sav"
-        self.data = SavReader(savFileName)
+        self.savFileName = "../savReaderWriter/test_data/Employee data.sav"
+        self.data = SavReader(self.savFileName)
 
     def test_SavReader_len(self):
         """Read a file, get number of cases using __len__"""
@@ -107,6 +107,31 @@ class test_SavReader_utilities(unittest.TestCase):
         records_expected = map(float, range(1, 475))
         records_got = self.data[..., 0]  # First column
         self.assertEqual(records_expected, records_got)
+
+    def test_SavReader_get(self):
+        """Read a file and do a binary search for records (get)"""
+        try:
+            reader = SavReader(self.savFileName, idVar=b"id")
+
+            # get first record where id==4
+            records_expected = [4.0, b'f', b'1947-04-15', 8.0, 1.0,
+                                21900.0, 13200.0, 98.0, 190.0, 0.0]
+            self.assertEqual(records_expected, reader.get(4, "not found"))
+
+            # gets all records where id==4
+            records_expected = [[4.0, b'f', b'1947-04-15', 8.0, 1.0,
+                                 21900.0, 13200.0, 98.0, 190.0, 0.0]]
+            self.assertEqual(records_expected, reader.get(4, "not found", full=True))
+
+            # some more checks 
+            records_expected = [474.0, b'f', b'1968-11-05', 12.0, 1.0,
+                                29400.0, 14250.0, 63.0, 9.0, 0.0]
+            self.assertEqual(records_expected, reader.get(474, "not found"))
+            self.assertEqual("not found", reader.get(475, "not found"))
+            self.assertEqual("not found", reader.get(666, "not found"))
+
+        finally:
+            reader.close()
 
     def tearDown(self):
         self.data.close()
