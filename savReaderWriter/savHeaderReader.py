@@ -80,41 +80,40 @@ class SavHeaderReader(Header):
             return Meta(*metadata.values())
         return metadata
 
+    def __getEntry(self, varName, k, v, enc):
+        """Helper function for reportSpssDataDictionary"""
+        try:
+            k = k if self.ioUtf8 else k.decode(enc).strip()
+        except AttributeError:
+            pass
+        try:
+           v = list(v) if isinstance(v, map) else v
+        except TypeError:
+           pass  # python 2
+        try:
+            v =  v if self.ioUtf8 else v.decode(enc)
+        except AttributeError:
+            v = ", ".join(map(str, v)) if isinstance(v, list) else v
+        try:
+            v = ", ".join(eval(str(v)))  # ??
+        except:
+            pass
+        return "%s: %s -- %s" % (varName,k, v)
+
     def reportSpssDataDictionary(self, dataDict):
         """ This function reports information from the Spss dictionary
         of the active Spss dataset. The parameter 'dataDict' is the return
         value of dataDictionary()"""
         # Yeah I know: what a mess! ;-)
-        report = []
-        enc = self.fileEncoding
+        report, enc = [], self.fileEncoding
         for kwd, allValues in sorted(dataDict.items()):
             report.append("#" + kwd.upper())
             if hasattr(allValues, "items"):
                 for varName, values in sorted(allValues.items()):
                     varName =  varName if self.ioUtf8 else varName.decode(enc)
                     if hasattr(values, "items"):
-                        isList = kwd in ("missingValues", "multRespDefs")
                         for k, v in sorted(values.items()):
-                            if isList and isinstance(v, (list, tuple)):
-                                # missings (discrete str values), multRespDefs
-                                vStr = [unicode(item) for item in v]
-                                k = k if self.ioUtf8 else k.decode(enc)
-                                entry = "%s: %s -- %s" 
-                                args = (varName, k, ", ".join(vStr))
-                                report.append(entry % args)
-                            else:
-                                # value label, missings (discrete num values)
-                                try:            # values vallabels str vars
-                                    k = k if self.ioUtf8 else k.decode(enc).strip()
-                                except AttributeError:   
-                                    k = str(k)  # values vallabels num vars
-                                v =  v if self.ioUtf8 else v.decode(enc)
-                                try:
-                                   v = list(v) if isinstance(v, map) else v
-                                except TypeError:
-                                   pass  # python 2
-                                v = ", ".join(v) if isinstance(v, list) else v
-                                report.append("%s: %s -- %s" % (varName, k, v))
+                            report.append(self.__getEntry(varName, k, v, enc))
                     else:
                         # varsets
                         if isinstance(values, list):
@@ -137,6 +136,4 @@ class SavHeaderReader(Header):
                     if isinstance(varName, bytes):
                         varName = varName.decode(enc)
                     report.append(varName)
-
-        #import pprint; pprint.pprint(report)
         return os.linesep.join(report)
