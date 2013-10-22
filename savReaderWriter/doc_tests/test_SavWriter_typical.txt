@@ -20,16 +20,20 @@
 Done! test.sav
 
 # read it back in
+>>> reader = None
 >>> try:
 ...     reader = SavReader(savFileName)  # doctest: +ELLIPSIS
 ...     records_out = [line for line in iter(reader)]
+...     print(records_out == records)
 ... finally:
-...     reader.close()
-...
->>> print(records_out == records)
+...     if reader is not None:
+...         reader.close()
 True
 
 # clean up
->>> os.remove(savFileName)
+>>> try:
+...     os.remove(savFileName)
+... except:
+...    pass
 
 

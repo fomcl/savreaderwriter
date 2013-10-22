@@ -5,7 +5,6 @@
 >>> from __future__ import print_function
 >>> import os
 >>> import tempfile
->>> import sys
 >>> from savReaderWriter import *
 
 ## ----- Write one row
@@ -42,16 +41,21 @@
 Done! test.sav
 
 # read it back in in rawMode (dates not converted to ISO-dates)
+>>> reader = None
 >>> try:
 ...     reader = SavReader(savFileName, rawMode=True)  # doctest: +ELLIPSIS
 ...     records_out = [line for line in iter(reader)]
 ... finally:
-...     reader.close()
+...     if reader is not None:
+...         reader.close()
 ...
->>> print records_out == records
+>>> print(records_out == records)
 True
 
 # clean up
->>> os.remove(os.path.abspath(savFileName))
+>>> try:
+...     os.remove(os.path.abspath(savFileName))
+... except:
+...     pass 
 
 

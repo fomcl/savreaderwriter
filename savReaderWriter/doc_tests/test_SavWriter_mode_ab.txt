@@ -11,33 +11,40 @@
 ## First make a copy to work with (append records to)
 ## Also retrieve varNames and varTypes as these are mandatory args
 >>> savFileName = "../savReaderWriter/test_data/Employee data.sav"
->>> shutil.copy(savFileName, "Employee data copy.sav")
+>>> crap = shutil.copy(savFileName, "Employee data copy.sav")
+>>> reader = None
 >>> try:  # doctest: +ELLIPSIS
-...     r = SavReader(savFileName, rawMode=True)
-...     NROWS_ORIGINAL = len(r)
-...     varNames, varTypes = r.getSavFileInfo()[2:4]
+...     reader = SavReader(savFileName, rawMode=True)
+...     NROWS_ORIGINAL = len(reader)
+...     varNames, varTypes = reader.getSavFileInfo()[2:4]
 ... finally:
 ...     # Don't forget this! You won't be able to change interface mode (ioUtf8)
-...     r.close()
+...     if reader is not None:
+...         reader.close()
 ...
 
 ## Append 100 records to the file
 >>> NROWS_EXTRA = 100
 >>> savFileName = "Employee data copy.sav"
->>> with SavWriter(savFileName, varNames, varTypes, mode="ab") as w:
+>>> with SavWriter(savFileName, varNames, varTypes, mode="ab") as writer:
 ...     line = [1.0, 'm', 11654150400.0, 15.0, 3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0]
 ...     for i in range(NROWS_EXTRA):
-...         w.writerow(line)
+...         writer.writerow(line)
 
 ## Demonstrate that the number of records has increased by 100.
+>>> reader = None
 >>> try: # doctest: +ELLIPSIS
-...     r = SavReader(savFileName)
-...     print(len(r) == NROWS_ORIGINAL + NROWS_EXTRA)
+...     reader = SavReader(savFileName)
+...     print(len(reader) == NROWS_ORIGINAL + NROWS_EXTRA)
 ... finally:
-...     r.close()
+...     if reader is not None:
+...         reader.close()
 ...
 True
 
 # clean up
->>> os.remove(os.path.abspath(savFileName))
+>>> try:
+...     os.remove(os.path.abspath(savFileName))
+... except:
+...     pass 
 

@@ -3,7 +3,6 @@
 ##############################################################################
 
 >>> from __future__ import print_function
->>> import contextlib
 >>> import os
 >>> from savReaderWriter import *
 
@@ -13,36 +12,34 @@
 >>> with SavHeaderReader(savFileName) as spssDict:
 ...     wholeDict = spssDict.dataDictionary()  # doctest: +ELLIPSIS
 ...
->>> reader = SavReader(savFileName)  # doctest: +ELLIPSIS
-...
->>> writer = SavWriter("test_wholeDict.sav", **wholeDict)
->>> with contextlib.nested(reader, writer) as (r, w):
-...     for line in r:
-...         w.writerow(line)
+>>> with SavReader(savFileName) as reader:
+...     with SavWriter("test_wholeDict.sav", **wholeDict) as writer:
+...         for line in reader:
+...             writer.writerow(line)
 
 # clean up
->>> os.remove(os.path.abspath("test_wholeDict.sav"))
+>>> try:
+...     os.remove(os.path.abspath("test_wholeDict.sav"))
+... except:
+...     pass
 
 ###############
 ## Copy header info from one file to another (Method #2)
 ## Uses <refSavFileName> as a donor file to initialize the header
 ## This will also copy DATE/TREND info, which is not copied using Method #1
 >>> savFileName = "../savReaderWriter/test_data/Employee data.sav"
->>> r = SavReader(savFileName, rawMode=True)  # doctest: +ELLIPSIS
-...
->>> varNames, varTypes = r.getSavFileInfo()[2:4]  # doctest: +ELLIPSIS
-...
->>> w = SavWriter("Employee data_out.sav", varNames, varTypes, 
-...                refSavFileName=savFileName, mode="cp")
->>> with contextlib.nested(r, w) as (savIn, savOut): # doctest: +ELLIPSIS
-...     for line in savIn:
-...         savOut.writerow(line)
+>>> with SavReader(savFileName, rawMode=True) as reader:
+...     varNames, varTypes = reader.getSavFileInfo()[2:4]
+...     with SavWriter("Employee data_out.sav", varNames, varTypes,
+...                    refSavFileName=savFileName, mode="cp") as writer:
+...         for line in reader:
+...             writer.writerow(line)
 
 # read the data back in to see if it looks the same
->>> with SavReader("Employee data_out.sav", returnHeader=True) as r:  # doctest: +ELLIPSIS
-...     header = r.next()
+>>> with SavReader("Employee data_out.sav", returnHeader=True) as reader:  # doctest: +ELLIPSIS
+...     header = reader.next()
 ...     print(header)
-...     for line in r:
+...     for line in reader:
 ...         print(line)
 ['id', 'gender', 'bdate', 'educ', 'jobcat', 'salary', 'salbegin', 'jobtime', 'prevexp', 'minority']
 [1.0, 'm', '1952-02-03', 15.0, 3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0]
@@ -64,8 +61,8 @@
 [474.0, 'f', '1968-11-05', 12.0, 1.0, 29400.0, 14250.0, 63.0, 9.0, 0.0]
 
 # read the meta data back in to see if it looks the same
->>> with SavHeaderReader("Employee data_out.sav") as h:  # doctest: +ELLIPSIS
-...     print(str(h))
+>>> with SavHeaderReader("Employee data_out.sav") as header:  # doctest: +ELLIPSIS
+...     print(str(header))
 ...
 #ALIGNMENTS
 salary -- right
@@ -198,6 +195,9 @@ educ -- 0
 id -- 0
 
 # clean up
->>> os.remove(os.path.abspath("Employee data_out.sav"))
+>>> try:
+...     os.remove(os.path.abspath("Employee data_out.sav"))
+... except:
+...     pass 
 
 

@@ -103,7 +103,6 @@ WKDAY10 --> %A --> None
 >>> data = SavReader(savFileName, recodeSysmisTo="999")
 >>> with data:
 ...     records = data.all()
-...     #formats = formats.items()
 ...     for n, record in enumerate(records):
 ...         if n >= 2:
 ...             print("Record %d".center(79, "-") % n)
@@ -140,5 +139,4 @@ WKDAY10 --> %A --> 999
 
 
 # clean up
->>> #os.remove(savFileName)
->>> savFileName
+>>> os.remove(savFileName)

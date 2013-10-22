@@ -2,6 +2,7 @@
 ## Print a Python dictionary of the SPSS dictionary (aka header information)
 ##############################################################################
 
+>>> from __future__ import print_function
 >>> from savReaderWriter import *
 
 >>> savFileName = "../savReaderWriter/test_data/greetings.sav"
@@ -41,23 +42,23 @@
 >>> desired == metadata
 True
 >>> for k, v in desired.items():
-...     "%s ---> %s" % (k.upper(), v == metadata[k])
+...     print("%s ---> %s" % (k.upper(), v == metadata[k]))
 ...     if v != metadata[k]:
-...         print v
-...         print metadata[k]
-u'VALUELABELS ---> True'
-u'CASEWEIGHTVAR ---> True'
-u'VARSETS ---> True'
-u'VARATTRIBUTES ---> True'
-u'VARROLES ---> True'
-u'MEASURELEVELS ---> True'
-u'VARTYPES ---> True'
-u'VARNAMES ---> True'
-u'VARLABELS ---> True'
-u'FORMATS ---> True'
-u'MULTRESPDEFS ---> True'
-u'COLUMNWIDTHS ---> True'
-u'MISSINGVALUES ---> True'
-u'ALIGNMENTS ---> True'
-u'FILELABEL ---> True'
-u'FILEATTRIBUTES ---> True'
+...         print(v)
+...         print(metadata[k])
+VALUELABELS ---> True
+CASEWEIGHTVAR ---> True
+VARSETS ---> True
+VARATTRIBUTES ---> True
+VARROLES ---> True
+MEASURELEVELS ---> True
+VARTYPES ---> True
+VARNAMES ---> True
+VARLABELS ---> True
+FORMATS ---> True
+MULTRESPDEFS ---> True
+COLUMNWIDTHS ---> True
+MISSINGVALUES ---> True
+ALIGNMENTS ---> True
+FILELABEL ---> True
+FILEATTRIBUTES ---> True

@@ -168,12 +168,12 @@ class SavWriter(Header):
 
         if overwrite or not os.path.exists(savFileName):
             # always compress files, either zsav or standard.
-            if savFileName.lower().endswith(b".zsav"):
+            if savFileName.lower().endswith(".zsav"):
                 self.fileCompression = b"zlib"  # only with v21 libraries!
             else:
                 self.fileCompression = b"standard"
         elif not overwrite and os.path.exists(savFileName):
-            raise IOError(b"File %r already exists!" % savFileName)
+            raise IOError("File %r already exists!" % savFileName)
 
     def convertDate(self, day, month, year):
         """This function converts a Gregorian date expressed as day-month-year

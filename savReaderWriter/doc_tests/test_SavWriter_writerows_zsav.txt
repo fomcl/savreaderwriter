@@ -20,12 +20,18 @@
 Done! test.zsav
 
 # read it back in
->>> reader = SavReader(savFileName)  # doctest: +ELLIPSIS
-...
->>> records_out = [line for line in iter(reader)]
->>> reader.close()
+>>> reader = None
+>>> try: 
+...     reader = SavReader(savFileName)  # doctest: +ELLIPSIS
+...     records_out = [line for line in iter(reader)]
+... finally:
+...     if reader is not None:
+...         reader.close()
 >>> print(records_out == records)
 True
 
 # clean up
->>> os.remove(savFileName)
+>>> try:
+...     os.remove(savFileName)
+... except:
+...     pass

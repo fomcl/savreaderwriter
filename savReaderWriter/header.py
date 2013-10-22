@@ -44,27 +44,8 @@ class Header(Generic):
     def decode(func):
         """Decorator to Utf-8 decode all str items contained in a dictionary
         If ioUtf8=True, the dictionary's keys and values are decoded, but only
-        values that are strs, lists, or dicts. For example:
-        >>> @decode   # doctest: +SKIP
-        ... def test(d):
-        ...     return d
-        >>> # test 1
-        >>> expected = {u'v1': {u'y': u'yy', u'z': 666}}
-        >>> test({'v1': {'y': 'yy', 'z': 666}}) == expected  # doctest: +SKIP
-        True
-        >>> # test 2
-        >>> thai = ('\xe0\xb8\xaa\xe0\xb8\xa7\xe0\xb8\xb1' +
-        ...         '\xe0\xb8\xaa\xe0\xb8\x94\xe0\xb8\xb5')
-        >>> d = {'dichotomous3': {'countedValue': thai,
-        ...      'label': thai, 'setType': 'D', 'varNames': ['v1', 'v2']}}
-        >>> uthai = thai.decode("utf-8")
-        >>> test(d) == {u'dichotomous3': {u'countedValue': uthai,
-        ...             u'label': uthai,
-        ...             u'setType': u'D',
-        ...             u'varNames': [u'v1', u'v2']}}  # doctest: +SKIP
-        True
-        """
-        bytes_ = __builtins__["bytes"] if sys.version_info[0] > 2 else str
+        values that are strs, lists, or dicts."""
+        bytes_ = __builtins__["bytes"] if sys.version_info[0] > 2 else str  # TODO
         uS = lambda x: x.decode("utf-8") if isinstance(x, bytes_) else x
         uL = lambda x: map(uS, x) if isinstance(x, list) else x
         @functools.wraps(func)
@@ -377,7 +358,7 @@ class Header(Generic):
             gotAny = isAnyVar.match(format_)
             msg = ("Unknown format %r or invalid width for variable %r. " +
                    "Valid formats are: %s")
-            msg = msg % (format_, varName, ", ".join(validValues))
+            msg = msg % (format_, varName, b", ".join(validValues))
             if gotString:
                 printFormat = gotString.group("printFormat")
                 printFormat = reverseFormats.get(printFormat)
@@ -455,7 +436,7 @@ class Header(Generic):
             return 0
         fargs = [b"lower", b"upper", b"value", b"values"]
         if set(kwargs.keys()).difference(set(fargs)):
-            raise ValueError(b"Allowed keywords are: %s" % b", ".join(fargs))
+            raise ValueError("Allowed keywords are: %s" % b", ".join(fargs))
         varName = self.encode(varName)
         varType = self.varTypes[varName]
 

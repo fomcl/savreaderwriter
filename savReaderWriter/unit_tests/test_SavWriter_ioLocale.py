@@ -52,7 +52,7 @@ class test_SavWriter_ioLocale(unittest.TestCase):
         try:
             os.remove(self.savFileName)
         except EnvironmentError:
-            raise Exception, sys.exc_info()[1] 
+            raise(Exception, sys.exc_info()[1]) 
 
 if __name__ == "__main__":
     unittest.main()

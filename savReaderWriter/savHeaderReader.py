@@ -129,7 +129,7 @@ class SavHeaderReader(Header):
                             report.append("%s -- %s" % (varName, values))
             else:
                 # varname, file label
-                bytes = __builtins__["bytes"]  # shadowed-->functools.partial
+                bytes = __builtins__.bytes  # TODO shadowed-->functools.partial 
                 if isinstance(allValues, (str, bytes, unicode)) and allValues:
                     allValues = [allValues]
                 for varName in allValues:

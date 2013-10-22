@@ -5,9 +5,7 @@
 >>> from __future__ import print_function
 >>> import os
 >>> import tempfile
->>> import sys
->>> sys.stdout.write('<skipline> '); from savReaderWriter import * # doctest: +ELLIPSIS
-<skipline> ...
+>>> from savReaderWriter import *
 
 ## ----- Write many rows
 >>> savFileName = os.path.join(tempfile.gettempdir(), "employee data_OUT.sav")
@@ -42,16 +40,19 @@
 Done! employee data_OUT.sav
 
 # read it back in 
->>> reader = SavReader(savFileName, rawMode=True)  # doctest: +ELLIPSIS
-...
->>> records_out = [line for line in iter(reader)]
->>> reader.close()
+>>> reader = None
+>>> try:
+...     reader = SavReader(savFileName, rawMode=True)  # doctest: +ELLIPSIS
+...     records_out = [line for line in iter(reader)]
+... finally:
+...     if reader is not None:
+...         reader.close()
 >>> print(records_out == records)  # doctest: +NORMALIZE_WHITESPACE
 True
 
 # check if the header info is okay
 >>> with SavHeaderReader(savFileName) as h:
-...     print(unicode(h))  # doctest: +ELLIPSIS
+...     print(str(h))  # doctest: +ELLIPSIS
 ...
 File 'employee data_OUT.sav' built using savReaderWriter version ... (...:...:...)
 #ALIGNMENTS
@@ -155,6 +156,9 @@ educ -- 0
 id -- 0
 
 # clean up
->>> os.remove(savFileName)
+>>> try:
+...     os.remove(savFileName)
+... except:
+...     pass
 
 
