@@ -84,33 +84,59 @@ class SavHeaderReader(Header):
         """ This function reports information from the Spss dictionary
         of the active Spss dataset. The parameter 'dataDict' is the return
         value of dataDictionary()"""
+        # Yeah I know: what a mess! ;-)
         report = []
-        #import pprint
-        #pprint.pprint(dataDict)
+        enc = self.fileEncoding
         for kwd, allValues in sorted(dataDict.items()):
             report.append("#" + kwd.upper())
             if hasattr(allValues, "items"):
-                for varName, values in allValues.iteritems():
+                for varName, values in sorted(allValues.items()):
+                    varName =  varName if self.ioUtf8 else varName.decode(enc)
                     if hasattr(values, "items"):
                         isList = kwd in ("missingValues", "multRespDefs")
-                        for k, v in sorted(values.iteritems()):
+                        for k, v in sorted(values.items()):
                             if isList and isinstance(v, (list, tuple)):
-                                vStr = [unicode(item).lower() for item in v]
-                                report.append("%s: %s -- %s" %
-                                              (varName, k, ", ".join(vStr)))
+                                # missings (discrete str values), multRespDefs
+                                vStr = [unicode(item) for item in v]
+                                k = k if self.ioUtf8 else k.decode(enc)
+                                entry = "%s: %s -- %s" 
+                                args = (varName, k, ", ".join(vStr))
+                                report.append(entry % args)
                             else:
-                                report.append("%s: %s -- %s" %
-                                              (varName, unicode(k).strip(), v))
+                                # value label, missings (discrete num values)
+                                try:            # values vallabels str vars
+                                    k = k if self.ioUtf8 else k.decode(enc).strip()
+                                except AttributeError:   
+                                    k = str(k)  # values vallabels num vars
+                                v =  v if self.ioUtf8 else v.decode(enc)
+                                try:
+                                   v = list(v) if isinstance(v, map) else v
+                                except TypeError:
+                                   pass  # python 2
+                                v = ", ".join(v) if isinstance(v, list) else v
+                                report.append("%s: %s -- %s" % (varName, k, v))
                     else:
+                        # varsets
                         if isinstance(values, list):
-                            entry = "%s -- %s" % (varName, ", ".join(values))
+                            values = b", ".join(values)
+                            entry = "%s -- %s" % (varName, values.decode(enc))
                             report.append(entry)
-                        elif values != "":
+                        # variable role, label, level, format, colwidth, alignment, type
+                        else:
+                            try:
+                                values =  values if self.ioUtf8 else values.decode(enc)
+                            except AttributeError:
+                                values = str(values)
                             report.append("%s -- %s" % (varName, values))
             else:
-                if isinstance(allValues, basestring) and allValues:
+                # varname, file label
+                bytes = __builtins__["bytes"]  # shadowed-->functools.partial
+                if isinstance(allValues, (str, bytes, unicode)) and allValues:
                     allValues = [allValues]
                 for varName in allValues:
+                    if isinstance(varName, bytes):
+                        varName = varName.decode(enc)
                     report.append(varName)
-        #print(os.linesep.join(report))
+
+        #import pprint; pprint.pprint(report)
         return os.linesep.join(report)
