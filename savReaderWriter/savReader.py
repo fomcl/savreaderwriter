@@ -464,7 +464,7 @@ class SavReader(Header):
                 self.gregorianEpoch = datetime.datetime(1582, 10, 14, 0, 0, 0)
             theDate = (self.gregorianEpoch +
                        datetime.timedelta(seconds=spssDateValue))
-            return bytes(datetime.datetime.strftime(theDate, fmt))
+            return bytez(datetime.datetime.strftime(theDate, fmt))
         except (OverflowError, TypeError, ValueError):
             return recodeSysmisTo
 

@@ -5,7 +5,8 @@ from ctypes import *
 import os
 import time
 
-
+from savReaderWriter import *
+from py3k import *
 from header import *
 if cWriterowOK:
     cWriterow = cWriterow.cWriterow
@@ -122,6 +123,7 @@ class SavWriter(Header):
         self.sysmis_ = self.sysmis
         self.ioUtf8_ = ioUtf8
         self.pad_8_lookup = self._getPaddingLookupTable(self.varTypes)
+        self.bytify = bytify(self.fileEncoding)  # from py3k module
 
         if self.mode == "wb":
             self._openWrite(self.savFileName, self.overwrite)
@@ -227,7 +229,10 @@ class SavWriter(Header):
         {1:%-8s, 7:%-8s, 9: %-16s, 24: %-24s}. Purpose: Get rid of trailing
         null bytes"""
         strLengths = varTypes.values()
-        return dict([(i, "%%-%ds" % (-8 * (i // -8))) for i in strLengths])
+        lookup = dict([(i, "%%-%ds" % (-8 * (i // -8))) for i in strLengths])
+        #if sys.version_info[1] > 2:
+        #    return {k: bytes(v, "utf-8") for k, v in lookup.items()}
+        return lookup
 
     def writerow(self, record):
         """ This function writes one record, which is a Python list."""
@@ -240,6 +245,7 @@ class SavWriter(Header):
         """ This function writes one record, which is a Python list,
         compare this Python version with the Cython version cWriterow."""
         float_ = float
+        bytify = self.bytify
         for i, value in enumerate(record):
             varName = self.varNames[i]
             varType = self.varTypes[varName]
@@ -250,7 +256,7 @@ class SavWriter(Header):
                     value = self.sysmis_
             else:
                 # Get rid of trailing null bytes --> 7 x faster than 'ljust'
-                value = bytes(self.pad_8_lookup[varType] % value)
+                value = bytify(self.pad_8_lookup[varType] % value)
                 if self.ioUtf8_:
                     if isinstance(value, unicode):
                         value = value.encode("utf-8")

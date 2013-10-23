@@ -18,7 +18,19 @@ except NameError:
 
 # bytes keyword has a second argument in Python 3
 if isPy3k:
-    bytes = functools.partial(bytes, encoding="utf-8")
+    bytez = functools.partial(bytes, encoding="utf-8")
+else:
+    bytez = bytes
+
+def bytify(encoding):
+    if isPy3k:
+        def func(value):
+            return bytes(value, encoding)
+    else:
+        def func(value):
+            return bytes(value)
+    func.__doc__ = "bytes wrapper for python 2 and 3"
+    return func
 
 # ctypes.c_char_p does not take unicode strings
 if isPy3k:

@@ -14,6 +14,7 @@ import encodings
 import collections
 
 from savReaderWriter import *
+from py3k import *
 
 class Generic(object):
     """
@@ -184,7 +185,7 @@ class Generic(object):
         fdopen.argtypes = [c_int, c_char_p]
         fdopen.restype = c_void_p
         fdopen.errcheck = self.errcheck
-        mode_ = b"wb" if mode == b"cp" else bytes(mode)
+        mode_ = b"wb" if mode == b"cp" else bytez(mode)
         with open(savFileName, mode_.decode("utf-8")) as f:
             self.fd = fdopen(f.fileno(), mode_)
         if mode == "rb":

@@ -12,8 +12,11 @@ import sys
 import platform
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-from ez_setup import use_setuptools
-use_setuptools()
+try:
+    from ez_setup import use_setuptools
+    use_setuptools()
+except:
+    pass # Tox
 from setuptools import setup
 
 def read(fname):

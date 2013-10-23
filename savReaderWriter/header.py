@@ -45,7 +45,7 @@ class Header(Generic):
         """Decorator to Utf-8 decode all str items contained in a dictionary
         If ioUtf8=True, the dictionary's keys and values are decoded, but only
         values that are strs, lists, or dicts."""
-        bytes_ = __builtins__["bytes"] if sys.version_info[0] > 2 else str  # TODO
+        bytes_ = bytes if sys.version_info[0] > 2 else str
         uS = lambda x: x.decode("utf-8") if isinstance(x, bytes_) else x
         uL = lambda x: map(uS, x) if isinstance(x, list) else x
         @functools.wraps(func)
@@ -318,9 +318,9 @@ class Header(Generic):
 
             printFormat = allFormats.get(printFormat_.value)[0]
             printFormat = printFormat.split(b"_")[-1]
-            format_ = printFormat + bytes(str(printWid_.value))
+            format_ = printFormat + bytez(str(printWid_.value))
             if self.varTypes[varName] == 0:
-                format_ += (b"." + bytes(str(printDec_.value)))
+                format_ += (b"." + bytez(str(printDec_.value)))
             if format_.endswith(b".0"):
                 format_ = format_[:-2]
             self.formats_[varName] = format_

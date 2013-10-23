@@ -33,8 +33,8 @@ class test_SavWriter_ioLocale(unittest.TestCase):
         self.savFileName = os.path.join(tempfile.gettempdir(),
                                         "german_out.sav")
         self.kwargs = dict(savFileName=self.savFileName, 
-                           varNames=['\xfcberhaupt'],
-                           varTypes={'\xfcberhaupt': 0},
+                           varNames=[b'\xfcberhaupt'],
+                           varTypes={b'\xfcberhaupt': 0},
                            ioLocale=germanlocale)
 
     @unittest.skipUnless(bool(germanlocale), "German locale not present")
@@ -45,7 +45,7 @@ class test_SavWriter_ioLocale(unittest.TestCase):
                       ioLocale=germanlocale)
         with SavReader(**kwargs) as reader:
             varNames = next(reader)
-            self.assertEqual(varNames, ['\xfcberhaupt'])
+            self.assertEqual(varNames, [b'\xfcberhaupt'])
 
     def tearDown(self):
         locale.setlocale(locale.LC_ALL, oldLocale) 
