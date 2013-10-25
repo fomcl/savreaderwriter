@@ -14,6 +14,7 @@ Statistics Input Output Module. Read or Write SPSS system files (.sav, .zsav)
 segfaults = False
 
 import os
+import sys
 
 try:
     import psyco
@@ -40,7 +41,7 @@ except ImportError:
 __author__ = "Albert-Jan Roskam" + " " + "@".join(["fomcl", "yahoo.com"])
 
 if getattr(sys, 'frozen', False):
-    # The application is frozen by cx_freeze, py2exe or something
+    # The application is frozen by cx_freeze
     __version__ = open(os.path.join(os.path.dirname(sys.executable),
                         "savReaderWriter", "VERSION")).read().strip()
 else:
