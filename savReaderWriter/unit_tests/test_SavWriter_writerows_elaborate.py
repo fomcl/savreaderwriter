@@ -34,16 +34,22 @@ class test_SavWriter_elaborate(unittest.TestCase):
                          b'educ': {b'DemographicVars': b'1'}}
         fileAttributes = {b'TheDate[2]': b'10/21/2005',
                           b'RevisionDate[2]': b'10/21/2005',
-                          b'RevisionDate[1]': '10/29/2004'}
-        missingValues = {b'educ': {b'values': [1, 2, 3]}, b'gender': {b'values': b'x'}}
+                          b'RevisionDate[1]': b'10/29/2004'}
+        # note that 'values' and other keywords must be strings!
+        missingValues = {b'educ': {'values': [1, 2, 3]}, b'gender': {'values': b'x'}}
+        kwargs = dict(savFileName = self.savFileName,
+                      varNames = varNames,
+                      varTypes = varTypes,
+                      varLabels = varLabels,
+                      varSets = varSets,
+                      missingValues = missingValues,
+                      varAttributes = varAttributes,
+                      fileAttributes = fileAttributes)
         records = [[1.0, b'm       ', 11654150400.0, 15.0, 3.0,
                     57000.0, 27000.0, 98.0, 144.0, 0.0],
                    [2.0, b'm       ', 11852956800.0, 16.0, 1.0,
                     40200.0, 18750.0, 98.0, 36.0, 0.0]]
-        with SavWriter(self.savFileName, varNames, varTypes,
-                       varLabels=varLabels, varSets=varSets,
-                       missingValues=missingValues, varAttributes=varAttributes,
-                       fileAttributes=fileAttributes) as writer:
+        with SavWriter(**kwargs) as writer:
             writer.writerows(records)
 
         # read it back in 
@@ -58,7 +64,8 @@ class test_SavWriter_elaborate(unittest.TestCase):
 
     def tearDown(self):
         try:
-            os.remove(self.savFileName)
+            #os.remove(self.savFileName)
+            pass
         except:
             pass 
 

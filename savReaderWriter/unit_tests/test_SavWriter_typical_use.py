@@ -20,8 +20,8 @@ class test_SavWriter_typical_use(unittest.TestCase):
         self.args = (self.savFileName, varNames, varTypes)
 
     def test_SavWriter_typical(self):
-        records_in = [['Test1', 1, 1, '2010-08-11'],
-                      ['Test2', 2, 1, '1910-01-12']]
+        records_in = [[b'Test1', 1, 1, b'2010-08-11'],
+                      [b'Test2', 2, 1, b'1910-01-12']]
         with SavWriter(*self.args) as writer:
             for record in records_in:
                 writer.writerow(record)

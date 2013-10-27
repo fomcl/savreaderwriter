@@ -105,7 +105,7 @@ class SavWriter(Header):
                  varSets=None, varRoles=None, varAttributes=None,
                  fileAttributes=None, fileLabel=None, multRespDefs=None,
                  caseWeightVar=None, overwrite=True, ioUtf8=False, 
-                 ioLocale=None, mode="wb", refSavFileName=None):
+                 ioLocale=None, mode=b"wb", refSavFileName=None):
         """ Constructor. Initializes all vars that can be recycled """
         super(Header, self).__init__(savFileName, ioUtf8, ioLocale)
         self.savFileName = savFileName
@@ -125,7 +125,7 @@ class SavWriter(Header):
         self.pad_8_lookup = self._getPaddingLookupTable(self.varTypes)
         self.bytify = bytify(self.fileEncoding)  # from py3k module
 
-        if self.mode == "wb":
+        if self.mode == b"wb":
             self._openWrite(self.savFileName, self.overwrite)
             self.varNamesTypes = self.varNames, self.varTypes
             self.valueLabels = valueLabels
@@ -147,7 +147,7 @@ class SavWriter(Header):
             if all([item is None for item in triplet]):
                 self._setColWidth10()
             self.textInfo = self.savFileName
-        if self.mode in ("wb", "cp"):
+        if self.mode in (b"wb", b"cp"):
             self._commitHeader()
         self.caseBuffer = self.getCaseBuffer()
 
@@ -160,7 +160,7 @@ class SavWriter(Header):
         """ This function closes the spss data file."""
         if type is not None:
             pass  # Exception occurred
-        self.closeSavFile(self.fh, mode="wb")
+        self.closeSavFile(self.fh, self.mode)
 
     def _openWrite(self, savFileName, overwrite):
         """ This function opens a file in preparation for creating a new IBM
@@ -197,15 +197,15 @@ class SavWriter(Header):
                                 c_double(float(second)), c_double())
         retcode = self.spssio.spssConvertTime(d, h, m, s, byref(spssTime))
         if retcode:
-            msg = ("Problem converting time value '%s %s:%s:%s'" %
-                  (day, hour, minute, second))
-            checkErrsWarns(msg, retcode)
+            msg = "Problem converting time value '%s %s:%s:%s'"
+            checkErrsWarns(msg % (day, hour, minute, second), retcode)
         return spssTime.value
 
-    def spssDateTime(self, datetimeStr="2001-12-08", strptimeFmt="%Y-%m-%d"):
+    def spssDateTime(self, datetimeStr=b"2001-12-08", strptimeFmt="%Y-%m-%d"):
         """ This function converts a date/time string into an SPSS date,
         using a strptime format."""
         try:
+            datetimeStr = datetimeStr.decode("utf-8")
             dt = time.strptime(datetimeStr, strptimeFmt)
         except (ValueError, TypeError):
             return self.sysmis
@@ -229,10 +229,7 @@ class SavWriter(Header):
         {1:%-8s, 7:%-8s, 9: %-16s, 24: %-24s}. Purpose: Get rid of trailing
         null bytes"""
         strLengths = varTypes.values()
-        lookup = dict([(i, "%%-%ds" % (-8 * (i // -8))) for i in strLengths])
-        #if sys.version_info[1] > 2:
-        #    return {k: bytes(v, "utf-8") for k, v in lookup.items()}
-        return lookup
+        return dict([(i, "%%-%ds" % (-8 * (i // -8))) for i in strLengths])
 
     def writerow(self, record):
         """ This function writes one record, which is a Python list."""
@@ -246,6 +243,7 @@ class SavWriter(Header):
         compare this Python version with the Cython version cWriterow."""
         float_ = float
         bytify = self.bytify
+        encoding = self.fileEncoding
         for i, value in enumerate(record):
             varName = self.varNames[i]
             varType = self.varTypes[varName]
@@ -256,10 +254,12 @@ class SavWriter(Header):
                     value = self.sysmis_
             else:
                 # Get rid of trailing null bytes --> 7 x faster than 'ljust'
-                value = bytify(self.pad_8_lookup[varType] % value)
-                if self.ioUtf8_:
-                    if isinstance(value, unicode):
-                        value = value.encode("utf-8")
+                #value = self.pad_8_lookup[varType] % value
+                template = self.pad_8_lookup[varType]
+                value = template % value.decode(encoding)  # TODO make this more efficient
+                value = value.encode(encoding)
+                if self.ioUtf8_ and isinstance(value, unicode):
+                    value = value.encode("utf-8")          # TODO correct this
             record[i] = value
         self.record = record
 

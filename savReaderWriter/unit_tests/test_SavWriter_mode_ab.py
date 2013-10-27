@@ -32,7 +32,7 @@ class test_SavWriter_append_data(unittest.TestCase):
         line = [1.0, b'm', 11654150400.0, 15.0, 3.0, 
                 57000.0, 27000.0, 98.0, 144.0, 0.0]
         with SavWriter(self.savFileNameCopy, self.varNames,
-                       self.varTypes, mode="ab") as writer:
+                       self.varTypes, mode=b"ab") as writer:
             for i in range(NROWS_EXTRA):
                 writer.writerow(line)
 
@@ -44,7 +44,7 @@ class test_SavWriter_append_data(unittest.TestCase):
         finally:
             if reader is not None:
                 reader.close()
-        self.assertEqual(self.NROWS_ORIGINAL, NROWS_ORIGINAL + NROWS_EXTRA)
+        self.assertEqual(n_records_got, self.NROWS_ORIGINAL + NROWS_EXTRA)
 
     def tearDown(self):
         try:

@@ -172,7 +172,7 @@ class Generic(object):
             raise WinError(retcode)
         return lpMultiByteStr.value
 
-    def openSavFile(self, savFileName, mode="rb", refSavFileName=None):
+    def openSavFile(self, savFileName, mode=b"rb", refSavFileName=None):
         """This function opens IBM SPSS Statistics data files in mode <mode>
         and returns a handle that  should be used for subsequent operations on
         the file. If <savFileName> is opened in mode "cp", meta data
@@ -182,26 +182,25 @@ class Generic(object):
             fdopen = self.libc._fdopen  # Windows
         except AttributeError:
             fdopen = self.libc.fdopen   # Linux and others
-        fdopen.argtypes = [c_int, c_char_p]
-        fdopen.restype = c_void_p
+        fdopen.argtypes, fdopen.restype = [c_int, c_char_p], c_void_p
         fdopen.errcheck = self.errcheck
-        mode_ = b"wb" if mode == b"cp" else bytez(mode)
+        mode_ = b"wb" if mode == b"cp" else mode
         with open(savFileName, mode_.decode("utf-8")) as f:
             self.fd = fdopen(f.fileno(), mode_)
-        if mode == "rb":
+        if mode == b"rb":
             spssOpen = self.spssio.spssOpenRead
-        elif mode == "wb":
+        elif mode == b"wb":
             spssOpen = self.spssio.spssOpenWrite
-        elif mode == "cp":
+        elif mode == b"cp":
             spssOpen = self.spssio.spssOpenWriteCopy
-        elif mode == "ab":
+        elif mode == b"ab":
             spssOpen = self.spssio.spssOpenAppend
 
         savFileName = self._encodeFileName(savFileName)
         refSavFileName = self._encodeFileName(refSavFileName)
         sav = c_char_py3k(savFileName)
         fh = c_int(self.fd)
-        if mode == "cp":
+        if mode == b"cp":
             retcode = spssOpen(sav, c_char_py3k(refSavFileName), pointer(fh))
         else:
             retcode = spssOpen(sav, pointer(fh))
@@ -210,18 +209,23 @@ class Generic(object):
         checkErrsWarns(msg, retcode)
         return fh.value
 
-    def closeSavFile(self, fh, mode="rb"):
+    def closeSavFile(self, fh, mode=b"rb"):
         """This function closes the sav file associated with <fh> that was open
         in mode <mode>."""
-        if mode == "rb":
+        if mode == b"rb":
             spssClose = self.spssio.spssCloseRead
-        elif mode == "wb":
+        elif mode in (b"wb", b"cp"):
             spssClose = self.spssio.spssCloseWrite
-        elif mode == "ab":
+        elif mode == b"ab":
             spssClose = self.spssio.spssCloseAppend
-        retcode = spssClose(c_int(fh))
+        else:
+            spssClose, retcode = None, 9999
+
+        if spssClose is not None:
+            retcode = spssClose(c_int(fh))
         msg = "Problem closing file in mode %r" % mode
         checkErrsWarns(msg, retcode)
+        #self.libc.close(self.fd)  ???
 
     @property
     def releaseInfo(self):
@@ -287,7 +291,7 @@ class Generic(object):
         checkErrsWarns("Problem getting SystemString", retcode)
         return sysName.value
 
-    def getStruct(self, varTypes, varNames, mode="rb"):
+    def getStruct(self, varTypes, varNames, mode=b"rb"):
         """This function returns a compiled struct object. The required
         struct format string for the conversion between C and Python
         is created on the basis of varType and byte order.
@@ -296,10 +300,10 @@ class Generic(object):
         --byte order: files are written in the byte order of the host system
           (mode="wb") and read/appended using the byte order information
           contained in the SPSS data file (mode is "ab" or "rb" or "cp")"""
-        if mode in ("ab", "rb", "cp"):     # derive endianness from file
+        if mode in (b"ab", b"rb", b"cp"):   # derive endianness from file
             endianness = self.releaseInfo["big/little-endian code"]
             endianness = ">" if endianness > 0 else "<"
-        elif mode == "wb":                 # derive endianness from host
+        elif mode == b"wb":                 # derive endianness from host
             if sys.byteorder == "little":
                 endianness = "<"
             elif sys.byteorder == "big":
@@ -448,7 +452,6 @@ class Generic(object):
         ISO-8859-1, which is then converted to the corresponding Python
         codec name. If the file contains no file encoding, the locale's
         preferred encoding is returned"""
-        preferredEncoding = locale.getpreferredencoding()
         try:
             pszEncoding = create_string_buffer(20)  # is 20 enough??
             func = self.spssio.spssGetFileEncoding
@@ -465,7 +468,7 @@ class Generic(object):
         except KeyError:
             print ("NOTE. IANA coding lookup error. Code %r " % iana_code +
                    "does not map to any Python codec.")
-            return preferredEncoding
+            return locale.getpreferredencoding()
 
     @property
     def record(self):

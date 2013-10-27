@@ -53,7 +53,7 @@ class SavReader(Header):
                  verbose=False, selectVars=None, idVar=None, rawMode=False,
                  ioUtf8=False, ioLocale=None):
         """ Constructor. Initializes all vars that can be recycled """
-        super(SavReader, self).__init__(savFileName, "rb", None,
+        super(SavReader, self).__init__(savFileName, b"rb", None,
                                         ioUtf8, ioLocale)
         self.savFileName = savFileName
         self.returnHeader = returnHeader
@@ -97,7 +97,7 @@ class SavReader(Header):
     def close(self):
         """This function closes the spss data file and does some cleaning."""
         if not segfaults:
-            self.closeSavFile(self.fh, mode="rb")
+            self.closeSavFile(self.fh, mode=b"rb")
         del self.spssio
 
     def __len__(self):

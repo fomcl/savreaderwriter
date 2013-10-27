@@ -346,9 +346,9 @@ class Header(Generic):
             return
         reverseFormats = dict([(v[0][9:], k) for k, v in allFormats.items()])
         validValues = sorted(reverseFormats.keys())
-        regex = "(?P<printFormat>A(HEX)?)(?P<printWid>\d+)"
+        regex = b"(?P<printFormat>A(HEX)?)(?P<printWid>\d+)"
         isStringVar = re.compile(regex, re.IGNORECASE)
-        regex = "(?P<printFormat>[A-Z]+)(?P<printWid>\d+)\.?(?P<printDec>\d*)"
+        regex = b"(?P<printFormat>[A-Z]+)(?P<printWid>\d+)\.?(?P<printDec>\d*)"
         isAnyVar = re.compile(regex, re.IGNORECASE)
         funcP = self.spssio.spssSetVarPrintFormat  # print type
         funcW = self.spssio.spssSetVarWriteFormat  # write type
@@ -434,33 +434,34 @@ class Header(Generic):
         """
         if kwargs == {}:
             return 0
-        fargs = [b"lower", b"upper", b"value", b"values"]
+        fargs = ["lower", "upper", "value", "values"]
         if set(kwargs.keys()).difference(set(fargs)):
-            raise ValueError("Allowed keywords are: %s" % b", ".join(fargs))
+            raise ValueError("Allowed keywords are: %s" % ", ".join(fargs))
         varName = self.encode(varName)
         varType = self.varTypes[varName]
 
         # range of missing values, e.g. MISSING VALUES aNumVar (-9 THRU -1).
         if varType == 0:
             placeholder = 0.0
-            if b"lower" in kwargs and b"upper" in kwargs and \
-                b"value" in kwargs:
+            if "lower" in kwargs and "upper" in kwargs and \
+                "value" in kwargs:
                 missingFmt = "SPSS_MISS_RANGEANDVAL"
-                args = kwargs[b"lower"], kwargs[b"upper"], kwargs[b"value"]
-            elif b"lower" in kwargs and b"upper" in kwargs:
+                args = kwargs["lower"], kwargs["upper"], kwargs["value"]
+            elif "lower" in kwargs and "upper" in kwargs:
                 missingFmt = "SPSS_MISS_RANGE"
-                args = kwargs[b"lower"], kwargs[b"upper"], placeholder
+                args = kwargs["lower"], kwargs["upper"], placeholder
         else:
             placeholder, args = b"0", None
 
         # up to three discrete missing values
         if "values" in kwargs:
-            values = self.encode(kwargs.values()[0])
-            if isinstance(values, (float, int, str)):
+            values = self.encode(list(kwargs.values())[0])
+            if isinstance(values, (float, int, str, bytes)):
                 values = [values]
 
             # check if missing values strings values are not too long
-            strMissLabels = [len(v) for v in values if isinstance(v, str)]
+            strMissLabels = [len(v) for v in values if 
+                             isinstance(v, (str, bytes))]
             if strMissLabels and max(strMissLabels) > 9:
                 raise ValueError("Missing value label > 9 bytes")
 
@@ -688,7 +689,9 @@ class Header(Generic):
             return
         varSets_ = []
         for varName, varSet in varSets.items():
-            varSets_.append(b"%s= %s" % (varName, " ".join(varSet)))
+            varName = varName.decode(self.fileEncoding)
+            varSet = (b" ".join(varSet)).decode(self.fileEncoding)
+            varSets_.append(("%s= %s" % (varName, varSet)).encode(self.fileEncoding))
         varSets_ = c_char_py3k(b"\n".join(varSets_))
         retcode = self.spssio.spssSetVariableSets(c_int(self.fh), varSets_)
         if retcode:
@@ -794,8 +797,8 @@ class Header(Generic):
             if not attributes:
                 continue
             nAttr = len(attributes)
-            attrNames = (c_char_p * nAttr)(*attributes.keys())
-            attrValues = (c_char_p * nAttr)(*attributes.values())
+            attrNames = (c_char_p * nAttr)(*list(attributes.keys()))
+            attrValues = (c_char_p * nAttr)(*list(attributes.values()))
             retcode = func(c_int(self.fh), c_char_py3k(varName),
                            pointer(attrNames), pointer(attrValues),
                            c_int(nAttr))
@@ -849,16 +852,22 @@ class Header(Generic):
             return
         attributes, valueLens = {}, []
         for name, values in fileAttributes.items():
-            #valueLens.append(len(values))
+            valueLens.append(len(values))
             for value in values:
                 attributes[name] = value
+ 
         nAttr = len(attributes)
-        #nAttr = max(valueLens)  # n elements per vector. But this may vary??
-        attrNames = (c_char_p * nAttr)(*attributes.keys())
-        attrValues = (c_char_p * nAttr)(*attributes.values())
+        attrNames = (c_char_p * nAttr)(*list(attributes.keys()))
+        attrValues = (c_char_p * nAttr)(*list(attributes.values()))
+
+        # py2 way: segfault in py3; py3 way: SPSS_INVALID_ATTRNAME in py2
+        nAttrPy2 = c_int(nAttr)
+        nAttrPy3 = (c_int * len(valueLens))(*valueLens)  # why??
+        nAttributes = nAttrPy3 if sys.version_info[0] > 2 else nAttrPy2
+
         func = self.spssio.spssSetFileAttributes
-        retcode = func(c_int(self.fh), pointer(attrNames),
-                       pointer(attrValues), c_int(nAttr))
+        retcode = func(c_int(self.fh), byref(attrNames),
+                       byref(attrValues), nAttributes)
         if retcode:
             checkErrsWarns("Problem setting file attributes", retcode)
 
