@@ -100,9 +100,12 @@ class SPSSIOWarning(UserWarning):
     pass
 
 # Warnings are usually harmless!
-env = os.environ.get("SAVRW_DISPLAY_WARNS")
-SAVRW_DISPLAY_WARNS = bool(int(env)) if str(env).isdigit() else False
-action = "default" if SAVRW_DISPLAY_WARNS else "ignore"
+action = os.environ.get("SAVRW_DISPLAY_WARNS")
+action = action.lower() if action else "ignore"
+actions = ("error", "ignore", "always", "default", "module", "once")
+if action not in actions:
+   raise ValueError("If set, environment variable SAVRW_DISPLAY_WARNS must be"
+                    " one of the following values:\n" % ", ".join(actions))
 warnings.simplefilter(action, SPSSIOWarning)
 
 def checkErrsWarns(msg, retcode):
