@@ -850,24 +850,12 @@ class Header(Generic):
     def fileAttributes(self, fileAttributes):
         if not fileAttributes:
             return
-        attributes, valueLens = {}, []
-        for name, values in fileAttributes.items():
-            valueLens.append(len(values))
-            for value in values:
-                attributes[name] = value
- 
-        nAttr = len(attributes)
-        attrNames = (c_char_p * nAttr)(*list(attributes.keys()))
-        attrValues = (c_char_p * nAttr)(*list(attributes.values()))
-
-        # py2 way: segfault in py3; py3 way: SPSS_INVALID_ATTRNAME in py2
-        nAttrPy2 = c_int(nAttr)
-        nAttrPy3 = (c_int * len(valueLens))(*valueLens)  # why??
-        nAttributes = nAttrPy3 if sys.version_info[0] > 2 else nAttrPy2
-
+        nAttr = len(fileAttributes)
+        attrNames = (c_char_p * nAttr)(*list(fileAttributes.keys()))
+        attrValues = (c_char_p * nAttr)(*list(fileAttributes.values()))
         func = self.spssio.spssSetFileAttributes
         retcode = func(c_int(self.fh), byref(attrNames),
-                       byref(attrValues), nAttributes)
+                       byref(attrValues), c_int(nAttr))
         if retcode:
             checkErrsWarns("Problem setting file attributes", retcode)
 
