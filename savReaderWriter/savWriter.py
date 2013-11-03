@@ -207,7 +207,7 @@ class SavWriter(Header):
         try:
             datetimeStr = datetimeStr.decode("utf-8")
             dt = time.strptime(datetimeStr, strptimeFmt)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, AttributeError):
             return self.sysmis
         day, month, year = dt.tm_mday, dt.tm_mon, dt.tm_year
         hour, minute, second = dt.tm_hour, dt.tm_min, dt.tm_sec

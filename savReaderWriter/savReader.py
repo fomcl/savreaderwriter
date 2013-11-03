@@ -183,7 +183,7 @@ class SavReader(Header):
                         # There is no such thing as a %q strftime directive
                         try:
                             record[i] = QUARTERS[record[i][:2]] + record[i][2:]
-                        except KeyError:
+                        except (KeyError, TypeError):
                             record[i] = self.recodeSysmisTo
             elif varType > 0:
                 value = value[:varType]

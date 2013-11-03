@@ -93,7 +93,10 @@ class SavHeaderReader(Header):
         try:
             v =  v if self.ioUtf8 else v.decode(enc)
         except AttributeError:
-            v = ", ".join(map(str, v)) if isinstance(v, list) else v
+            #v = ", ".join(map(str, v)) if isinstance(v, list) else v
+            enc = self.fileEncoding
+            func = lambda x: x.decode(enc) if isinstance(x, bytes) else str(x)
+            v = ", ".join(map(func, v)) if isinstance(v, list) else v
         try:
             v = ", ".join(eval(str(v)))  # ??
         except:
