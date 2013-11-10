@@ -17,31 +17,31 @@ class test_SavReader_typical_use(unittest.TestCase):
         self.data = SavReader(savFileName)
 
     def test_rich_comp_eq(self):
-        """=="""
+        """testing operator =="""
         self.assertFalse(self.data == 3)
         self.assertFalse(self.data == 2)
         self.assertTrue(self.data == 1) 
 
     def test_rich_comp_ge(self):
-        """>="""
+        """testing operator >="""
         self.assertFalse(self.data >= 3)
         self.assertFalse(self.data >= 2)
         self.assertTrue(self.data >= 1)
 
     def test_rich_comp_le(self):
-        """<="""
+        """testing operator <="""
         self.assertTrue(self.data <= 3)
         self.assertTrue(self.data <= 2)
         self.assertTrue(self.data <= 1)
 
     def test_rich_comp_gt(self):
-        """>"""
+        """testing operator >"""
         self.assertFalse(self.data > 3)
         self.assertFalse(self.data > 2)
         self.assertFalse(self.data > 1)
     
     def test_rich_comp_lt(self):
-        """<"""
+        """testing operator <"""
         self.assertTrue(self.data < 3)
         self.assertTrue(self.data < 2)
         self.assertFalse(self.data < 1)
