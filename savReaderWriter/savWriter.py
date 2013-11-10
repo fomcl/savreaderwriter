@@ -9,7 +9,7 @@ from savReaderWriter import *
 from py3k import *
 from header import *
 if cWriterowOK:
-    cWriterow = cWriterow.cWriterow
+    cWriterow = cWriterow.cWriterow  # TODO: make this Python3-ready (or make a Python 3 version)
 
 class SavWriter(Header):
 
@@ -242,7 +242,6 @@ class SavWriter(Header):
         """ This function writes one record, which is a Python list,
         compare this Python version with the Cython version cWriterow."""
         float_ = float
-        bytify = self.bytify
         encoding = self.fileEncoding
         for i, value in enumerate(record):
             varName = self.varNames[i]
@@ -253,11 +252,14 @@ class SavWriter(Header):
                 except (ValueError, TypeError):
                     value = self.sysmis_
             else:
-                # Get rid of trailing null bytes --> 7 x faster than 'ljust'
-                #value = self.pad_8_lookup[varType] % value
-                template = self.pad_8_lookup[varType]
-                value = template % value.decode(encoding)  # TODO make this more efficient
-                value = value.encode(encoding)
+                if isPy3k:
+                    template = self.pad_8_lookup[varType]
+                    value = template % value.decode(encoding)  # TODO make this more efficient
+                    value = value.encode(encoding)
+                else:
+                    # Get rid of trailing null bytes --> 7 x faster than 'ljust'
+                    value = self.pad_8_lookup[varType] % value
+
                 if self.ioUtf8_ and isinstance(value, unicode):
                     value = value.encode("utf-8")          # TODO correct this
             record[i] = value
