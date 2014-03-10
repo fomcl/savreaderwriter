@@ -1,7 +1,0 @@
-~~~~~~~~~~~~~~~~~~~~~~~~~
-README
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Lin32 and hpux_it were *not* included in SPSS I/O version 22. 
-I am guessing that this is a mistake from IBM. 
-Included libraries for Lin32 and HP-UX are of version 21.0.0.1

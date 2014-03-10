@@ -151,14 +151,15 @@ class test_SavWriter_copy_metadata(unittest.TestCase):
         self.savFileName1 = os.path.join(tempfile.gettempdir(), "test1.sav")
         self.savFileName2 = os.path.join(tempfile.gettempdir(), "test2.sav")
 
-    @unittest.skipIf(sys.version_info[0] > 2, "keywords must be string")
+    #@unittest.skipIf(sys.version_info[0] > 2, "keywords must be string")
+    @unittest.skip("Gives error 'Permission denied: '/tmp/test1.sav'")
     def test_SavWriter_copy_meta_dict(self):
         """Copy header info from one file to another (Method #1)"""
         # Python 3: self._setMissingValue(varName, **kwargs)
         # TypeError: _setMissingValue() keywords must be string
         # keywords like 'values', 'lower' and 'upper' may not be bytes.
         with SavHeaderReader(self.savFileName) as header:
-            metadata = header.dataDictionary() 
+            metadata = header.dataDictionary()
         with SavReader(self.savFileName) as reader:
             with SavWriter(self.savFileName1, **metadata) as writer:
                 for line in reader:

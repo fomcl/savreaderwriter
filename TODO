@@ -1,1 +1,9 @@
-Fix spssSetDateVariables wrapper to set SPSS Trends info
+* Fix spssSetDateVariables wrapper to set SPSS Trends info
+* Upgrade to SPSS v22 I/O libraries --> not much added benefit
+-pro: work with encrypted sav files
+-con: needs LD_LIBRARY_PATH to be set
+* Make code faster, tidier after Py2-3 in codebase
+* Use ctypes.argtypes for every function that user can call
+-prevents ugly segfaults in case of wrong specification by user
+-prevents annoying warnings by test runners
+

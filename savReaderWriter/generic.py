@@ -69,11 +69,7 @@ class Generic(object):
         path = os.path.join(os.path.dirname(__file__), "spssio", folder)
         libs = sorted(os.listdir(path))
 
-        # (1) IBM mistakenly omitted lin32 & HP-UX when upgrading to I/O 22?
-        #     These two platforms use v21.0.0.1 I/O libs --> no libgsk8iccs
-        # (2) libspssjdio.so.1 or equivalent --> not needed --> no longer used
-        pats = [] if folder in ("lin32", "hpux_it") else ['libgsk8iccs']
-        pats += ['(lib)?icuda?t', '(lib)?icuuc', '(lib)?icui',
+        pats = ['(lib)?icuda?t', '(lib)?icuuc', '(lib)?icui',
                 '(lib)?zlib', '(lib)?spssd?io']
         libs = [lib for pat in pats for lib in libs if re.match(pat, lib)]
         isLib = r"""\w+(\.s[ol](?:\.\d+)*| # linux/hp/solaris
@@ -86,31 +82,7 @@ class Generic(object):
             print(os.path.basename(path).upper().center(79, "-"))
             print("\n".join(libs))
 
-        # FIXME: chdir needed to properly load libgsk8iccs
-        # Idem, LD_LIBRARY_PATH (lin64)
-        if sys.platform.lower().startswith("win"):
-            newpath = folder + os.pathsep + os.environ['PATH']
-            os.environ['PATH'] = newpath
-        else:
-            ld_paths = dict(lin32 = "LD_LIBRARY_PATH",
-                            lin64 = "LD_LIBRARY_PATH",
-                            zlinux = "LD_LIBRARY_PATH",
-                            macos = "DYLD_LIBRARY_PATH",
-                            aix64 = "LIBPATH on AIX",
-                            hpux_it = "SHLIB_PATH",
-                            sol64 = "LD_LIBRARY_PATH")
-            ld_path = os.getenv(ld_paths.get(folder, ''), '')
-            if path not in ld_path.split(os.pathsep)[-1]:
-                msg = "You need to set %s to %s"
-                #raise RuntimeWarning(msg % (ld_paths.get(folder, "?"), path))
-        try:
-            oldpath = os.path.abspath(".")
-            os.chdir(path)
-            spssio = [load(os.path.join(path, lib)) for lib in libs][-1]
-        finally:
-           os.chdir(oldpath)
-
-        return spssio
+        return [load(os.path.join(path, lib)) for lib in libs][-1]
 
     def loadLibrary(self):
         """This function loads and returns the SPSSIO libraries,
