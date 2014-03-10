@@ -77,7 +77,7 @@ The program can be installed by running::
 
 Or alternatively::
 
-    pip install savReaderWriter
+    pip install savReaderWriter --allow-all-external
 
 To get the 'bleeding edge' version straight from the repository do::
 
