@@ -221,7 +221,7 @@ INFORMASI LISENSI
 
 Program-program yang tercantum di bawah ini diberi lisensi berdasarkan syarat dan ketentuan berikut ini selain syarat dan ketentuan dari IBM Perjanjian Lisensi Internasional untuk Program Tanpa Garansi (nomor formulir IBM Z125-5589-05).
 
-Nama Program: IBM I/O Modules for IBM SPSS Statistics Data Files 21.0
+Nama Program: IBM I/O Modules for IBM SPSS Statistics Data Files 22.0
 Nomor Program: Tool
 
 Perangkat Pengembangan
@@ -231,6 +231,14 @@ Program ini didesain untuk membantu dalam pengembangan aplikasi-aplikasi dan sis
 Komponen Sumber dan Material Contoh
 
 Program dapat mencakup beberapa komponen dalam bentuk kode sumber ("Komponen Sumber") dan beberapa material lain yang dikenal sebagai Material Contoh. Pemegang Lisensi dapat menyalin dan memodifikasi Komponen-komponen Sumber dan Material Contoh untuk penggunaan internal hanya dengan ketentuan bahwa penggunaan tersebut dalam batas-batas hak lisensi berdasarkan Perjanjian ini, akan tetapi dengan ketentuan bahwa Pemegang Lisensi tidak dapat mengubah atau menghapus setiap informasi atau pemberitahuan tentang hak cipta yang terdapat dalam Komponen-komponen Sumber atau Material Contoh.  IBM memberikan Komponen-komponen Sumber dan Material Sampel tanpa adanya kewajiban dukungan dan "APA ADANYA", TANPA GARANSI APA PUN, SECARA TEGAS ATAU TERSIRAT, TERMASUK GARANSI KEPEMILIKAN, JAMINAN TIDAK ADANYA PELANGGARAN ATAU CAMPUR TANGAN SERTA JAMINAN DAN KETENTUAN SECARA TERSIRAT TENTANG KELAYAKAN UNTUK DIPERJUALBELIKAN DAN KESESUAIAN UNTUK TUJUAN TERTENTU.
+
+Syarat untuk Microsoft Visual Studio
+
+Program dapat berisi kode Microsoft Visual Studio SDK. Pemegang Lisensi tidak diizinkan untuk menggunakan kode tersebut untuk mengembangkan ekstensi-ekstensi Microsoft Visual Studio.
+
+Pembatasan Ekspor dan Impor
+
+Program ini dapat berisi kriptografi. Transfer ke, atau penggunaan oleh, para pengguna Program dapat dilarang atau tunduk kepada undang-undang, peraturan atau kebijakan ekspor atau impor, termasuk undang-undang, peraturan atau kebijakan ekspor dan impor Peraturan Administrasi Ekspor Amerika Serikat (United States Export Administration Regulations). Pemegang Lisensi menerima semua tanggung jawab untuk mematuhi semua undang-undang, peraturan, dan kebijakan yang berlaku terkait dengan ekspor, impor atau penggunaan Program ini, termasuk tetapi tidak terbatas pada, pembatasan-pembatasan tentang ekspor dan ekspor ulang di A.S. Untuk mendapatkan klasifikasi ekspor dari Program ini, lihat: https://www.ibm.com/products/exporting/.
 
 Syarat-syarat unik Program
 
@@ -252,6 +260,6 @@ Apabila Program termasuk komponen-komponen yang Dapat Didistribusikan Kembali, k
 11) Perjanjian lisensi Pemegang Lisensi dengan pengguna akhir Aplikasi Pemegang Lisensi harus memberitahu pengguna akhir bahwa Perangkat Lunak yang Dapat Didistribusikan Kembali atau modifikasi-modifikasi dari perangkat-perangkat lunak tersebut tidak dapat i) digunakan untuk tujuan apa pun selain untuk memungkinkan Aplikasi Pemegang Lisensi, ii) disalin (kecuali untuk tujuan-tujuan cadangan), iii) selanjutnya didistribusikan atau ditransfer tanpa Aplikasi Pemegang Lisensi atau iv) dirakit kembali, disusun kembali atau dengan cara lain, diterjemahkan kecuali sebagaimana diizinkan secara khusus oleh undang-undang dan tanpa adanya kemungkinan pengabaian kontrak. Selanjutnya, perjanjian lisensi Pemegang Lisensi harus setidaknya bersifat melindungi IBM sebagaimana syarat-syarat Perjanjian ini.
 
 
-L/N:  L-GLBC-8VLUYY
-D/N:  L-GLBC-8VLUYY
-P/N:  L-GLBC-8VLUYY 
+L/N:  L-GLBC-99B3B6
+D/N:  L-GLBC-99B3B6
+P/N:  L-GLBC-99B3B6 

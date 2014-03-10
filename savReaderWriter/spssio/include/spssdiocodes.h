@@ -3,7 +3,7 @@
  *
  * IBM SPSS Products: Statistics Common
  *
- * (C) Copyright IBM Corp. 1989, 2012
+ * (C) Copyright IBM Corp. 1989, 2013
  *
  * US Government Users Restricted Rights - Use, duplication or disclosure
  * restricted by GSA ADP Schedule Contract with IBM Corp. 
@@ -119,6 +119,9 @@
 #define    SPSS_INVALID_VARSETDEF     78
 #define    SPSS_INVALID_ROLE          79
 
+#define    SPSS_INVALID_PASSWORD      80
+#define    SPSS_EMPTY_PASSWORD        81
+
 /****************************************** WARNING CODES
 */
 #define    SPSS_EXC_LEN64            -1
@@ -223,6 +226,7 @@
 #define   SPSS_MAX_VARLABEL   256     /* Variable label */
 #define   SPSS_MAX_ENCODING    64     /* Maximum encoding text */
 #define   SPSS_MAX_7SUBTYPE    40     /* Maximum record 7 subtype */
+#define   SPSS_MAX_PASSWORD    10     /* Maximum password */
 
 /****************************************** Type 7 record subtypes
 */

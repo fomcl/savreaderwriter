@@ -317,7 +317,7 @@ LIZENZINFORMATION
 
 Für die Lizenzierung der nachfolgend aufgelisteten Programme gelten zusätzlich zu den 'IBM Internationale Nutzungsbedingungen für Programme ohne Gewährleistung' (IBM Formnummer Z125-5589-05) die folgenden Bedingungen.
 
-Programmname: IBM I/O Modules for IBM SPSS Statistics Data Files 21.0
+Programmname: IBM I/O Modules for IBM SPSS Statistics Data Files 22.0
 Programmnummer: Tool
 
 Entwicklungstool
@@ -327,6 +327,14 @@ Dieses Programm wurde zur Unterstützung bei der Entwicklung von Softwareanwendu
 Quellenkomponenten und Mustermaterialien
 
 Das Programm kann einige Komponenten in Form von Quellcode ("Quellenkomponenten") und sonstige Materialien, die als Mustermaterialien gekennzeichnet sind, enthalten. Der Lizenznehmer darf die Quellenkomponenten und Mustermaterialien nur für den internen Gebrauch kopieren und ändern, sofern eine solche Verwendung im Rahmen der Lizenzrechte dieser Vereinbarung erfolgt und der Lizenznehmer die in den Quellenkomponenten oder Mustermaterialien enthaltenen Copyrightvermerke oder Hinweise weder ändert noch löscht. IBM stellt die Quellenkomponenten und Mustermaterialien ohne eine Verpflichtung zur Unterstützung, ohne Wartung (auf "as-is"-Basis) und ohne jegliche Gewährleistung (ausdrücklich oder stillschweigend) zur Verfügung, insbesondere ohne Gewährleistung für Rechtsmängel, für die Freiheit von Rechten Dritter, für das Recht auf Nichtbeeinträchtigung, für die Handelsüblichkeit und für die Verwendungsfähigkeit für einen bestimmten Zweck.
+
+Bedingungen für Microsoft Visual Studio
+
+Das Programm kann Microsoft Visual Studio SDK-Code enthalten. Es ist dem Lizenznehmer nicht gestattet, diesen Code zur Entwicklung von Erweiterungen für Microsoft Visual Studio zu nutzen.
+
+Export- und Importbeschränkungen
+
+Dieses Programm kann Verschlüsselungstechnologie enthalten. Die Übertragung des Programms an andere Benutzer oder deren Verwendung des Programms ist möglicherweise untersagt oder unterliegt den Gesetzen, Verordnungen oder Bestimmungen für den Export oder Import, einschließlich der Export Administration Regulations (Exportkontrollbestimmungen) der Vereinigten Staaten. Der Lizenznehmer übernimmt die gesamte Verantwortung für die Einhaltung aller anwendbaren Gesetze, Verordnungen und Bestimmungen hinsichtlich des Exports, Imports oder der Verwendung dieses Programms, einschließlich der US-Beschränkungen, die für Exporte und Reexporte gelten. Die Exportklassifizierung dieses Programms kann über die folgende Adresse festgestellt werden: https://www.ibm.com/products/exporting/.
 
 Programmspezifische Bedingungen
 
@@ -361,6 +369,6 @@ Wenn das Programm weiterverteilbare Komponenten (sog. Redistributables) enthält
 11. In der Lizenzvereinbarung des Lizenznehmers mit dem Endbenutzer seiner Anwendung muss ein Hinweis enthalten sein, dass die Redistributables oder die davon erstellten Bearbeitungen i) nur zur Aktivierung seiner Anwendung verwendet werden dürfen, ii) nicht kopiert werden dürfen (außer für Sicherungszwecke), iii) nicht ohne seine Anwendung weitergegeben oder übertragen werden dürfen und iv) nicht rückumgewandelt (reverse assemble, reverse compile) oder in anderer Weise übersetzt werden dürfen, soweit nicht durch gesetzliche Regelung etwas anderes zwingend vorgeschrieben ist. Darüber hinaus muss die Lizenzvereinbarung des Lizenznehmers die Rechte von IBM in mindestens demselben Maße schützen, wie sie durch die Bedingungen dieser Vereinbarung geschützt werden. 
 
 
-L/N:  L-GLBC-8VLUYY
-D/N:  L-GLBC-8VLUYY
-P/N:  L-GLBC-8VLUYY 
+L/N:  L-GLBC-99B3B6
+D/N:  L-GLBC-99B3B6
+P/N:  L-GLBC-99B3B6 

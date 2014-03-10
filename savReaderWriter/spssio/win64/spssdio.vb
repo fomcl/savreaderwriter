@@ -5,7 +5,7 @@
 ' 
 ' IBM SPSS Products: Statistics Common
 ' 
-' (C) Copyright IBM Corp. 1989, 2011
+' (C) Copyright IBM Corp. 1989, 2013
 ' 
 ' The source code for this program is not published or otherwise divested of its trade secrets, 
 ' irrespective of what has been deposited with the U.S. Copyright Office.
@@ -22,6 +22,7 @@ Module SpssDioInterface
     ' 04 Feb 03 - SPSS 12.0 - Long variable names
     ' 27 Aug 04 - SPSS 13.0 - Extended strings
     ' 23 Aug 07 - SPSS 16.0 - Unicode
+    ' 03 Apr 13 - Statistics 22.0 - Password protection
 
     ' Error codes returned by functions
     Public Const SPSS_OK = 0
@@ -360,12 +361,24 @@ Module SpssDioInterface
                                 (ByRef lowest As Double, ByRef highest As Double)
     Public Declare Function spssOpenAppend Lib "spssio32.dll" Alias "spssOpenAppend@8" _
                                 (ByVal fileName As String, ByRef handle As Integer) As Integer
+    Public Declare Function spssOpenAppendEx Lib "spssio32.dll" Alias "spssOpenAppendEx@12" _
+                                (ByVal fileName As String, ByVal password As String, ByRef handle As Integer) As Integer
     Public Declare Function spssOpenRead Lib "spssio32.dll" Alias "spssOpenRead@8" _
                                 (ByVal fileName As String, ByRef handle As Integer) As Integer
+    Public Declare Function spssOpenReadEx Lib "spssio32.dll" Alias "spssOpenReadEx@12" _
+                                (ByVal fileName As String, ByVal password As String, ByRef handle As Integer) As Integer
     Public Declare Function spssOpenWrite Lib "spssio32.dll" Alias "spssOpenWrite@8" _
                                 (ByVal fileName As String, ByRef handle As Integer) As Integer
+    Public Declare Function spssOpenWriteEx Lib "spssio32.dll" Alias "spssOpenWriteEx@12" _
+                                (ByVal fileName As String, ByVal password As String, ByRef handle As Integer) As Integer
     Public Declare Function spssOpenWriteCopy Lib "spssio32.dll" Alias "spssOpenWriteCopy@12" _
                                 (ByVal fileName As String, ByVal dictFileName As String, ByRef handle As Integer) As Integer
+    Public Declare Function spssOpenWriteCopyEx Lib "spssio32.dll" Alias "spssOpenWriteCopyEx@20" _
+                                (ByVal fileName As String, ByVal password As String, ByVal dictFileName As String, ByVal dictPassword As String, ByRef handle As Integer) As Integer
+    Public Declare Function spssOpenWriteCopyExFile Lib "spssio32.dll" Alias "spssOpenWriteCopyExFile@16" _
+                                (ByVal fileName As String, ByVal password As String, ByVal dictFileName As String, ByRef handle As Integer) As Integer
+    Public Declare Function spssOpenWriteCopyExDict Lib "spssio32.dll" Alias "spssOpenWriteCopyExDict@16" _
+                                (ByVal fileName As String, ByVal dictFileName As String, ByVal dictPassword As String, ByRef handle As Integer) As Integer
     Public Declare Function spssQueryType7 Lib "spssio32.dll" Alias "spssQueryType7@12" _
                                 (ByVal fromHandle As Integer, ByVal subType As Integer, ByRef bFound As Integer) As Integer
     Public Declare Function spssReadCaseRecord Lib "spssio32.dll" Alias "spssReadCaseRecord@4" _

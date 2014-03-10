@@ -233,7 +233,7 @@ PODATKI O LICENCIRANJU
 
 Licence za programe, navedene spodaj, se izdajajo v skladu z naslednjimi določbami in pogoji, in veljajo poleg tistih iz IBM Mednarodna licenčna pogodba za programe brez garancije (IBM-ova številka obrazca Z125-5589-05.
 
-Ime programa: IBM I/O Modules for IBM SPSS Statistics Data Files 21.0
+Ime programa: IBM I/O Modules for IBM SPSS Statistics Data Files 22.0
 Številka programa: Tool
 
 Orodje za razvoj
@@ -243,6 +243,14 @@ Ta program je oblikovan kot pomoč pri razvijanju aplikacij in sistemov programs
 Izvorne komponente in vzorčno gradivo
 
 Program lahko vključuje nekatere komponente v obliki izvorne kode ("izvorne komponente") in drugo gradivo, imenovano "vzorčno gradivo". Imetnik licence lahko kopira in spreminja izvorne komponente ter vzorčno gradivo za notranjo uporabo samo v primeru, da je takšna uporaba v okviru licenčnih pravic, določenih v tej pogodbi, vendar imetnik licence ne sme spreminjati ali brisati kakršnihkoli informacij o avtorstvu ali obvestil v izvornih komponentah ali vzorčnem gradivu. IBM ponuja izvorne komponente in vzorčno gradivo brez obveznosti za podporo in "TAKŠNO, KAKRŠNO JE", BREZ GARANCIJ KAKRŠNEKOLI VRSTE, PA NAJ BODO IZRECNE ALI NAKAZANE, KAR VKLJUČUJE TUDI GARANCIJO ZA NASLOV, NEKRŠENJE ALI NEOVIRANJE IN ZAKONSKE GARANCIJE IN POGOJE ZA PRODAJNOST IN PRIMERNOST ZA DOLOČEN NAMEN.
+
+Določbe za Microsoft Visual Studio
+
+Program lahko vsebuje kodo Microsoft Visual Studio SDK. Imetnik licence ne sme uporabiti te kode za razvoj razširitev za Microsoft Visual Studio.
+
+Izvozne in uvozne omejitve
+
+Ta program lahko vsebuje kodirano pisavo. Prenos ali uporaba programa sta lahko prepovedana ali pa sta predmet izvoznih ali uvoznih zakonov, predpisov ali načel, vključno z izvoznimi predpisi ameriške administracije. Imetnik licence prevzema vso odgovornost za podrejanje vsem ustreznim zakonom, predpisom in načelom v zvezi z izvažanjem, uvažanjem ali uporabo tega programa, kar vključuje tudi (vendar ni omejeno na) omejitve izvažanja ali vnovičnega izvažanja Združenih držav Amerike. Za pridobitev izvozne klasifikacije za ta program pojdite na spletno stran https://www.ibm.com/products/exporting/.
 
 Pogoji, specifični za program
 
@@ -277,6 +285,6 @@ Enote, ki jih je mogoče redistribuirati
 11. Imetnik licence mora v licenčni pogodbi, ki jo sklene s končnim uporabnikom aplikacije, končnega uporabnika obvestiti, da enot, ki jih je mogoče redistribuirati, ali njihovih popravkov, ni dovoljeno i) uporabljati za noben drug namen, razen za omogočenje aplikacije imetnika licence, ii) kopirati (razen za namene varnostnega kopiranja), iii) nadalje distribuirati ali prenesti brez aplikacije imetnika licence ali iv) vzvratno sestaviti, vzvratno prevesti ali kako drugače prevesti, razen če to izrecno dopušča zakon in brez možnosti pogodbene odpovedi. Poleg tega mora licenčna pogodba imetnika licence vsaj v tolikšni meri varovati IBM kot določbe te pogodbe.
 
 
-L/N:  L-GLBC-8VLUYY
-D/N:  L-GLBC-8VLUYY
-P/N:  L-GLBC-8VLUYY 
+L/N:  L-GLBC-99B3B6
+D/N:  L-GLBC-99B3B6
+P/N:  L-GLBC-99B3B6 

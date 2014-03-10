@@ -233,7 +233,7 @@ LICENČNÍ INFORMACE
 
 Níže uvedené Programy jsou licencovány na základě uvedených podmínek, které platí navíc k podmínkám IBM Mezinárodní licenční smlouva pro programy bez záruky (IBM F/N Z125-5589-05).
 
-Název Programu: IBM I/O Modules for IBM SPSS Statistics Data Files 21.0
+Název Programu: IBM I/O Modules for IBM SPSS Statistics Data Files 22.0
 Číslo Programu: Tool
 
 Development Tool
@@ -243,6 +243,14 @@ Development Tool
 Komponenty ve vzorovém kódu a Vzorové materiály
 
 Program může obsahovat některé komponenty ve formě zdrojového kódu ("Komponenty ve zdrojovém kódu") a jiné materiály označované jako Vzorové materiály. Držitel licence smí kopírovat a měnit Komponenty ve zdrojovém kódu a Vzorové materiály pouze pro interní užívání a pouze pod podmínkou, že toto užívání bude v souladu s omezeními licenčních oprávnění stanovenými touto Smlouvou. Držitel licence však nesmí měnit ani odstraňovat žádné informace nebo výhrady týkající se autorských práv obsažené v Komponentách ve zdrojovém kódu nebo ve Vzorových materiálech. IBM poskytuje tyto Komponenty ve zdrojovém kódu a Vzorové materiály bez závazku podpory a "JAK JSOU", BEZ ZÁRUKY JAKÉHOKOLIV DRUHU, VYJÁDŘENÉ VÝSLOVNĚ ČI VYPLÝVAJÍCÍ Z OKOLNOSTÍ, VČETNĚ ZÁRUKY VLASTNICTVÍ, NEPORUŠENÍ PRÁV TŘETÍCH STRAN A ZÁRUK A PODMÍNEK PRODEJNOSTI A VHODNOSTI PRO DANÝ ÚČEL.
+
+Podmínky pro Microsoft Visual Studio
+
+Program může obsahovat kód Microsoft Visual Studio SDK. Držitel licence není oprávněn užívat tento kód k vývoji rozšíření produktu Microsoft Visual Studio.
+
+Omezení vývozu a dovozu
+
+Tento Program může obsahovat funkci šifrování. Převod Programu na uživatele nebo jeho užívání ze strany uživatelů mohou být zakázány nebo mohou podléhat vývozním nebo dovozním zákonům, nařízením či směrnicím, včetně vývozních nařízení Spojených států amerických. Držitel licence nese veškerou odpovědnost za dodržování všech příslušných zákonů, nařízení a směrnic týkajících se vývozu, dovozu nebo užívání tohoto Programu, včetně - nikoliv však pouze - omezení vývozu a zpětného vývozu platných ve Spojených státech amerických. Vývozní klasifikaci tohoto Programu získáte na webových stránkách: https://www.ibm.com/products/exporting/.
 
 Podmínky specifické pro Program
 
@@ -277,6 +285,6 @@ Jestliže Program obsahuje komponenty, které jsou Redistribuovatelnými položk
 11. Licenční smlouva, kterou uzavřel Držitel licence s koncovým uživatelem Aplikace Držitele licence, musí informovat koncového uživatele o tom, že Redistribuovatelné položky nebo jejich modifikace nesmí být a) užívány k jiným účelům než k aktivaci Aplikace Držitele licence, ii) kopírovány (s výjimkou zálohování), iii) dále distribuovány nebo převáděny bez Aplikace Držitele licence nebo iv) zpětně překládány, zpětně kompilovány nebo jiným způsobem překládány, pokud zákon výslovně nepovoluje výjimky, a bez možnosti smluvního zřeknutí se. Kromě toho musí licenční smlouva Držitele licence poskytovat IBM přinejmenším stejnou ochranu jako podmínky této Smlouvy.
 
 
-L/N:  L-GLBC-8VLUYY
-D/N:  L-GLBC-8VLUYY
-P/N:  L-GLBC-8VLUYY 
+L/N:  L-GLBC-99B3B6
+D/N:  L-GLBC-99B3B6
+P/N:  L-GLBC-99B3B6 

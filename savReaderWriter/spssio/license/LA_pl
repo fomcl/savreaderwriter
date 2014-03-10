@@ -251,7 +251,7 @@ INFORMACJE LICENCYJNE
 
 Wymienione poniżej Programy są licencjonowane na poniższych warunkach, które uzupełniają warunki dokumentu IBM Międzynarodowa Umowa Licencyjna na Programy nieobjęte Gwarancją (numer formularza IBM Z125-5589-05).
 
-Nazwa Programu: IBM I/O Modules for IBM SPSS Statistics Data Files 21.0
+Nazwa Programu: IBM I/O Modules for IBM SPSS Statistics Data Files 22.0
 Numer Programu: Tool
 
 Narzędzie programistyczne
@@ -261,6 +261,14 @@ Ten Program został zaprojektowany z myślą o udzielaniu pomocy w projektowaniu
 Komponenty Źródłowe i Materiały Przykładowe
 
 Program może zawierać komponenty w postaci kodu źródłowego (zwane dalej "Komponentami Źródłowymi") oraz inne materiały określone jako Materiały Przykładowe. Licencjobiorca może kopiować i modyfikować Komponenty Źródłowe i Materiały Przykładowe jedynie na użytek wewnętrzny, pod warunkiem, że użytek taki mieści się w granicach praw licencyjnych na mocy niniejszej Umowy, zaś Licencjobiorca nie będzie zmieniać ani usuwać żadnych informacji czy uwag o prawach autorskich zawartych w Komponentach Źródłowych lub Materiałach Przykładowych. IBM dostarcza Komponenty Źródłowe i Materiały Przykładowe bez zobowiązania do wsparcia, W STANIE, W JAKIM SIĘ ZNAJDUJĄ ("AS IS"), BEZ UDZIELANIA JAKICHKOLWIEK GWARANCJI (RĘKOJMIĘ RÓWNIEŻ WYŁĄCZA SIĘ), WYRAŹNYCH LUB DOMNIEMANYCH, A W SZCZEGÓLNOŚCI GWARANCJI PRAWA WŁASNOŚCI, NIENARUSZANIA PRAW OSÓB TRZECICH ORAZ DOMNIEMANYCH GWARANCJI i WARUNKÓW PRZYDATNOŚCI HANDLOWEJ I PRZYDATNOŚCI DO OKREŚLONEGO CELU.
+
+Warunki dotyczące produktu Microsoft Visual Studio
+
+Program może zawierać kod SDK Microsoft Visual Studio. Licencjobiorca nie może używać takiego kodu do tworzenia rozszerzeń produktu Microsoft Visual Studio.
+
+Ograniczenia eksportowe i importowe
+
+Program ten może zawierać technologię kryptograficzną. Korzystanie z Programu przez użytkowników w różnych krajach, jak również przenoszenie Programu na użytkowników w tym samym kraju lub w różnych krajach może być zabronione lub podlegać specjalnym prawom i przepisom eksportowym lub importowym lub polityce rządu w kraju Licencjobiorcy, w tym prawom i przepisom eksportowym i importowym obowiązującym w Stanach Zjednoczonych. Licencjobiorca przyjmuje na siebie całą odpowiedzialność za przestrzeganie wszystkich obowiązujących praw i przepisów w zakresie eksportu, importu i używania tego Programu, a w szczególności ograniczeń w zakresie eksportu lub ponownego eksportu obowiązujących w Stanach Zjednoczonych. Klasyfikację eksportową tego Programu znaleźć można pod adresem: https://www.ibm.com/products/exporting/.
 
 Warunki specyficzne dla Programów
 
@@ -295,6 +303,6 @@ Jeśli Program zawiera komponenty będące Elementami Podlegającymi Redystrybuc
 11. Umowa licencyjna Licencjobiorcy z użytkownikiem końcowym Aplikacji Licencjobiorcy musi powiadamiać użytkownika końcowego, że Elementów Podlegających Redystrybucji oraz ich modyfikacji nie można i) używać do celów innych niż umożliwienie działania Aplikacji Licencjobiorcy, ii) kopiować (z wyjątkiem tworzenia kopii zapasowych), iii) dalej dystrybuować ani przenosić bez Aplikacji Licencjobiorcy ani iv) deasemblować, dekompilować ani poddawać translacji w inny sposób, z wyjątkiem przypadków wyraźnie dozwolonych przez prawo, bez możliwości wyłączenia na mocy umowy. Ponadto umowa licencyjna Licencjobiorcy musi zapewniać IBM ochronę co najmniej równą zapewnianej przez warunki niniejszej Umowy.
 
 
-L/N:  L-GLBC-8VLUYY
-D/N:  L-GLBC-8VLUYY
-P/N:  L-GLBC-8VLUYY 
+L/N:  L-GLBC-99B3B6
+D/N:  L-GLBC-99B3B6
+P/N:  L-GLBC-99B3B6 

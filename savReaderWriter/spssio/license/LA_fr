@@ -347,7 +347,7 @@ INFORMATIONS SUR LA LICENCE
 
 Les dispositions suivantes s'ajoutent à celles contenues dans le document IBM Conditions Internationales d'Utilisation des Logiciels non garantis (référence IBM : Z125-5589-05), pour l'utilisation des Logiciels indiqués ci-dessous.
 
-Nom du Logiciel : IBM I/O Modules for IBM SPSS Statistics Data Files 21.0
+Nom du Logiciel : IBM I/O Modules for IBM SPSS Statistics Data Files 22.0
 Référence du Logiciel : Tool
 
 Outil de développement
@@ -357,6 +357,14 @@ Ce Logiciel est conçu pour faciliter le développement d'applications et de sys
 Composants Source, Échantillons et Exemples
 
 Le Logiciel peut contenir des composants inclus sous la forme de code source ("Composants Source") ainsi que d'autres éléments appelés Échantillons et Exemples. Le Détenteur de la Licence est autorisé à copier et modifier les Composants Source ainsi que les Échantillons et Exemples à des fins internes, sous réserve que ladite utilisation reste dans les limites des droits de licence concédés au titre du présent Contrat et ce, à condition que le Détenteur de la Licence ne modifie ni ne supprime les mentions de droits d'auteur ou les Fichiers Notices contenus dans les Composants Source ou les Échantillons et Exemples. IBM fournit les Composants Source ainsi que les Échantillons et Exemples sans obligation de support. Ces Composants Source, Échantillons et Exemples sont fournis "EN L'ÉTAT", SANS GARANTIE D'AUCUNE SORTE, EXPLICITE OU IMPLICITE, Y COMPRIS TOUTE GARANTIE DE TITRE, DE NON-CONTREFAÇON OU DE NON-INTERFÉRENCE, AINSI QUE LES GARANTIES IMPLICITES EN MATIÈRE DE VALEUR MARCHANDE ET D'APTITUDE À UNE UTILISATION PARTICULIÈRE.
+
+Dispositions pour Microsoft Visual Studio
+
+Le Logiciel peut contenir le code du kit de développement de Microsoft Visual Studio. Le Détenteur de la Licence n'est pas autorisé à utiliser ledit code pour développer des extensions vers Microsoft Visual Studio.
+
+Restrictions à l'exportation et à l'importation
+
+Le Logiciel peut contenir une cryptographie. L'utilisation du Logiciel par, ou son transfert à, des utilisateurs d'autres pays peut être interdit ou soumis à des lois, réglementations ou politiques en matière d'exportation ou d'importation, y compris les lois sur l'exportation et l'importation du Ministère du Commerce américain (U.S. Export Administration Regulations). Le Détenteur de la Licence s'engage formellement à respecter l'ensemble des lois, réglementations et politiques en vigueur relatives à l'importation, l'exportation ou l'utilisation du Logiciel, y compris, mais de façon non limitative, les restrictions en vigueur aux Etats-Unis relatives aux exportations et aux réexportations. La classification d'exportation de ce Logiciel est disponible à l'adresse suivante : https://www.ibm.com/products/exporting/.
 
 Dispositions particulières au Logiciel
 
@@ -391,6 +399,6 @@ Si le Logiciel comprend des Logiciels Redistribuables, ceux-ci seront identifié
 11. Dans le Contrat de licence avec l'utilisateur final de son Application, le Détenteur de la Licence doit avertir celui-ci que les Logiciels Redistribuables ou leurs modifications ne peuvent pas être i) utilisés à d'autres fins que l'activation de son Application, ii) copiés (sauf à des fins de sauvegarde), iii) distribués ou transférés à d'autres personnes sans son Application, ni iv) désassemblés, décompilés ou traduits de quelque façon que ce soit sauf si autorisé par la loi et en l'absence de disposition légale contraire possible. En outre, le Contrat de licence du Détenteur de la Licence doit être au moins aussi protecteur d'IBM que les dispositions du présent Contrat.
 
 
-L/N:  L-GLBC-8VLUYY
-D/N:  L-GLBC-8VLUYY
-P/N:  L-GLBC-8VLUYY 
+L/N:  L-GLBC-99B3B6
+D/N:  L-GLBC-99B3B6
+P/N:  L-GLBC-99B3B6 

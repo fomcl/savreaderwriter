@@ -3,7 +3,7 @@
  *
  * IBM SPSS Products: Statistics Common
  *
- * (C) Copyright IBM Corp. 1989, 2012
+ * (C) Copyright IBM Corp. 1989, 2013
  *
  * US Government Users Restricted Rights - Use, duplication or disclosure
  * restricted by GSA ADP Schedule Contract with IBM Corp. 
@@ -467,24 +467,54 @@ SPSSDIO_API int __stdcall spssOpenAppend(
     const char* fileName,
     int* hFile);
 
+SPSSDIO_API int __stdcall spssOpenAppendEx(
+    const char* fileName,
+    const char* password,
+    int* hFile);
+
 SPSSDIO_API int __stdcall spssOpenAppendU8(
     const char* fileName,
+    int* hFile);
+
+SPSSDIO_API int __stdcall spssOpenAppendU8Ex(
+    const char* fileName,
+    const char* password,
     int* hFile);
 
 SPSSDIO_API int __stdcall spssOpenRead(
     const char* fileName,
     int* hFile);
 
+SPSSDIO_API int __stdcall spssOpenReadEx(
+    const char* fileName,
+    const char* password,
+    int* hFile);
+
 SPSSDIO_API int __stdcall spssOpenReadU8(
     const char* fileName,
+    int* hFile);
+
+SPSSDIO_API int __stdcall spssOpenReadU8Ex(
+    const char* fileName,
+    const char* password,
     int* hFile);
 
 SPSSDIO_API int __stdcall spssOpenWrite(
     const char* fileName,
     int* hFile);
 
+SPSSDIO_API int __stdcall spssOpenWriteEx(
+    const char* fileName,
+    const char* password,
+    int* hFile);
+
 SPSSDIO_API int __stdcall spssOpenWriteU8(
     const char* fileName,
+    int* hFile);
+
+SPSSDIO_API int __stdcall spssOpenWriteU8Ex(
+    const char* fileName,
+    const char* password,
     int* hFile);
 
 SPSSDIO_API int __stdcall spssOpenWriteCopy(
@@ -492,9 +522,47 @@ SPSSDIO_API int __stdcall spssOpenWriteCopy(
     const char* dictFileName,
     int* hFile);
 
+SPSSDIO_API int __stdcall spssOpenWriteCopyEx(
+    const char* fileName,
+    const char* password,
+    const char* dictFileName,
+    const char* dictPassword,
+    int* hFile);
+
+SPSSDIO_API int __stdcall spssOpenWriteCopyExFile(
+    const char* fileName,
+    const char* password,
+    const char* dictFileName,
+    int* hFile);
+
+SPSSDIO_API int __stdcall spssOpenWriteCopyExDict(
+    const char* fileName,
+    const char* dictFileName,
+    const char* dictPassword,
+    int* hFile);
+
 SPSSDIO_API int __stdcall spssOpenWriteCopyU8(
     const char* fileName,
     const char* dictFileName,
+    int* hFile);
+
+SPSSDIO_API int __stdcall spssOpenWriteCopyU8Ex(
+    const char* fileName,
+    const char* password,
+    const char* dictFileName,
+    const char* dictPassword,
+    int* hFile);
+
+SPSSDIO_API int __stdcall spssOpenWriteCopyU8ExFile(
+    const char* fileName,
+    const char* password,
+    const char* dictFileName,
+    int* hFile);
+
+SPSSDIO_API int __stdcall spssOpenWriteCopyU8ExDict(
+    const char* fileName,
+    const char* dictFileName,
+    const char* dictPassword,
     int* hFile);
 
 SPSSDIO_API int __stdcall spssQueryType7(

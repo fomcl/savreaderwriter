@@ -247,7 +247,7 @@ LİSANS BİLGİLERİ
 
 Aşağıda listelenen programlar, IBM Garanti Verilmeyen Programlar İçin Uluslararası Lisans Sözleşmesi (IBM form numarası Z125-5589-05) koşullarına ek olarak aşağıdaki koşullar kapsamında lisanslanır.
 
-Program Adı: IBM I/O Modules for IBM SPSS Statistics Data Files 21.0
+Program Adı: IBM I/O Modules for IBM SPSS Statistics Data Files 22.0
 Program Numarası: Tool
 
 Geliştirme Aracı
@@ -257,6 +257,14 @@ Bu Program, yazılım uygulamalarının ve sistemlerinin geliştirilmesine yard�
 Kaynak Bileşenler ve Örnek Malzemeler
 
 Bu Program, kaynak kodu biçimindeki bazı bileşenleri ("Kaynak Bileşenler") ve Örnek Malzemeler olarak tanımlanan diğer malzemeleri içerebilir. Lisans Alan Taraf, Kaynak Bileşenleri ve Örnek Malzemeleri ancak Kaynak Bileşenleri ve Örnek Malzemeleri kullanımının bu Sözleşme kapsamındaki lisans hakları tarafından çizilen sınırlar içinde kalması ve ancak Kaynak Bileşenlerde ya da Örnek Malzemelerde içerilen hiçbir telif hakkı bilgisini veya bildirimini değiştirmemek veya silmemek koşuluyla dahili olarak kullanmak amacıyla kopyalayabilir ve kullanabilir. IBM, Kaynak Bileşenleri ve Örnek Malzemeleri, destek yükümlülüğü olmaksızın ve MÜLKİYETE, HAK İHLALİ YAPILMAYACAĞINA VEYA MÜDAHALE EDİLMEYECEĞİNE DAİR GARANTİLER İLE TİCARİLİĞE VE BELİRLİ BİR AMACA UYGUNLUĞA DAİR ZIMNİ GARANTİLER VE KOŞULLAR DA DAHİL OLMAK, ANCAK TÜMÜ BUNLARLA SINIRLI OLMAMAK ÜZERE, AÇIK VEYA ZIMNİ HİÇBİR GARANTİ VERMEKSİZİN "OLDUĞU GİBİ" ESASIYLA SAĞLAR.
+
+Microsoft Visual Studio için Geçerli Koşullar
+
+Bu Program Microsoft Visual Studio SDK kodunu içerebilir. Lisans Alan Tarafa, bu tür bir kodu Microsoft Visual Studio ürününe ilişkin uzantılar geliştirmesi için izin verilmez.
+
+İhracat ve İthalat Sınırlamaları
+
+Bu Program şifreleme içerebilir. Bu Programın kullanıcılara devredilmesi veya kullanıcılar tarafından kullanımı yasaklanabilir veya A.B.D. İhracat Yönetimi Düzenlemeleri de dahil olmak üzere ithalat ya da ihracat yasalarına, düzenlemelerine veya ilkelerine tabi olabilir. Lisans Alan Taraf, A.B.D'deki ihracat veya yeniden ihracat sınırlamaları da dahil olmak, ancak tümü bunlarla sınırlı olmamak üzere bu Programın ihracatına, ithalatına veya kullanımına ilişkin tüm geçerli yasa, düzenleme ve ilkelere uygun davranmaktan tümüyle kendisinin sorumlu olduğunu kabul eder. Bu Programın ihracat sınıflandırmasını edinmek için aşağıdaki URL adresini ziyaret edin: https://www.ibm.com/products/exporting/.
 
 Programa Özgü Koşullar
 
@@ -291,6 +299,6 @@ Bu Program, Yeniden Dağıtılabilenler olarak adlandırılan bileşenleri içer
 11. Lisans Alan Taraf, Uygulamasının son kullanıcısı ile gerçekleştireceği lisans sözleşmesinde, bu Yeniden Dağıtılabilenlerin veya bunlardaki değişikliklerin, i) Uygulamasının geçerli kılınması dışında bir amaçla kullanılamayacağı, ii) kopyalanamayacağı (yedekleme amacı dışında), iii) Lisans Alan Tarafın Uygulamasından ayrı olarak başkalarına dağıtılamayacağı veya devredilemeyeceği ya da iv) geçerli yasaların sözleşme ile değiştirilmesine olanak tanımayarak açıkça izin verdiği durumlar dışında, ters çevrilemeyeceği, ters derlenemeyeceği veya başka bir yolla çevrilemeyeceği konusunda son kullanıcıyı önceden bilgilendirecektir. Ayrıca, Lisans Alan Tarafın lisans sözleşmesindeki koşulların, IBM açısından, en az bu Sözleşmede yer alan koşullar kadar koruyucu olması gereklidir. 
 
 
-L/N:  L-GLBC-8VLUYY
-D/N:  L-GLBC-8VLUYY
-P/N:  L-GLBC-8VLUYY 
+L/N:  L-GLBC-99B3B6
+D/N:  L-GLBC-99B3B6
+P/N:  L-GLBC-99B3B6 

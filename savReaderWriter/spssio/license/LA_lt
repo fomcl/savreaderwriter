@@ -251,7 +251,7 @@ LICENCIJOS INFORMACIJA
 
 Toliau nurodytos Programos licencijuojamos pagal šias ir IBM Programų kurioms neteikiama garantija tarptautinė licencinė sutartis sąlygas (IBM formos numeris Z125-5589-05).
 
-Programos pavadinimas: IBM I/O Modules for IBM SPSS Statistics Data Files 21.0
+Programos pavadinimas: IBM I/O Modules for IBM SPSS Statistics Data Files 22.0
 Programos numeris: Tool
 
 Kūrimo įrankis
@@ -261,6 +261,14 @@ Kūrimo įrankis
 Šaltinio komponentai ir pavyzdinė medžiaga
 
 Į Programą gali būti įtraukti keli komponentai išeitinio kodo forma („Šaltinio komponentai“) ir kita medžiaga, apibrėžta kaip Pavyzdinė medžiaga. Licenciatas gali kopijuoti ir modifikuoti Šaltinio komponentus ir Pavyzdinę medžiagą tik naudoti viduje, jei toks naudojimas nepažeidžia šios Sutarties licencijos teisių ir jei Licenciatas nekeičia ar nenaikina jokios Šaltinio komponentuose ir Pavyzdinėje medžiagoje esančios autoriaus teisių informacijos ar pranešimų. IBM pateikia Šaltinio komponentus ir Pavyzdinę medžiagą be palaikymo įsipareigojimo ir TOKIĄ, KOKIA YRA, NESUTEIKIANT JOKIŲ AIŠKIAI NURODYTŲ AR NENURODYTŲ GARANTIJŲ, ĮSKAITANT NUOSAVYBĖS TEISĖS, NEPAŽEIDŽIAMUMO AR NEĮSIKIŠIMO GARANTIJAS IR NENURODYTAS TINKAMUMO PREKIAUTI IR TAM TIKRAM TIKSLUI GARANTIJAS IR SĄLYGAS.
+
+„Microsoft Visual Studio“ sąlygos
+
+Programoje gali būti „Microsoft Visual Studio SDK“ kodas. Licenciatui neleidžiama naudoti tokio kodo kuriant „Microsoft Visual Studio“ plėtinius.
+
+Eksporto ir importo apribojimai
+
+Šioje Programoje gali būti šifravimų. Vartotojams Programą perduoti arba ją naudoti gali būti draudžiama arba gali būti taikomi eksporto ar importo įstatymai, taisyklės arba strategijos, įskaitant Jungtinių Amerikos Valstijų eksporto valdymo reglamentą. Licenciatas prisiima visą atsakomybę už visų taikomų įstatymų, taisyklių ir strategijų, susijusių su šios Programos eksportu, importu arba naudojimu, įskaitant, bet neapsiribojant, JAV eksporto arba pakartotinio eksporto apribojimus, laikymąsi. Norėdami gauti šios Programos eksporto kategoriją, žr: https://www.ibm.com/products/exporting/.
 
 Unikalios programos sąlygos
 
@@ -295,6 +303,6 @@ Jeigu į Programą įtraukti Perskirstomieji komponentai, jie bus nurodyti REDIS
 11. Licenciato ir Licenciato taikomosios programos galutinio vartotojo licencijos sutartis turi įspėti galutinį vartotoją, kad Perskirstymo paketų arba jų modifikavimų negalima i) naudoti kitu tikslu, nei Licenciato taikomajai programai įgalinti, ii) kopijuoti (išskyrus kuriant atsarginę kopiją), iii) platinti ar perduoti naudoti be Licenciato taikomosios programos, arba iv) išardyti, dekompiliuoti ar kitaip versti, išskyrus, jei tai aiškiai leidžia teisės aktai ir nepažeidžiami sutartiniai įsipareigojimai. Be to, Licenciato licencinė sutartis turi būti sauganti IBM bent tiek, kiek tai apibrėžia šios Sutarties sąlygos.
 
 
-L/N:  L-GLBC-8VLUYY
-D/N:  L-GLBC-8VLUYY
-P/N:  L-GLBC-8VLUYY 
+L/N:  L-GLBC-99B3B6
+D/N:  L-GLBC-99B3B6
+P/N:  L-GLBC-99B3B6 

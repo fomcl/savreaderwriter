@@ -269,7 +269,7 @@ INFORMAÇÕES DA LICENÇA
 
 Os Programas listados abaixo são licenciados sob os/ao abrigo dos termos e condições a seguir, além daqueles do IBM Contrato de Licença Internacional para Programas Não Garantidos (form number da IBM n.° Z125-5589-05).
 
-Nome do Programa: IBM I/O Modules for IBM SPSS Statistics Data Files 21.0
+Nome do Programa: IBM I/O Modules for IBM SPSS Statistics Data Files 22.0
 Número do Programa: Tool
 
 Ferramenta de Desenvolvimento
@@ -279,6 +279,14 @@ Este Programa é desenhado para auxiliar no desenvolvimento de sistemas e de sof
 Componentes Fonte e Materiais de Amostra
 
 O Programa pode incluir alguns componentes na forma de código-fonte ("Componentes Fonte") e outros materiais identificados como Materiais de Amostra. O Licenciado pode copiar e modificar Componentes Fonte e Materiais de Amostra apenas para uso interno, contanto que tal uso esteja dentro dos limites dos direitos de licença sob este/ao abrigo deste Contrato/Acordo, desde que, no entanto, esse Licenciado não possa alterar ou excluir quaisquer informações de direitos autorais/de autor ou avisos contidos nos Componentes Fonte ou nos Materiais de Amostra. A IBM fornece os Componentes Fonte e Materiais de Amostra sem obrigação de suporte e "NO ESTADO EM QUE SE ENCONTRAM (""AS IS"")", SEM NENHUM TIPO DE GARANTIA, SEJA EXPRESSA OU IMPLÍCITA, INCLUINDO A GARANTIA DE TÍTULO, NÃO VIOLAÇÃO OU NÃO INTERFERÊNCIA E AS GARANTIAS IMPLÍCITAS E CONDIÇÕES DE COMERCIALIZAÇÃO E ADEQUAÇÃO PARA UM PROPÓSITO/FIM ESPECÍFICO.
+
+Termos para o Microsoft Visual Studio
+
+O Programa pode conter o código do Microsoft Visual Studio SDK. O Licenciado não tem permissão para usar esse código para desenvolver extensões para o Microsoft Visual Studio.
+
+Restrições de Importação e Exportação
+
+Este Programa pode conter criptografia/encriptação. A transferência para ou o uso pelos usuários/utilizadores do Programa podem ser proibidos ou estarem sujeitos às leis de exportação ou importação, regulamentos ou políticas, incluindo/inclusive aqueles Regulamentos de Administração de Exportação dos Estados Unidos. O Licenciado assume toda a responsabilidade de conformidade com todas as leis, regulamentos e políticas aplicáveis relativas à exportação, importação ou uso deste Programa, incluindo/inclusive mas não limitado a, restrições dos Estados Unidos da América sobre exportações ou reexportações. Para obter a classificação de exportação deste Programa, consulte: https://www.ibm.com/products/exporting/.
 
 Termos Exclusivos do Programa
 
@@ -313,6 +321,6 @@ Se o Programa incluir componentes que são Redistribuíveis, eles serão identif
 11. O contrato de licença/acordo de licenciamento do Licenciado com o usuário/utilizador final do Aplicativo/da Aplicação do Licenciado deve informar o usuário/utilizador final que os Redistribuíveis ou as suas modificações não podem ser i) usados para qualquer propósito/fim que não seja ativar/activar o Aplicativo/a Aplicação do Licenciado, ii) copiados (exceto/excepto para propósitos/fins de backup), iii) redistribuídos ou transferidos sem o Aplicativo/a Aplicação do Licenciado ou iv) montados de forma inversa, compilados de forma inversa ou, de qualquer forma, serem convertidos exceto/excepto conforme especificamente permitido pela lei e sem a possibilidade de uma renúncia contratual. Além disso, o contrato de licença/acordo de licenciamento do Licenciado deve, pelo menos, proteger a IBM tanto quanto os termos deste Contrato/Acordo.
 
 
-L/N:  L-GLBC-8VLUYY
-D/N:  L-GLBC-8VLUYY
-P/N:  L-GLBC-8VLUYY 
+L/N:  L-GLBC-99B3B6
+D/N:  L-GLBC-99B3B6
+P/N:  L-GLBC-99B3B6 
