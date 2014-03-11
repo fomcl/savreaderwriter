@@ -71,9 +71,10 @@ class Header(Generic):
         function (but is not a decorator)"""
         if not self.ioUtf8:
             return item  # unchanged
-        utf8dify = lambda x: x.encode("utf-8") if isinstance(x, unicode) else x
+        u = str if isPy3k else unicode
+        utf8dify = lambda x: x.encode("utf-8") if isinstance(x, u) else x
         if isinstance(item, list):
-            return map(utf8dify, item)
+            return list(map(utf8dify, item))
         elif isinstance(item, dict):
             return dict([(utf8dify(x), utf8dify(y)) for x, y in item.items()])
         return utf8dify(item)

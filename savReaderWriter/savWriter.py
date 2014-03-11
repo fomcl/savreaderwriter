@@ -123,6 +123,7 @@ class SavWriter(Header):
         self.sysmis_ = self.sysmis
         self.ioUtf8_ = ioUtf8
         self.pad_8_lookup = self._getPaddingLookupTable(self.varTypes)
+        self.pad_string = self._pyWriterow_pad_string(isPy3k)
         self.bytify = bytify(self.fileEncoding)  # from py3k module
 
         if self.mode == b"wb":
@@ -229,20 +230,30 @@ class SavWriter(Header):
         {1:%-8s, 7:%-8s, 9: %-16s, 24: %-24s}. Purpose: Get rid of trailing
         null bytes"""
         strLengths = varTypes.values()
+        if isPy3k:
+            return dict([(i, (-8 * (i // -8))) for i in strLengths])
         return dict([(i, "%%-%ds" % (-8 * (i // -8))) for i in strLengths])
 
-    def writerow(self, record):
-        """ This function writes one record, which is a Python list."""
-        if cWriterowOK:
-            cWriterow(self, record)
-            return
-        self._pyWriterow(record)
+    def _pyWriterow_pad_string(self, isPy3k):
+        """Helper that returns a function to pad string values using
+        _getPaddingLookupTable. Padding is done differently for Python 2 and
+        3 (probably the latter is slower)"""
+        if isPy3k:
+            def _padStringValue(value, varType):
+                # % replacement is not possible with bytes
+                return value.ljust(self.pad_8_lookup[varType])
+        else:
+            def _padStringValue(value, varType):
+                # Get rid of trailing null bytes --> 7 x faster than 'ljust'
+                return self.pad_8_lookup[varType] % value
+        return _padStringValue
 
     def _pyWriterow(self, record):
         """ This function writes one record, which is a Python list,
         compare this Python version with the Cython version cWriterow."""
         float_ = float
         encoding = self.fileEncoding
+        pad_string = self.pad_string
         for i, value in enumerate(record):
             varName = self.varNames[i]
             varType = self.varTypes[varName]
@@ -252,18 +263,18 @@ class SavWriter(Header):
                 except (ValueError, TypeError):
                     value = self.sysmis_
             else:
-                if isPy3k:
-                    template = self.pad_8_lookup[varType]
-                    value = template % value.decode(encoding)  # TODO make this more efficient
-                    value = value.encode(encoding)
-                else:
-                    # Get rid of trailing null bytes --> 7 x faster than 'ljust'
-                    value = self.pad_8_lookup[varType] % value
-
+                value = pad_string(value, varType)
                 if self.ioUtf8_ and isinstance(value, unicode):
                     value = value.encode("utf-8")          # TODO correct this
             record[i] = value
         self.record = record
+
+    def writerow(self, record):
+        """This function writes one record, which is a Python list."""
+        if cWriterowOK:
+            cWriterow(self, record)
+            return
+        self._pyWriterow(record)
 
     def writerows(self, records):
         """ This function writes all records."""

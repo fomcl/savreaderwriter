@@ -6,4 +6,5 @@
 * Use ctypes.argtypes for every function that user can call
 -prevents ugly segfaults in case of wrong specification by user
 -prevents annoying warnings by test runners
-
+* Use restructuredText in docstrings + use automodule directive for rest of documentation
+* Documentation does not render very well if pdf is used
