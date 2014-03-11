@@ -84,9 +84,7 @@ To get the 'bleeding edge' version straight from the repository do::
     pip install -U -e git+https://bitbucket.org/fomcl/savreaderwriter.git#egg=savreaderwriter
 
 .. versionchanged:: 3.3
-* The ``savReaderWriter`` program now runs on Python 2 and 3. It is tested with Python 2.7 and 3.3.
-It also appears to work with PyPy.
-* ``savReaderWriter`` now uses version 22.0.0.0 of the I/O modules.
+* The ``savReaderWriter`` program now runs on Python 2 and 3. It is tested with Python 2.7, 3.3 and PyPy
 * Several bugs were removed, notably two that prevented the I/O modules from loading in 64-bit Linux and 64-bit Windows systems (NB: these bugs were entirely unrelated). In addition, long variable labels were truncated to 120 characters, which is now fixed.
 
 .. versionchanged:: 3.2
@@ -195,7 +193,7 @@ Typical use::
 
 :mod:`SavReader` -- Read SPSS system files
 ============================================================================
-.. function:: SavReader(savFileName, [returnHeader=False, recodeSysmisTo=None,                 verbose=False, selectVars=None, idVar=None, rawMode=False, ioUtf8=False, ioLocale=None])
+.. function:: SavReader(savFileName, [returnHeader=False, recodeSysmisTo=None, verbose=False, selectVars=None, idVar=None, rawMode=False, ioUtf8=False, ioLocale=None])
 
    **Read SPSS system files (.sav, .zsav)**
 

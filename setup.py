@@ -7,17 +7,19 @@
 # sudo python setup.py check upload_sphinx --upload-dir=build/sphinx/html
 
 import os
-import shutil
 import sys
 import platform
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+path = os.path.dirname(os.path.realpath(__file__)) or os.getcwd()
+sys.path.insert(0, path)
+
 try:
     from ez_setup import use_setuptools
     use_setuptools()
 except:
     pass # Tox
 from setuptools import setup
+
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read().strip()
@@ -68,15 +70,15 @@ if is_install_mode:
 
 ## *building* the package: include all the libraries
 else: 
-    package_data['savReaderWriter'].extend(['spssio/win64/*.*',
-                                            'spssio/macos/*.*',
-                                            'spssio/win32/*.*',
-                                            'spssio/sol64/*.*',
+    package_data['savReaderWriter'].extend(['spssio/win32/*.*',
+                                            'spssio/win64/*.*',
                                             'spssio/lin32/*.*',
-                                            'spssio/lin64/*.*',
-                                            'spssio/hpux_it/*.*',
                                             'spssio/zlinux64/*.*',
-                                            'spssio/aix64/*.*'])
+                                            'spssio/lin64/*.*',
+                                            'spssio/macos/*.*',
+                                            'spssio/aix64/*.*'
+                                            'spssio/hpux_it/*.*',
+                                            'spssio/sol64/*.*'])
 
 email = "@".join(["fomcl", "yahoo.com"])
 
@@ -117,3 +119,10 @@ setup(name='savReaderWriter',
 #     src = os.path.join(p, f)
 #     dst = os.path.join(p, "savReaderWriter", f)
 #     shutil.copy(src, dst)
+
+with open(os.path.join(path, "savReaderWriter", "SHA1VERSION"), "wb") as f:
+    try:
+        import sha1version
+        f.write(sha1version.getHEADhash())
+    except:
+        f.write(b"--UNKNOWN--")
