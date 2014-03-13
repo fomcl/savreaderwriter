@@ -7,6 +7,7 @@ import collections
 from savReaderWriter import *
 from header import *
 
+@implements_to_string
 class SavHeaderReader(Header):
     """
     This class contains methods that read the data dictionary of an SPSS
@@ -15,14 +16,14 @@ class SavHeaderReader(Header):
     dictionary!
 
     Typical use:
-    with SavHeaderReader(savFileName) as spssDict:
-        wholeDict = spssDict.dataDictionary()
-        print unicode(spssDict)
+    with SavHeaderReader(savFileName) as header:
+        metadata = header.dataDictionary(True)
+        print(str(header))
     """
 
     def __init__(self, savFileName, ioUtf8=False, ioLocale=None):
         """ Constructor. Initializes all vars that can be recycled """
-        super(SavHeaderReader, self).__init__(savFileName, "rb", None,
+        super(SavHeaderReader, self).__init__(savFileName, b"rb", None,
                                               ioUtf8, ioLocale)
         self.fh = self.openSavFile()
         self.varNames, self.varTypes = self.varNamesTypes
@@ -58,7 +59,7 @@ class SavHeaderReader(Header):
     def close(self):
         """This function closes the spss data file and does some cleaning."""
         if not segfaults:
-            self.closeSavFile(self.fh, mode="rb")
+            self.closeSavFile(self.fh, mode=b"rb")
 
     def dataDictionary(self, asNamedtuple=False):
         """ This function returns all the dictionary items. It returns
@@ -79,37 +80,62 @@ class SavHeaderReader(Header):
             return Meta(*metadata.values())
         return metadata
 
+    def __getEntry(self, varName, k, v, enc):
+        """Helper function for reportSpssDataDictionary"""
+        try:
+            k = k if self.ioUtf8 else k.decode(enc).strip()
+        except AttributeError:
+            pass
+        try:
+           v = list(v) if isinstance(v, map) else v
+        except TypeError:
+           pass  # python 2
+        try:
+            v =  v if self.ioUtf8 else v.decode(enc)
+        except AttributeError:
+            #v = ", ".join(map(str, v)) if isinstance(v, list) else v
+            enc = self.fileEncoding
+            func = lambda x: x.decode(enc) if isinstance(x, bytes) else str(x)
+            v = ", ".join(map(func, v)) if isinstance(v, list) else v
+        try:
+            v = ", ".join(eval(str(v)))  # ??
+        except:
+            pass
+        return "%s: %s -- %s" % (varName,k, v)
+
     def reportSpssDataDictionary(self, dataDict):
         """ This function reports information from the Spss dictionary
         of the active Spss dataset. The parameter 'dataDict' is the return
         value of dataDictionary()"""
-        report = []
-        #import pprint
-        #pprint.pprint(dataDict)
+        # Yeah I know: what a mess! ;-)
+        report, enc = [], self.fileEncoding
         for kwd, allValues in sorted(dataDict.items()):
             report.append("#" + kwd.upper())
             if hasattr(allValues, "items"):
-                for varName, values in allValues.iteritems():
+                for varName, values in sorted(allValues.items()):
+                    varName =  varName if self.ioUtf8 else varName.decode(enc)
                     if hasattr(values, "items"):
-                        isList = kwd in ("missingValues", "multRespDefs")
-                        for k, v in sorted(values.iteritems()):
-                            if isList and isinstance(v, (list, tuple)):
-                                vStr = [unicode(item).lower() for item in v]
-                                report.append("%s: %s -- %s" %
-                                              (varName, k, ", ".join(vStr)))
-                            else:
-                                report.append("%s: %s -- %s" %
-                                              (varName, unicode(k).strip(), v))
+                        for k, v in sorted(values.items()):
+                            report.append(self.__getEntry(varName, k, v, enc))
                     else:
+                        # varsets
                         if isinstance(values, list):
-                            entry = "%s -- %s" % (varName, ", ".join(values))
+                            values = b", ".join(values)
+                            entry = "%s -- %s" % (varName, values.decode(enc))
                             report.append(entry)
-                        elif values != "":
+                        # variable role, label, level, format, colwidth, alignment, type
+                        else:
+                            try:
+                                values =  values if self.ioUtf8 else values.decode(enc)
+                            except AttributeError:
+                                values = str(values)
                             report.append("%s -- %s" % (varName, values))
             else:
-                if isinstance(allValues, basestring) and allValues:
+                # varname, file label
+                if isinstance(allValues, (str, bytes, unicode)) and allValues:
                     allValues = [allValues]
                 for varName in allValues:
+                    if isinstance(varName, bytes):
+                        varName = varName.decode(enc)
                     report.append(varName)
-        print os.linesep.join(report)
         return os.linesep.join(report)

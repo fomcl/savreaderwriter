@@ -5,9 +5,11 @@ from ctypes import *
 import os
 import time
 
+from savReaderWriter import *
+from py3k import *
 from header import *
 if cWriterowOK:
-    cWriterow = cWriterow.cWriterow
+    cWriterow = cWriterow.cWriterow  # TODO: make this Python3-ready (or make a Python 3 version)
 
 class SavWriter(Header):
 
@@ -78,7 +80,7 @@ class SavWriter(Header):
       I/O Module will be. Valid values are True (UTF-8/unicode mode, cf. SET
       UNICODE=ON) or False (Codepage mode, SET UNICODE=OFF) (default: False)
     -ioLocale: indicates the locale of the I/O module, cf. SET LOCALE (default:
-      None, which is the same as locale.getlocale()[0])
+      None, which is the same as ".".join(locale.getlocale())
     -mode: indicates the mode in which <savFileName> should be opened. Possible
       values are "wb" (write), "ab" (append), "cp" (copy: initialize header
       using <refSavFileName> as a reference file, cf. APPLY DICTIONARY).
@@ -93,8 +95,9 @@ class SavWriter(Header):
     varNames = ['var1', 'v2', 'v3']
     varTypes = {'var1': 5, 'v2': 0, 'v3': 0}
     savFileName = "test.sav"
-    with SavWriter(savFileName, varNames, varTypes) as sav:
-        sav.writerows(records)
+    with SavWriter(savFileName, varNames, varTypes) as writer:
+        for record in records:
+            writer.writerow(record)
     """
     def __init__(self, savFileName, varNames, varTypes, valueLabels=None,
                  varLabels=None, formats=None, missingValues=None,
@@ -102,7 +105,7 @@ class SavWriter(Header):
                  varSets=None, varRoles=None, varAttributes=None,
                  fileAttributes=None, fileLabel=None, multRespDefs=None,
                  caseWeightVar=None, overwrite=True, ioUtf8=False, 
-                 ioLocale=None, mode="wb", refSavFileName=None):
+                 ioLocale=None, mode=b"wb", refSavFileName=None):
         """ Constructor. Initializes all vars that can be recycled """
         super(Header, self).__init__(savFileName, ioUtf8, ioLocale)
         self.savFileName = savFileName
@@ -120,9 +123,10 @@ class SavWriter(Header):
         self.sysmis_ = self.sysmis
         self.ioUtf8_ = ioUtf8
         self.pad_8_lookup = self._getPaddingLookupTable(self.varTypes)
-        #self._getVarHandles()
+        self.pad_string = self._pyWriterow_pad_string(isPy3k)
+        self.bytify = bytify(self.fileEncoding)  # from py3k module
 
-        if self.mode == "wb":
+        if self.mode == b"wb":
             self._openWrite(self.savFileName, self.overwrite)
             self.varNamesTypes = self.varNames, self.varTypes
             self.valueLabels = valueLabels
@@ -144,7 +148,7 @@ class SavWriter(Header):
             if all([item is None for item in triplet]):
                 self._setColWidth10()
             self.textInfo = self.savFileName
-        if self.mode in ("wb", "cp"):
+        if self.mode in (b"wb", b"cp"):
             self._commitHeader()
         self.caseBuffer = self.getCaseBuffer()
 
@@ -157,50 +161,7 @@ class SavWriter(Header):
         """ This function closes the spss data file."""
         if type is not None:
             pass  # Exception occurred
-        self.closeSavFile(self.fh, mode="wb")
-
-    def _getVarHandles(self):
-        """This function returns a handle for a variable, which can then be
-        used to read or write (depending on how the file was opened) values
-        of the variable. If handle is associated with an output file, the
-        dictionary must be written with spssCommitHeader before variable
-        handles can be obtained via spssGetVarHandle. Helper function for
-        __setitem__. *Not currently used*"""
-        varHandles = {}
-        varHandle = c_double()
-        func = self.spssio.spssGetVarHandle
-        for varName in self.varNames:
-            retcode = func(c_int(self.fh), c_char_p(varName), byref(varHandle))
-            varHandles[varName] = varHandle.value
-            if retcode:
-                msg = "Problem getting variable handle for variable %r"
-                checkErrsWarns(msg, retcode)
-        return varHandles
-
-    def __setitem__(self, varName, value):
-        """This function sets the value of a variable for the current case.
-        The current case is not written out to the data file until
-        spssCommitCaseRecord is called. *Not currently used*, but it was just
-        begging to be implemented. ;-) Do NOT use in conjunction with
-        wholeCaseOut. For example: self['someNumVar'] = 10
-                                   self['someStrVar'] = 'foo'"""
-        if not isinstance(value, (float, int, basestring)):
-            raise ValueError("Value %r has wrong type: %s" %
-                             value, type(value))
-        varHandle = self.varHandles[varName]
-        if self.varTypes[varName] == 0:
-            funcN = self.spssio.spssSetValueNumeric
-            retcode = funcN(c_int(self.fh), c_double(varHandle),
-                            c_double(value))
-        else:
-            funcC = self.spssio.spssSetValueChar
-            retcode = funcC(c_int(self.fh), c_double(varHandle),
-                            c_char_p(value))
-        if retcode:
-            isString = isinstance(value, basestring)
-            valType = "character" if isString else "numerical"
-            msg = "Error setting %s value %r for variable %r"
-            checkErrsWarns(msg % (valType, value, varName), retcode)
+        self.closeSavFile(self.fh, self.mode)
 
     def _openWrite(self, savFileName, overwrite):
         """ This function opens a file in preparation for creating a new IBM
@@ -211,9 +172,9 @@ class SavWriter(Header):
         if overwrite or not os.path.exists(savFileName):
             # always compress files, either zsav or standard.
             if savFileName.lower().endswith(".zsav"):
-                self.fileCompression = "zlib"  # only with v21 libraries!
+                self.fileCompression = b"zlib"  # only with v21 libraries!
             else:
-                self.fileCompression = "standard"
+                self.fileCompression = b"standard"
         elif not overwrite and os.path.exists(savFileName):
             raise IOError("File %r already exists!" % savFileName)
 
@@ -237,17 +198,17 @@ class SavWriter(Header):
                                 c_double(float(second)), c_double())
         retcode = self.spssio.spssConvertTime(d, h, m, s, byref(spssTime))
         if retcode:
-            msg = ("Problem converting time value '%s %s:%s:%s'" %
-                  (day, hour, minute, second))
-            checkErrsWarns(msg, retcode)
+            msg = "Problem converting time value '%s %s:%s:%s'"
+            checkErrsWarns(msg % (day, hour, minute, second), retcode)
         return spssTime.value
 
-    def spssDateTime(self, datetimeStr="2001-12-08", strptimeFmt="%Y-%m-%d"):
+    def spssDateTime(self, datetimeStr=b"2001-12-08", strptimeFmt="%Y-%m-%d"):
         """ This function converts a date/time string into an SPSS date,
         using a strptime format."""
         try:
+            datetimeStr = datetimeStr.decode("utf-8")
             dt = time.strptime(datetimeStr, strptimeFmt)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, AttributeError):
             return self.sysmis
         day, month, year = dt.tm_mday, dt.tm_mon, dt.tm_year
         hour, minute, second = dt.tm_hour, dt.tm_min, dt.tm_sec
@@ -269,37 +230,51 @@ class SavWriter(Header):
         {1:%-8s, 7:%-8s, 9: %-16s, 24: %-24s}. Purpose: Get rid of trailing
         null bytes"""
         strLengths = varTypes.values()
+        if isPy3k:
+            return dict([(i, (-8 * (i // -8))) for i in strLengths])
         return dict([(i, "%%-%ds" % (-8 * (i // -8))) for i in strLengths])
 
-    def writerow(self, record):
-        """ This function writes one record, which is a Python list."""
-        if cWriterowOK:
-            cWriterow(self, record)
-            return
-        self._pyWriterow(record)
+    def _pyWriterow_pad_string(self, isPy3k):
+        """Helper that returns a function to pad string values using
+        _getPaddingLookupTable. Padding is done differently for Python 2 and
+        3 (probably the latter is slower)"""
+        if isPy3k:
+            def _padStringValue(value, varType):
+                # % replacement is not possible with bytes
+                return value.ljust(self.pad_8_lookup[varType])
+        else:
+            def _padStringValue(value, varType):
+                # Get rid of trailing null bytes --> 7 x faster than 'ljust'
+                return self.pad_8_lookup[varType] % value
+        return _padStringValue
 
     def _pyWriterow(self, record):
         """ This function writes one record, which is a Python list,
         compare this Python version with the Cython version cWriterow."""
         float_ = float
+        encoding = self.fileEncoding
+        pad_string = self.pad_string
         for i, value in enumerate(record):
             varName = self.varNames[i]
             varType = self.varTypes[varName]
             if varType == 0:
                 try:
                     value = float_(value)
-                except ValueError:
+                except (ValueError, TypeError):
                     value = self.sysmis_
-                except TypeError:
-                    value = self.sysmis_                    
             else:
-                # Get rid of trailing null bytes --> 7 x faster than 'ljust'
-                value = self.pad_8_lookup[varType] % value
-                if self.ioUtf8_:
-                    if isinstance(value, unicode):
-                        value = value.encode("utf-8")
+                value = pad_string(value, varType)
+                if self.ioUtf8_ and isinstance(value, unicode):
+                    value = value.encode("utf-8")          # TODO correct this
             record[i] = value
         self.record = record
+
+    def writerow(self, record):
+        """This function writes one record, which is a Python list."""
+        if cWriterowOK:
+            cWriterow(self, record)
+            return
+        self._pyWriterow(record)
 
     def writerows(self, records):
         """ This function writes all records."""

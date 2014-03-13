@@ -5,21 +5,21 @@
 # sudo python setup.py register -r https://testpypi.python.org/pypi sdist --formats=gztar bdist --formats=egg upload -r https://testpypi.python.org/pypi
 # sudo python setup.py check build_sphinx --source-dir=savReaderWriter/documentation -v
 # sudo python setup.py check upload_sphinx --upload-dir=build/sphinx/html
-#cd /home/antonia/Desktop/savReaderWriter/dist
-#sudo python setup.py --command-packages=stdeb.command bdist_deb
-#sudo py2dsc savReaderWriter-3.1.2b.tar.gz
-#cd deb_dist/savreaderwriter-3.1.2b/
-#sudo dpkg-buildpackage -rfakeroot -uc -us
 
 import os
-import shutil
 import sys
 import platform
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-from ez_setup import use_setuptools
-use_setuptools()
+path = os.path.dirname(os.path.realpath(__file__)) or os.getcwd()
+sys.path.insert(0, path)
+
+try:
+    from ez_setup import use_setuptools
+    use_setuptools()
+except:
+    pass # Tox
 from setuptools import setup
+
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read().strip()
@@ -27,15 +27,10 @@ def read(fname):
 #####
 ## Set package_data values, depending on install/build
 #####
-args = sys.argv
 
 is_32bit = platform.architecture()[0] == "32bit"
 is_64bit = platform.architecture()[0] == "64bit"
-is_install_mode = 'install' in args
-is_only_bdist = 'bdist' in args and not 'sdist' in args
-is_msi32 = is_only_bdist and ('--formats=wininst' in args or '--formats=msi' in args)
-is_rpm32 = is_only_bdist and '--formats=rpm' in args
-is_deb = args[-2:] == ['--command-packages=stdeb.command', 'bdist_deb']
+is_install_mode = 'install' in sys.argv
 pf = sys.platform.lower()
 
 ## This is included in every platform
@@ -43,7 +38,7 @@ package_data = {'savReaderWriter': ['spssio/include/*.*',
                                     'spssio/documents/*',
                                     'spssio/license/*',
                                     'cWriterow/*.*',
-                                    'documentation/*',
+                                    'documentation/*.*',
                                     'doc_tests/*.*',
                                     'test_data/*.*',
                                     'README','VERSION', 
@@ -73,24 +68,17 @@ if is_install_mode:
         msg = "Your platform (%r) is not supported" % pf
         raise NotImplementedError(msg)
 
-## Two 'light-weight' binary distributions
-elif is_rpm32 or is_deb:
-    package_data['savReaderWriter'].append('spssio/lin32/*.*')
-
-elif is_msi32:
-    package_data['savReaderWriter'].append('spssio/win32/*.*')
-
 ## *building* the package: include all the libraries
 else: 
-    package_data['savReaderWriter'].extend(['spssio/win64/*.*',
-                                            'spssio/macos/*.*',
-                                            'spssio/win32/*.*',
-                                            'spssio/sol64/*.*',
+    package_data['savReaderWriter'].extend(['spssio/win32/*.*',
+                                            'spssio/win64/*.*',
                                             'spssio/lin32/*.*',
-                                            'spssio/lin64/*.*',
-                                            'spssio/hpux_it/*.*',
                                             'spssio/zlinux64/*.*',
-                                            'spssio/aix64/*.*'])
+                                            'spssio/lin64/*.*',
+                                            'spssio/macos/*.*',
+                                            'spssio/aix64/*.*'
+                                            'spssio/hpux_it/*.*',
+                                            'spssio/sol64/*.*'])
 
 email = "@".join(["fomcl", "yahoo.com"])
 
@@ -119,15 +107,22 @@ setup(name='savReaderWriter',
                    'Operating System :: Microsoft :: Windows',
                    'Operating System :: POSIX',
                    'Programming Language :: Cython',
-                   'Programming Language :: Python :: 2.6',
                    'Programming Language :: Python :: 2.7',
+                   'Programming Language :: Python :: 3.3', 
                    'Programming Language :: Python :: Implementation :: CPython',
                    'Topic :: Database']
       )
 
 # ugly, but it works
-for f in ['README','VERSION', 'TODO', 'COPYRIGHT']:
-    p = os.path.dirname(__file__)
-    src = os.path.join(p, f)
-    dst = os.path.join(p, "savReaderWriter", f)
-    shutil.copy(src, dst)
+# for f in ['README','VERSION', 'TODO', 'COPYRIGHT']:
+#     p = os.path.dirname(__file__)
+#     src = os.path.join(p, f)
+#     dst = os.path.join(p, "savReaderWriter", f)
+#     shutil.copy(src, dst)
+
+with open(os.path.join(path, "savReaderWriter", "SHA1VERSION"), "wb") as f:
+    try:
+        import sha1version
+        f.write(sha1version.getHEADhash())
+    except:
+        f.write(b"--UNKNOWN--")

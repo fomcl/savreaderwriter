@@ -44,39 +44,22 @@ class Header(Generic):
     def decode(func):
         """Decorator to Utf-8 decode all str items contained in a dictionary
         If ioUtf8=True, the dictionary's keys and values are decoded, but only
-        values that are strs, lists, or dicts. For example:
-        >>> @decode
-        ... def test(d):
-        ...     return d
-        >>> # test 1
-        >>> test({'v1': {'y': 'yy', 'z': 666}})
-        {u'v1': {u'y': u'yy', u'z': 666}}
-        >>> # test 2
-        >>> thai = ('\xe0\xb8\xaa\xe0\xb8\xa7\xe0\xb8\xb1' +
-        ...         '\xe0\xb8\xaa\xe0\xb8\x94\xe0\xb8\xb5')
-        >>> d = {'dichotomous3': {'countedValue': thai,
-        ...      'label': thai, 'setType': 'D', 'varNames': ['v1', 'v2']}}
-        >>> uthai = thai.decode("utf-8")
-        >>> test(d) == {u'dichotomous3': {u'countedValue': uthai,
-        ...             u'label': uthai,
-        ...             u'setType': u'D',
-        ...             u'varNames': [u'v1', u'v2']}}
-        True
-        """
-        uS = lambda x: x.decode("utf-8") if isinstance(x, str) else x
+        values that are strs, lists, or dicts."""
+        bytes_ = bytes if sys.version_info[0] > 2 else str
+        uS = lambda x: x.decode("utf-8") if isinstance(x, bytes_) else x
         uL = lambda x: map(uS, x) if isinstance(x, list) else x
         @functools.wraps(func)
         def wrapper(arg):
             result = func(arg)
             if not arg.ioUtf8:
                 return result  # unchanged
-            if isinstance(result, str):
+            if isinstance(result, bytes_):
                 return uS(result)
             uresult = {}
-            for k, v in result.iteritems():
+            for k, v in result.items():
                 uresult[uS(k)] = {}
                 try:
-                    for i, j in v.iteritems():  # or wrapper(j) recursion?
+                    for i, j in v.items():  # or wrapper(j) recursion?
                         uresult[uS(k)][uS(i)] = uS(uL(j))
                 except AttributeError:
                     uresult[uS(k)] = uL(uS(v))
@@ -88,9 +71,10 @@ class Header(Generic):
         function (but is not a decorator)"""
         if not self.ioUtf8:
             return item  # unchanged
-        utf8dify = lambda x: x.encode("utf-8") if isinstance(x, unicode) else x
+        u = str if isPy3k else unicode
+        utf8dify = lambda x: x.encode("utf-8") if isinstance(x, u) else x
         if isinstance(item, list):
-            return map(utf8dify, item)
+            return list(map(utf8dify, item))
         elif isinstance(item, dict):
             return dict([(utf8dify(x), utf8dify(y)) for x, y in item.items()])
         return utf8dify(item)
@@ -101,7 +85,7 @@ class Header(Generic):
         gc.collect()
         if segfaults:
             return
-        #print ".. freeing" , funcName[8:]
+        #print("... freeing", funcName[8:])
         func = getattr(self.spssio, funcName)
         retcode = func(*args)
         if retcode:
@@ -171,8 +155,8 @@ class Header(Generic):
 
     @varNamesTypes.setter
     def varNamesTypes(self, varNamesVarTypes):
-        badLengthMsg = "Empty or longer than %s chars" % \
-                       (MAXLENGTHS['SPSS_MAX_VARNAME'][0])
+        badLengthMsg = ("Empty or longer than %s chars" %
+                        (MAXLENGTHS['SPSS_MAX_VARNAME'][0]))
         varNames, varTypes = varNamesVarTypes
         varNameRetcodes = {
             0: ('SPSS_NAME_OK', 'Valid standard name'),
@@ -186,12 +170,12 @@ class Header(Generic):
         func = self.spssio.spssSetVarName
         for varName in self.varNames:
             varLength = self.varTypes[varName]
-            retcode = validate(c_char_p(varName))
+            retcode = validate(c_char_py3k(varName))
             if retcode:
-                msg = "%r is an invalid variable name [%r]" % \
-                      (varName, ": ".join(varNameRetcodes.get(retcode)))
+                msg = ("%r is an invalid variable name [%r]" %
+                       (varName, ": ".join(varNameRetcodes.get(retcode))))
                 raise SPSSIOError(msg, retcode)
-            retcode = func(c_int(self.fh), c_char_p(varName), c_int(varLength))
+            retcode = func(c_int(self.fh), c_char_py3k(varName), c_int(varLength))
             if retcode:
                 msg = "Problem setting variable name %r" % varName
                 checkErrsWarns(msg, retcode)
@@ -219,7 +203,7 @@ class Header(Generic):
             if self.varTypes[varName] == 0:
                 valuesArr, labelsArr = initArrays(True)
                 func = self.spssio.spssGetVarNValueLabels
-                retcode = func(c_int(self.fh), c_char_p(vName),
+                retcode = func(c_int(self.fh), c_char_py3k(vName),
                                byref(valuesArr), byref(labelsArr),
                                byref(numLabels))
                 valuesArr, labelsArr = initArrays(True, numLabels.value)
@@ -228,13 +212,13 @@ class Header(Generic):
             else:
                 valuesArr, labelsArr = initArrays(False)
                 func = self.spssio.spssGetVarCValueLabels
-                retcode = func(c_int(self.fh), c_char_p(vName),
+                retcode = func(c_int(self.fh), c_char_py3k(vName),
                                byref(valuesArr), byref(labelsArr),
                                byref(numLabels))
                 valuesArr, labelsArr = initArrays(False, numLabels.value)
 
             # step 2: get labels with array of proper size
-            retcode = func(c_int(self.fh), c_char_p(vName), byref(valuesArr),
+            retcode = func(c_int(self.fh), c_char_py3k(vName), byref(valuesArr),
                            byref(labelsArr), byref(numLabels))
             if retcode:
                 msg = "Problem getting value labels of variable %r"  % varName
@@ -264,15 +248,15 @@ class Header(Generic):
         valLabN = self.spssio.spssSetVarNValueLabel
         valLabC = self.spssio.spssSetVarCValueLabel
         valueLabels = self.encode(valueLabels)
-        for varName, valueLabelsX in valueLabels.iteritems():
+        for varName, valueLabelsX in valueLabels.items():
             valueLabelsX = self.encode(valueLabelsX)
-            for value, label in valueLabelsX.iteritems():
+            for value, label in valueLabelsX.items():
                 if self.varTypes[varName] == 0:
-                    retcode = valLabN(c_int(self.fh), c_char_p(varName),
-                                      c_double(value), c_char_p(label))
+                    retcode = valLabN(c_int(self.fh), c_char_py3k(varName),
+                                      c_double(value), c_char_py3k(label))
                 else:
-                    retcode = valLabC(c_int(self.fh), c_char_p(varName),
-                                      c_char_p(value), c_char_p(label))
+                    retcode = valLabC(c_int(self.fh), c_char_py3k(varName),
+                                      c_char_py3k(value), c_char_py3k(label))
                 if retcode:
                     msg = "Problem setting value labels of variable %r"
                     checkErrsWarns(msg % varName, retcode)
@@ -290,7 +274,7 @@ class Header(Generic):
         varLabels = {}
         for varName in self.varNames:
             vName = self.vNames[varName]
-            retcode = func(c_int(self.fh), c_char_p(vName),
+            retcode = func(c_int(self.fh), c_char_py3k(vName),
                            byref(varLabel), c_int(lenBuff), byref(c_int()))
             varLabels[varName] = varLabel.value
             if retcode:
@@ -304,9 +288,9 @@ class Header(Generic):
             return
         func = self.spssio.spssSetVarLabel
         varLabels = self.encode(varLabels)
-        for varName, varLabel in varLabels.iteritems():
-            retcode = func(c_int(self.fh), c_char_p(varName),
-                           c_char_p(varLabel))
+        for varName, varLabel in varLabels.items():
+            retcode = func(c_int(self.fh), c_char_py3k(varName),
+                           c_char_py3k(varLabel))
             if retcode:
                 msg = ("Problem with setting variable label %r of variable %r"
                        % (varLabel, varName))
@@ -326,19 +310,19 @@ class Header(Generic):
         self.formats_ = {}
         for varName in self.varNames:
             vName = self.vNames[varName]
-            retcode = func(c_int(self.fh), c_char_p(vName),
+            retcode = func(c_int(self.fh), c_char_py3k(vName),
                            byref(printFormat_), byref(printDec_),
                            byref(printWid_))
             if retcode:
-                msg = "Error getting print format for variable %r" % vName
-                checkErrsWarns(msg, retcode)
+                msg = "Error getting print format for variable '%s'"
+                checkErrsWarns(msg % vName.decode(), retcode)
 
             printFormat = allFormats.get(printFormat_.value)[0]
-            printFormat = printFormat.split("_")[-1]
-            format_ = printFormat + str(printWid_.value)
+            printFormat = printFormat.split(b"_")[-1]
+            format_ = printFormat + bytez(str(printWid_.value))
             if self.varTypes[varName] == 0:
-                format_ += ("." + str(printDec_.value))
-            if format_.endswith(".0"):
+                format_ += (b"." + bytez(str(printDec_.value)))
+            if format_.endswith(b".0"):
                 format_ = format_[:-2]
             self.formats_[varName] = format_
         return self.formats_
@@ -346,11 +330,15 @@ class Header(Generic):
     def _splitformats(self):
         """This function returns the 'bare' formats + variable widths,
         e.g. format F5.3 is returned as 'F' and '5'"""
-        regex = re.compile("\w+(?P<varWid>\d+)[.]?\d?", re.I)
+        pattern = b"(?P<bareFmt>[a-z]+)(?P<varWid>\d+)[.]?\d*"
+        if self.ioUtf8_:
+            pattern = pattern.decode("utf-8")
+        regex = re.compile(pattern, re.I)
         bareformats, varWids = {}, {}
-        for varName, format_ in self.formats.iteritems():
-            bareformats[varName] = re.sub(r"\d+.", "", format_)
-            varWids[varName] = int(regex.search(format_).group("varWid"))
+        for varName, format_ in self.formats.items():
+            bareformat, varWid = regex.findall(format_)[0]
+            bareformats[varName] = bareformat
+            varWids[varName] = int(varWid)
         return bareformats, varWids
 
     @formats.setter
@@ -359,19 +347,19 @@ class Header(Generic):
             return
         reverseFormats = dict([(v[0][9:], k) for k, v in allFormats.items()])
         validValues = sorted(reverseFormats.keys())
-        regex = "(?P<printFormat>A(HEX)?)(?P<printWid>\d+)"
+        regex = b"(?P<printFormat>A(HEX)?)(?P<printWid>\d+)"
         isStringVar = re.compile(regex, re.IGNORECASE)
-        regex = "(?P<printFormat>[A-Z]+)(?P<printWid>\d+)\.?(?P<printDec>\d*)"
+        regex = b"(?P<printFormat>[A-Z]+)(?P<printWid>\d+)\.?(?P<printDec>\d*)"
         isAnyVar = re.compile(regex, re.IGNORECASE)
         funcP = self.spssio.spssSetVarPrintFormat  # print type
         funcW = self.spssio.spssSetVarWriteFormat  # write type
-        for varName, format_ in self.encode(formats).iteritems():
+        for varName, format_ in self.encode(formats).items():
             format_ = format_.upper()
             gotString = isStringVar.match(format_)
             gotAny = isAnyVar.match(format_)
             msg = ("Unknown format %r or invalid width for variable %r. " +
                    "Valid formats are: %s")
-            msg = msg % (format_, varName, ", ".join(validValues))
+            msg = msg % (format_, varName, b", ".join(validValues))
             if gotString:
                 printFormat = gotString.group("printFormat")
                 printFormat = reverseFormats.get(printFormat)
@@ -389,7 +377,7 @@ class Header(Generic):
             if printFormat is None:
                 raise ValueError(msg)
 
-            args = (c_int(self.fh), c_char_p(varName), c_int(printFormat),
+            args = (c_int(self.fh), c_char_py3k(varName), c_int(printFormat),
                     c_int(printDec), c_int(printWid))
             retcode1, retcode2 = funcP(*args), funcW(*args)
             if retcodes.get(retcode1) == "SPSS_INVALID_PRFOR":
@@ -415,27 +403,27 @@ class Header(Generic):
                     create_string_buffer(9))
         missingFmt = c_int()
         vName = self.vNames[varName]
-        retcode = func(c_int(self.fh), c_char_p(vName),
+        retcode = func(c_int(self.fh), c_char_py3k(vName),
                        byref(missingFmt), *map(byref, args))
         if retcode:
-            msg = "Error getting missing value for variable %r" % varName
+            msg = "Error getting missing value for variable '%s'" % varName
             checkErrsWarns(msg, retcode)
 
         v1, v2, v3 = [v.value for v in args]
-        userMiss = dict([(v, k) for k, v in userMissingValues.iteritems()])
+        userMiss = dict([(v, k) for k, v in userMissingValues.items()])
         missingFmt = userMiss[missingFmt.value]
         if missingFmt == "SPSS_NO_MISSVAL":
             return {}
         elif missingFmt == "SPSS_ONE_MISSVAL":
-            return {"values": [v1]}
+            return {b"values": [v1]}
         elif missingFmt == "SPSS_TWO_MISSVAL":
-            return {"values": [v1, v2]}
+            return {b"values": [v1, v2]}
         elif missingFmt == "SPSS_THREE_MISSVAL":
-            return {"values": [v1, v2, v3]}
+            return {b"values": [v1, v2, v3]}
         elif missingFmt == "SPSS_MISS_RANGE":
-            return {"lower": v1, "upper": v2}
+            return {b"lower": v1, b"upper": v2}
         elif missingFmt == "SPSS_MISS_RANGEANDVAL":
-            return {"lower": v1, "upper": v2, "value": v3}
+            return {b"lower": v1, b"upper": v2, b"value": v3}
 
     def _setMissingValue(self, varName, **kwargs):
         """This is a helper function for the missingValues setter
@@ -456,23 +444,25 @@ class Header(Generic):
         # range of missing values, e.g. MISSING VALUES aNumVar (-9 THRU -1).
         if varType == 0:
             placeholder = 0.0
-            if "lower" in kwargs and "upper" in kwargs and "value" in kwargs:
+            if "lower" in kwargs and "upper" in kwargs and \
+                "value" in kwargs:
                 missingFmt = "SPSS_MISS_RANGEANDVAL"
                 args = kwargs["lower"], kwargs["upper"], kwargs["value"]
             elif "lower" in kwargs and "upper" in kwargs:
                 missingFmt = "SPSS_MISS_RANGE"
                 args = kwargs["lower"], kwargs["upper"], placeholder
         else:
-            placeholder, args = "0", None
+            placeholder, args = b"0", None
 
         # up to three discrete missing values
         if "values" in kwargs:
-            values = self.encode(kwargs.values()[0])
-            if isinstance(values, (float, int, str)):
+            values = self.encode(list(kwargs.values())[0])
+            if isinstance(values, (float, int, str, bytes)):
                 values = [values]
 
             # check if missing values strings values are not too long
-            strMissLabels = [len(v) for v in values if isinstance(v, str)]
+            strMissLabels = [len(v) for v in values if 
+                             isinstance(v, (str, bytes))]
             if strMissLabels and max(strMissLabels) > 9:
                 raise ValueError("Missing value label > 9 bytes")
 
@@ -535,7 +525,7 @@ class Header(Generic):
     @missingValues.setter
     def missingValues(self, missingValues):
         if missingValues:
-            for varName, kwargs in missingValues.iteritems():
+            for varName, kwargs in missingValues.items():
                 self._setMissingValue(varName, **kwargs)
 
     # measurelevel, colwidth and alignment must all be set or not at all.
@@ -548,13 +538,13 @@ class Header(Generic):
         "ratio", "flag", "typeless". This is used in Spss procedures such as
         CTABLES."""
         func = self.spssio.spssGetVarMeasureLevel
-        levels = {0: "unknown", 1: "nominal", 2: "ordinal", 3: "scale",
-                  3: "ratio", 4: "flag", 5: "typeless"}
+        levels = {0: b"unknown", 1: b"nominal", 2: b"ordinal", 3: b"scale",
+                  3: b"ratio", 4: b"flag", 5: b"typeless"}
         measureLevel = c_int()
         varMeasureLevels = {}
         for varName in self.varNames:
             vName = self.vNames[varName]
-            retcode = func(c_int(self.fh), c_char_p(vName),
+            retcode = func(c_int(self.fh), c_char_py3k(vName),
                            byref(measureLevel))
             varMeasureLevels[varName] = levels.get(measureLevel.value)
             if retcode:
@@ -568,18 +558,17 @@ class Header(Generic):
         if not varMeasureLevels:
             return
         func = self.spssio.spssSetVarMeasureLevel
-        levels = {"unknown": 0, "nominal": 1, "ordinal": 2, "scale": 3,
-                  "ratio": 3, "flag": 4, "typeless": 5}
-        for varName, level in self.encode(varMeasureLevels).iteritems():
+        levels = {b"unknown": 0, b"nominal": 1, b"ordinal": 2, b"scale": 3,
+                  b"ratio": 3, b"flag": 4, b"typeless": 5}
+        for varName, level in self.encode(varMeasureLevels).items():
             if level.lower() not in levels:
-                msg = "Valid levels are %"
-                raise ValueError(msg % ", ".join(levels.keys()))
+                msg = "Valid levels are %s"
+                raise ValueError(msg % b", ".join(levels.keys()).decode())
             level = levels.get(level.lower())
-            retcode = func(c_int(self.fh), c_char_p(varName), c_int(level))
+            retcode = func(c_int(self.fh), c_char_py3k(varName), c_int(level))
             if retcode:
-                msg = ("Problem setting variable mesasurement level. " +
-                       "Valid levels are: %s")
-                checkErrsWarns(msg % ", ".join(levels.keys()), retcode)
+                msg = "Problem setting variable mesasurement level: '%s'"
+                checkErrsWarns(msg % varName.decode(), retcode)
 
     @property
     @decode
@@ -595,11 +584,11 @@ class Header(Generic):
         varColumnWidths = {}
         for varName in self.varNames:
             vName = self.vNames[varName]
-            retcode = func(c_int(self.fh), c_char_p(vName),
+            retcode = func(c_int(self.fh), c_char_py3k(vName),
                            byref(varColumnWidth))
             if retcode:
-                msg = "Problem getting column width: %r" % varName
-                checkErrsWarns(msg, retcode)
+                msg = "Problem getting column width: '%s'"
+                checkErrsWarns(msg % varName.decode(), retcode)
             varColumnWidths[varName] = varColumnWidth.value
         return varColumnWidths
 
@@ -608,12 +597,12 @@ class Header(Generic):
         if not varColumnWidths:
             return
         func = self.spssio.spssSetVarColumnWidth
-        for varName, varColumnWidth in varColumnWidths.iteritems():
-            retcode = func(c_int(self.fh), c_char_p(varName),
+        for varName, varColumnWidth in varColumnWidths.items():
+            retcode = func(c_int(self.fh), c_char_py3k(varName),
                            c_int(varColumnWidth))
             if retcode:
-                msg = "Error setting variable colunm width"
-                checkErrsWarns(msg, retcode)
+                msg = "Error setting variable column width: '%s'"
+                checkErrsWarns(msg % varName.decode(), retcode)
 
     def _setColWidth10(self):
         """Set the variable display width of string values to at least 10
@@ -623,12 +612,12 @@ class Header(Generic):
         only called if column widths, measurement levels and variable
         alignments are None."""
         columnWidths = {}
-        for varName, varType in self.varTypes.iteritems():
+        for varName, varType in self.varTypes.items():
             # zero = appropriate width determined by spss
             columnWidths[varName] = 10 if 0 < varType < 10 else 0
         self.columnWidths = columnWidths
-        self.measureLevels = dict([(v, "unknown") for v in self.varNames])
-        self.alignments = dict([(v, "left") for v in self.varNames])
+        self.measureLevels = dict([(v, b"unknown") for v in self.varNames])
+        self.alignments = dict([(v, b"left") for v in self.varNames])
 
     @property
     @decode
@@ -639,18 +628,18 @@ class Header(Generic):
         alignment, measurement level and column width all need to be set.
         """
         func = self.spssio.spssGetVarAlignment
-        alignments = {0: "left", 1: "right", 2: "center"}
+        alignments = {0: b"left", 1: b"right", 2: b"center"}
         alignment_ = c_int()
         varAlignments = {}
         for varName in self.varNames:
             vName = self.vNames[varName]
-            retcode = func(c_int(self.fh), c_char_p(vName),
+            retcode = func(c_int(self.fh), c_char_py3k(vName),
                            byref(alignment_))
             alignment = alignments[alignment_.value]
             varAlignments[varName] = alignment
             if retcode:
-                msg = "Problem getting variable alignment: %r" % varName
-                checkErrsWarns(msg, retcode)
+                msg = "Problem getting variable alignment: '%s'"
+                checkErrsWarns(msg % varName.decode(), retcode)
         return varAlignments
 
     @alignments.setter
@@ -658,16 +647,16 @@ class Header(Generic):
         if not varAlignments:
             return
         func = self.spssio.spssSetVarAlignment
-        alignments = {"left": 0, "right": 1, "center": 2}
-        for varName, varAlignment in varAlignments.iteritems():
+        alignments = {b"left": 0, b"right": 1, b"center": 2}
+        for varName, varAlignment in varAlignments.items():
             if varAlignment.lower() not in alignments:
-                msg = "Valid alignments are %"
-                raise ValueError(msg % ", ".join(alignments.keys()))
+                ukeys = b", ".join(alignments.keys()).decode()
+                raise ValueError("Valid alignments are %s" % ukeys)
             alignment = alignments.get(varAlignment.lower())
-            retcode = func(c_int(self.fh), c_char_p(varName), c_int(alignment))
+            retcode = func(c_int(self.fh), c_char_py3k(varName), c_int(alignment))
             if retcode:
-                msg = "Problem setting variable alignment for variable %r"
-                checkErrsWarns(msg % varName, retcode)
+                msg = "Problem setting variable alignment for variable '%s'"
+                checkErrsWarns(msg % varName.decode(), retcode)
 
     @property
     @decode
@@ -686,8 +675,8 @@ class Header(Generic):
         if not varSets.value:
             return {}
         varSets_ = {}
-        for varSet in varSets.value.split("\n")[:-1]:
-            k, v = varSet.split("= ")
+        for varSet in varSets.value.split(b"\n")[:-1]:
+            k, v = varSet.split(b"= ")
             varSets_[k] = v.split()
 
         # clean up
@@ -700,9 +689,11 @@ class Header(Generic):
         if not varSets:
             return
         varSets_ = []
-        for varName, varSet in varSets.iteritems():
-            varSets_.append("%s= %s" % (varName, " ".join(varSet)))
-        varSets_ = c_char_p("\n".join(varSets_))
+        for varName, varSet in varSets.items():
+            varName = varName.decode(self.fileEncoding)
+            varSet = (b" ".join(varSet)).decode(self.fileEncoding)
+            varSets_.append(("%s= %s" % (varName, varSet)).encode(self.fileEncoding))
+        varSets_ = c_char_py3k(b"\n".join(varSets_))
         retcode = self.spssio.spssSetVariableSets(c_int(self.fh), varSets_)
         if retcode:
             msg = "Problem setting variable set information"
@@ -716,13 +707,13 @@ class Header(Generic):
         varRoles may be any of the following: 'both', 'frequency', 'input',
         'none', 'partition', 'record ID', 'split', 'target'"""
         func = self.spssio.spssGetVarRole
-        roles = {0: "input", 1: "target", 2: "both", 3: "none", 4: "partition",
-                 5: "split", 6: "frequency", 7: "record ID"}
+        roles = {0: b"input", 1: b"target", 2: b"both", 3: b"none", 4: b"partition",
+                 5: b"split", 6: b"frequency", 7: b"record ID"}
         varRoles = {}
         varRole_ = c_int()
         for varName in self.varNames:
             vName = self.vNames[varName]
-            retcode = func(c_int(self.fh), c_char_p(vName), byref(varRole_))
+            retcode = func(c_int(self.fh), c_char_py3k(vName), byref(varRole_))
             varRole = roles.get(varRole_.value)
             varRoles[varName] = varRole
             if retcode:
@@ -737,9 +728,9 @@ class Header(Generic):
         roles = {"input": 0, "target": 1, "both": 2, "none": 3, "partition": 4,
                  "split": 5,  "frequency": 6, "record ID": 7}
         func = self.spssio.spssSetVarRole
-        for varName, varRole in varRoles.iteritems():
+        for varName, varRole in varRoles.items():
             varRole = roles.get(varRole)
-            retcode = func(c_int(self.fh), c_char_p(varName), c_int(varRole))
+            retcode = func(c_int(self.fh), c_char_py3k(varName), c_int(varRole))
             if retcode:
                 msg = "Problem setting variable role %r for variable %r"
                 checkErrsWarns(msg % (varRole, varName), retcode)
@@ -766,23 +757,23 @@ class Header(Generic):
 
             # step 1: get array size
             nAttr = c_int()
-            retcode = func(c_int(self.fh), c_char_p(vName),
+            retcode = func(c_int(self.fh), c_char_py3k(vName),
                            byref(attrNamesArr), byref(attrValuesArr),
                            byref(nAttr))
             if retcode:
-                msg = "Problem getting attributes of variable %r (step 1)"
-                checkErrsWarns(msg % varName, retcode)
+                msg = "Problem getting attributes of variable '%s' (step 1/2)"
+                checkErrsWarns(msg % varName.decode(), retcode)
 
             # step 2: get attributes with arrays of proper size
             nAttr = c_int(nAttr.value)
             attrNamesArr = (POINTER(c_char_p * nAttr.value))()
             attrValuesArr = (POINTER(c_char_p * nAttr.value))()
-            retcode = func(c_int(self.fh), c_char_p(vName),
+            retcode = func(c_int(self.fh), c_char_py3k(vName),
                            byref(attrNamesArr), byref(attrValuesArr),
                            byref(nAttr))
             if retcode:
-                msg = "Problem getting attributes of variable %r (step 2)"
-                checkErrsWarns(msg % varName, retcode)
+                msg = "Problem getting attributes of variable '%s' (step 2/2)"
+                checkErrsWarns(msg % varName.decode(), retcode)
 
             # get array contents
             if not nAttr.value:
@@ -807,9 +798,9 @@ class Header(Generic):
             if not attributes:
                 continue
             nAttr = len(attributes)
-            attrNames = (c_char_p * nAttr)(*attributes.keys())
-            attrValues = (c_char_p * nAttr)(*attributes.values())
-            retcode = func(c_int(self.fh), c_char_p(varName),
+            attrNames = (c_char_p * nAttr)(*list(attributes.keys()))
+            attrValues = (c_char_p * nAttr)(*list(attributes.values()))
+            retcode = func(c_int(self.fh), c_char_py3k(varName),
                            pointer(attrNames), pointer(attrValues),
                            c_int(nAttr))
             if retcode:
@@ -860,18 +851,12 @@ class Header(Generic):
     def fileAttributes(self, fileAttributes):
         if not fileAttributes:
             return
-        attributes, valueLens = {}, []
-        for name, values in fileAttributes.iteritems():
-            #valueLens.append(len(values))
-            for value in values:
-                attributes[name] = value
-        nAttr = len(attributes)
-        #nAttr = max(valueLens)  # n elements per vector. But this may vary??
-        attrNames = (c_char_p * nAttr)(*attributes.keys())
-        attrValues = (c_char_p * nAttr)(*attributes.values())
+        nAttr = len(fileAttributes)
+        attrNames = (c_char_p * nAttr)(*list(fileAttributes.keys()))
+        attrValues = (c_char_p * nAttr)(*list(fileAttributes.values()))
         func = self.spssio.spssSetFileAttributes
-        retcode = func(c_int(self.fh), pointer(attrNames),
-                       pointer(attrValues), c_int(nAttr))
+        retcode = func(c_int(self.fh), byref(attrNames),
+                       byref(attrValues), c_int(nAttr))
         if retcode:
             checkErrsWarns("Problem setting file attributes", retcode)
 
@@ -885,28 +870,28 @@ class Header(Generic):
         (multiple dichotomy sets) or 'C' (multiple category sets). If setType
         is 'D', the multiple response definition also includes '"countedValue":
         countedValue'"""
-        regex = "\$(?P<setName>\S+)=(?P<setType>[CD])\n?"
-        m = re.search(regex + ".*", mrDef, re.I | re.U)
+        regex = b"\$(?P<setName>\S+)=(?P<setType>[CD])\n?"
+        m = re.search(regex + b".*", mrDef, re.I | re.L)
         if not m:
             return {}
         setType = m.group("setType")
-        if setType == "C":  # multiple category sets
-            regex += " (?P<lblLen>\d+) (?P<lblVarNames>.+) ?\n?"
+        if setType == b"C":  # multiple category sets
+            regex += b" (?P<lblLen>\d+) (?P<lblVarNames>.+) ?\n?"
             matches = re.findall(regex, mrDef, re.I)
             setName, setType, lblLen, lblVarNames = matches[0]
         else:               # multiple dichotomy sets
             # \w+ won't always work (e.g. thai) --> \S+
-            regex += ("(?P<valueLen>\d+) (?P<countedValue>\S+)" +
-                      " (?P<lblLen>\d+) (?P<lblVarNames>.+) ?\n?")
-            matches = re.findall(regex, mrDef, re.I | re.U)
+            regex += (b"(?P<valueLen>\d+) (?P<countedValue>\S+)" +
+                      b" (?P<lblLen>\d+) (?P<lblVarNames>.+) ?\n?")
+            matches = re.findall(regex, mrDef, re.I | re.L)
             setName, setType, valueLen = matches[0][:3]
             countedValue, lblLen, lblVarNames = matches[0][3:]
         lbl = lblVarNames[:int(lblLen)]
         varNames = lblVarNames[int(lblLen):].split()
-        multRespSet = {setName: {"setType": setType, "label": lbl,
-                                 "varNames": varNames}}
-        if setType == "D":
-            multRespSet[setName]["countedValue"] = countedValue
+        multRespSet = {setName: {b"setType": setType, b"label": lbl,
+                                 b"varNames": varNames}}
+        if setType == b"D":
+            multRespSet[setName][b"countedValue"] = countedValue
         return multRespSet
 
     def _setMultRespDefs(self, multRespDefs):
@@ -915,27 +900,27 @@ class Header(Generic):
         It translates the multiple response definition, specified as a
         dictionary, into a string that the IO module can use"""
         mrespDefs = []
-        for setName, rest in multRespDefs.iteritems():
+        for setName, rest in multRespDefs.items():
             rest = self.encode(rest)
-            if rest["setType"] not in ("C", "D"):
+            if rest["setType"] not in (b"C", b"D"):
                 continue
             rest["setName"] = self.encode(setName)
-            mrespDef = "$%(setName)s=%(setType)s" % rest
+            mrespDef = b"$%(setName)s=%(setType)s" % rest
             lblLen = len(rest["label"])
             rest["lblLen"] = lblLen
-            rest["varNames"] = " ".join(rest["varNames"])
-            tail = " %(varNames)s" if lblLen == 0 else "%(label)s %(varNames)s"
-            if rest["setType"] == "C":  # multiple category sets
-                template = " %%(lblLen)s %s " % tail
+            rest["varNames"] = b" ".join(rest["varNames"])
+            tail = b" %(varNames)s" if lblLen == 0 else b"%(label)s %(varNames)s"
+            if rest["setType"] == b"C":  # multiple category sets
+                template = b" %%(lblLen)s %s " % tail
             else:                       # multiple dichotomy sets
                 # line below added/modified after Issue #4:
                 # Assertion during creating of multRespDefs
                 rest["valueLen"] = len(str(rest["countedValue"]))
-                template = "%%(valueLen)s %%(countedValue)s %%(lblLen)s %s " \
-                           % tail
+                template = (b"%%(valueLen)s %%(countedValue)s %%(lblLen)s %s "
+                            % tail)
             mrespDef += template % rest
             mrespDefs.append(mrespDef.rstrip())
-        mrespDefs = "\n".join(mrespDefs)
+        mrespDefs = b"\n".join(mrespDefs)
         return mrespDefs
 
     def _getMultRespDefsEx(self, mrDef):
@@ -992,22 +977,6 @@ class Header(Generic):
         # or replace 'normal' MR definitions. I assumed 'complement'.
         #####
 
-        # Alternative approach
-        #nSets = c_int()
-        #func = self.spssio.spssGetMultRespCount
-        #retcode = func(c_int(self.fh), byref(nSets))
-        #if not nSets.value:
-        #    return {}
-        #func = self.spssio.spssGetMultRespDefByIndex
-        #ppSet = c_char_p()
-        #for i in range(nSets.value):
-        #    retcode = func(c_int(self.fh), c_int(i), byref(ppSet))
-        #    print ppSet.value, retcodes.get(retcode, retcode)
-        #    if retcode > 0:
-        #        msg = "Problem getting multiple response definitions"
-        #        raise SPSSIOError(msg, retcode)
-        #    self.freeMemory("spssFreeMultRespDefStruct", ppSet)
-
         ## Normal Multiple response definitions
         func = self.spssio.spssGetMultRespDefs
         mrDefs = c_char_p()
@@ -1018,8 +987,8 @@ class Header(Generic):
 
         multRespDefs = {}
         if mrDefs.value:
-            for mrDef in mrDefs.value.split("\n"):
-                for setName, rest in self._getMultRespDef(mrDef).iteritems():
+            for mrDef in mrDefs.value.split(b"\n"):
+                for setName, rest in self._getMultRespDef(mrDef).items():
                     multRespDefs[setName] = rest
             self.freeMemory("spssFreeMultRespDefs", mrDefs)
 
@@ -1033,8 +1002,8 @@ class Header(Generic):
 
         multRespDefsEx = {}
         if mrDefsEx.value:
-            for mrDefEx in mrDefsEx.value.split("\n"):
-                for setName, rest in self._getMultRespDef(mrDefEx).iteritems():
+            for mrDefEx in mrDefsEx.value.split(b"\n"):
+                for setName, rest in self._getMultRespDef(mrDefEx).items():
                     multRespDefsEx[setName] = rest
             self.freeMemory("spssFreeMultRespDefs", mrDefsEx)
 
@@ -1047,7 +1016,7 @@ class Header(Generic):
             return
         multRespDefs = self._setMultRespDefs(multRespDefs)
         func = self.spssio.spssSetMultRespDefs
-        retcode = func(c_int(self.fh), c_char_p(multRespDefs))
+        retcode = func(c_int(self.fh), c_char_py3k(multRespDefs))
         if retcode:
             msg = "Problem setting multiple response definitions"
             checkErrsWarns(msg, retcode)
@@ -1071,7 +1040,7 @@ class Header(Generic):
         if not varName:
             return
         func = self.spssio.spssSetCaseWeightVar
-        retcode = func(c_int(self.fh), c_char_p(varName))
+        retcode = func(c_int(self.fh), c_char_py3k(varName))
         if retcode:
             msg = "Problem setting case weight variable name %r" % varName
             checkErrsWarns(msg, retcode)
@@ -1117,8 +1086,8 @@ class Header(Generic):
         isAllInts = all([isinstance(d, int) for d in dateInfo])
         isSixPlusTriplets = (len(dateInfo) - 6) % 3 == 0
         if not isAllInts and isSixPlusTriplets:
-            msg = ("TRENDS date info must consist of 6 fixed elements" +
-                   "+ <nCases> three-element groups of other date info " +
+            msg = ("TRENDS date info must consist of 6 fixed elements"
+                   "+ <nCases> three-element groups of other date info "
                    "(all ints)")
             raise TypeError(msg)
         func = self.spssio.spssSetDateVariables
@@ -1144,12 +1113,12 @@ class Header(Generic):
     @textInfo.setter
     def textInfo(self, savFileName):
         info = (os.path.basename(savFileName), __version__, time.asctime())
-        textInfo = "File '%s' built using SavReaderWriter.py version %s (%s)"
+        textInfo = "File '%s' built using savReaderWriter version %s (%s)"
         textInfo = textInfo % info
         if self.ioUtf8 and isinstance(savFileName, unicode):
             textInfo = textInfo.encode("utf-8")
         func = self.spssio.spssSetTextInfo
-        retcode = func(c_int(self.fh), c_char_p(textInfo[:256]))
+        retcode = func(c_int(self.fh), c_char_py3k(textInfo[:256]))
         if retcode:
             checkErrsWarns("Problem setting textInfo", retcode)
 
@@ -1168,11 +1137,11 @@ class Header(Generic):
     @fileLabel.setter
     def fileLabel(self, idStr):
         if idStr is None:
-            idStr = "File created by user %r at %s"[:64] % \
-                    (getpass.getuser(), time.asctime())
+            idStr = ("File created by user %r at %s"[:64] %
+                     (getpass.getuser(), time.asctime()))
         if self.ioUtf8 and isinstance(idStr, unicode):
             idStr = idStr.encode("utf-8")
-        retcode = self.spssio.spssSetIdString(c_int(self.fh), c_char_p(idStr))
+        retcode = self.spssio.spssSetIdString(c_int(self.fh), c_char_py3k(idStr))
         if retcode:
             checkErrsWarns("Problem setting file label (id string)", retcode)
 
@@ -1307,7 +1276,7 @@ class Header(Generic):
 
         # write GUI information
         if not retcode:
-            args = c_int(self.fh), c_char_p(asciiGUID)
+            args = c_int(self.fh), c_char_py3k(asciiGUID)
             func = self.spssio.spssSetDEWGUID
             retcode = func(*args)
 

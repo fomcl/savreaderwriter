@@ -11,8 +11,10 @@ import re
 import math
 import locale
 import encodings
+import collections
 
 from savReaderWriter import *
+from py3k import *
 
 class Generic(object):
     """
@@ -52,10 +54,10 @@ class Generic(object):
             encoding = "utf-8" if not encoding else encoding  # actually, ascii
         try:
             return fn.encode(encoding)
-        except UnicodeEncodeError, e:
+        except UnicodeEncodeError:
             msg = ("File system encoding %r can not be used to " +
                    "encode file name %r [%s]")
-            raise ValueError(msg % (encoding, fn, e))
+            raise ValueError(msg % (encoding, fn, sys.exc_info()[1]))
 
     def _loadLibs(self, folder):
         """Helper function that loads I/O libraries in the correct order"""
@@ -71,8 +73,9 @@ class Generic(object):
         else:
             path = os.path.join(os.path.dirname(__file__), "spssio", folder)
         libs = sorted(os.listdir(path))
+
         pats = ['(lib)?icuda?t', '(lib)?icuuc', '(lib)?icui',
-                '(lib)?zlib', '(lib)?spssd?io', '(lib)?spssjdio']
+                '(lib)?zlib', '(lib)?spssd?io']
         libs = [lib for pat in pats for lib in libs if re.match(pat, lib)]
         isLib = r"""\w+(\.s[ol](?:\.\d+)*| # linux/hp/solaris
                     \.\d+\.a|              # aix
@@ -81,10 +84,10 @@ class Generic(object):
         libs = [lib for lib in libs if re.match(isLib, lib, re.I | re.X)]
         load = WinDLL if sys.platform.lower().startswith("win") else CDLL
         if libs and debug:
-            assert len(libs) == 6, "SPSS I/O needs to load 6 libraries!"
-            print os.path.basename(path).upper().center(79, "-")
-            print "\n".join(libs)
-        return [load(os.path.join(path, lib)) for lib in libs][-2]
+            print(os.path.basename(path).upper().center(79, "-"))
+            print("\n".join(libs))
+
+        return [load(os.path.join(path, lib)) for lib in libs][-1]
 
     def loadLibrary(self):
         """This function loads and returns the SPSSIO libraries,
@@ -121,7 +124,7 @@ class Generic(object):
             spssio = self._loadLibs("sol64")
         else:
             msg = "Your platform (%r) is not supported" % pf
-            raise NotImplementedError(msg)
+            raise EnvironmentError(msg)
 
         return spssio
 
@@ -175,7 +178,7 @@ class Generic(object):
             raise WinError(retcode)
         return lpMultiByteStr.value
 
-    def openSavFile(self, savFileName, mode="rb", refSavFileName=None):
+    def openSavFile(self, savFileName, mode=b"rb", refSavFileName=None):
         """This function opens IBM SPSS Statistics data files in mode <mode>
         and returns a handle that  should be used for subsequent operations on
         the file. If <savFileName> is opened in mode "cp", meta data
@@ -185,27 +188,26 @@ class Generic(object):
             fdopen = self.libc._fdopen  # Windows
         except AttributeError:
             fdopen = self.libc.fdopen   # Linux and others
-        fdopen.argtypes = [c_int, c_char_p]
-        fdopen.restype = c_void_p
+        fdopen.argtypes, fdopen.restype = [c_int, c_char_p], c_void_p
         fdopen.errcheck = self.errcheck
-        mode_ = "wb" if mode == "cp" else mode
-        with open(savFileName, mode_) as f:
+        mode_ = b"wb" if mode == b"cp" else mode
+        with open(savFileName, mode_.decode("utf-8")) as f:
             self.fd = fdopen(f.fileno(), mode_)
-        if mode == "rb":
+        if mode == b"rb":
             spssOpen = self.spssio.spssOpenRead
-        elif mode == "wb":
+        elif mode == b"wb":
             spssOpen = self.spssio.spssOpenWrite
-        elif mode == "cp":
+        elif mode == b"cp":
             spssOpen = self.spssio.spssOpenWriteCopy
-        elif mode == "ab":
+        elif mode == b"ab":
             spssOpen = self.spssio.spssOpenAppend
 
         savFileName = self._encodeFileName(savFileName)
         refSavFileName = self._encodeFileName(refSavFileName)
-        sav = c_char_p(savFileName)
+        sav = c_char_py3k(savFileName)
         fh = c_int(self.fd)
-        if mode == "cp":
-            retcode = spssOpen(sav, c_char_p(refSavFileName), pointer(fh))
+        if mode == b"cp":
+            retcode = spssOpen(sav, c_char_py3k(refSavFileName), pointer(fh))
         else:
             retcode = spssOpen(sav, pointer(fh))
 
@@ -213,32 +215,23 @@ class Generic(object):
         checkErrsWarns(msg, retcode)
         return fh.value
 
-    def closeSavFile(self, fh, mode="rb"):
+    def closeSavFile(self, fh, mode=b"rb"):
         """This function closes the sav file associated with <fh> that was open
         in mode <mode>."""
-        if mode == "rb":
+        if mode == b"rb":
             spssClose = self.spssio.spssCloseRead
-        elif mode == "wb":
+        elif mode in (b"wb", b"cp"):
             spssClose = self.spssio.spssCloseWrite
-        elif mode == "ab":
+        elif mode == b"ab":
             spssClose = self.spssio.spssCloseAppend
-        retcode = spssClose(c_int(fh))
+        else:
+            spssClose, retcode = None, 9999
+
+        if spssClose is not None:
+            retcode = spssClose(c_int(fh))
         msg = "Problem closing file in mode %r" % mode
         checkErrsWarns(msg, retcode)
-
-##    def closeFile(self):
-##        """Close file"""
-##        try:
-##            try:
-##                # Windows
-##                self.libc._close.errcheck = self.errcheck
-##                self.libc._close(c_void_p(self.fd))
-##            except AttributeError:
-##                # Linux
-##                self.libc.close.errcheck = self.errcheck
-##                self.libc.close(c_void_p(self.fd))
-##        except EnvironmentError, e:
-##            print e
+        #self.libc.close(self.fd)  ???
 
     @property
     def releaseInfo(self):
@@ -266,7 +259,8 @@ class Generic(object):
         major = info["release number"]
         minor = info["release subnumber"]
         fixpack = info["fixpack number"]
-        return major, minor, fixpack
+        ver_info = (major, minor, fixpack)
+        return collections.namedtuple("ver", "major minor fixpack")(*ver_info)
 
     @property
     def fileCompression(self):
@@ -274,7 +268,7 @@ class Generic(object):
         Returns/Takes a compression switch which may be any of the following:
         'uncompressed', 'standard', or 'zlib'. Zlib comression requires SPSS
         v21 I/O files."""
-        compression = {0: "uncompressed", 1: "standard", 2: "zlib"}
+        compression = {0: b"uncompressed", 1: b"standard", 2: b"zlib"}
         compSwitch = c_int()
         func = self.spssio.spssGetCompression
         retcode = func(c_int(self.fh), byref(compSwitch))
@@ -283,7 +277,7 @@ class Generic(object):
 
     @fileCompression.setter
     def fileCompression(self, compSwitch):
-        compression = {"uncompressed": 0, "standard": 1, "zlib": 2}
+        compression = {b"uncompressed": 0, b"standard": 1, b"zlib": 2}
         compSwitch = compression.get(compSwitch)
         func = self.spssio.spssSetCompression
         retcode = func(c_int(self.fh), c_int(compSwitch))
@@ -303,7 +297,7 @@ class Generic(object):
         checkErrsWarns("Problem getting SystemString", retcode)
         return sysName.value
 
-    def getStruct(self, varTypes, varNames, mode="rb"):
+    def getStruct(self, varTypes, varNames, mode=b"rb"):
         """This function returns a compiled struct object. The required
         struct format string for the conversion between C and Python
         is created on the basis of varType and byte order.
@@ -312,10 +306,10 @@ class Generic(object):
         --byte order: files are written in the byte order of the host system
           (mode="wb") and read/appended using the byte order information
           contained in the SPSS data file (mode is "ab" or "rb" or "cp")"""
-        if mode in ("ab", "rb", "cp"):     # derive endianness from file
+        if mode in (b"ab", b"rb", b"cp"):   # derive endianness from file
             endianness = self.releaseInfo["big/little-endian code"]
             endianness = ">" if endianness > 0 else "<"
-        elif mode == "wb":                 # derive endianness from host
+        elif mode == b"wb":                 # derive endianness from host
             if sys.byteorder == "little":
                 endianness = "<"
             elif sys.byteorder == "big":
@@ -365,7 +359,8 @@ class Generic(object):
         func = self.spssio.spssLowHighVal
         retcode = func(byref(lowest), byref(highest))
         checkErrsWarns("Problem getting min/max missing values", retcode)
-        return lowest.value, highest.value
+        ranges = (lowest.value, highest.value)
+        return collections.namedtuple("range", "lo hi")(*ranges)
 
     @property
     def ioLocale(self):
@@ -386,7 +381,7 @@ class Generic(object):
             return self.setLocale
         else:
             currLocale = ".".join(locale.getlocale())
-            print "NOTE. Locale not set; getting current locale: ", currLocale
+            print("NOTE. Locale not set; getting current locale: %s" % currLocale)
             return currLocale
 
     @ioLocale.setter
@@ -395,7 +390,7 @@ class Generic(object):
             localeName = ".".join(locale.getlocale())
         func = self.spssio.spssSetLocale
         func.restype = c_char_p
-        self.setLocale = func(c_int(locale.LC_ALL), c_char_p(localeName))
+        self.setLocale = func(c_int(locale.LC_ALL), c_char_py3k(localeName))
         if self.setLocale is None:
             raise ValueError("Invalid ioLocale: %r" % localeName)
         return self.setLocale
@@ -428,7 +423,7 @@ class Generic(object):
                    "character encoding (%s) incompatible with the current " +
                    "ioLocale setting. It may not be readable. Consider " +
                    "changing ioLocale or setting ioUtf8=True.")
-            print msg % (self.savFileName, self.fileEncoding)
+            print(msg % (self.savFileName, self.fileEncoding))
         return bool(isCompatible.value)
 
     @property
@@ -462,28 +457,23 @@ class Generic(object):
         ISO-8859-1, which is then converted to the corresponding Python
         codec name. If the file contains no file encoding, the locale's
         preferred encoding is returned"""
-        preferredEncoding = locale.getpreferredencoding()
         try:
             pszEncoding = create_string_buffer(20)  # is 20 enough??
             func = self.spssio.spssGetFileEncoding
             retcode = func(c_int(self.fh), byref(pszEncoding))
             checkErrsWarns("Problem getting file encoding", retcode)
             iana_codes = encodings.aliases.aliases
-            rawEncoding = pszEncoding.value.lower()
+            rawEncoding = pszEncoding.value.lower().decode("utf-8")
             if rawEncoding.replace("-", "") in iana_codes:
                 iana_code = rawEncoding.replace("-", "")
             else:
                 iana_code = rawEncoding.replace("-", "_")
             fileEncoding = iana_codes[iana_code]
             return fileEncoding
-        except AttributeError:
-            print ("NOTE. Function 'getFileEncoding' not found. You are " +
-                   "using a .dll from SPSS < v16.")
-            return preferredEncoding
         except KeyError:
             print ("NOTE. IANA coding lookup error. Code %r " % iana_code +
                    "does not map to any Python codec.")
-            return preferredEncoding
+            return locale.getpreferredencoding()
 
     @property
     def record(self):
@@ -499,10 +489,10 @@ class Generic(object):
     def record(self, record):
         try:
             self.pack_into(self.caseBuffer, 0, *record)
-        except struct.error, e:
-            msg = "Use ioUtf8=True to write unicode strings [%s]" % e
-            raise TypeError(msg)
-        args = c_int(self.fh), c_char_p(self.caseBuffer.raw)
+        except struct.error:
+            msg = "Use ioUtf8=True to write unicode strings [%s]"
+            raise TypeError(msg % sys.exc_info()[1])
+        args = c_int(self.fh), c_char_py3k(self.caseBuffer.raw)
         retcode = self.wholeCaseOut(*args)
         if retcode != 0:
             checkErrsWarns("Problem writing row\n" + record, retcode)
@@ -512,4 +502,4 @@ class Generic(object):
         files"""
         if nominator and nominator % 10**4 == 0:
             pctProgress = (float(nominator) / denominator) * 100
-            print "%2.1f%%... " % pctProgress,
+            print("%2.1f%%... " % pctProgress),

@@ -6,10 +6,13 @@ import os
 import operator
 import locale
 import datetime
+import collections
 
 from savReaderWriter import *
 from header import *
 
+@rich_comparison
+@implements_to_string
 class SavReader(Header):
     """ Read Spss system files (.sav, .zsav)
 
@@ -50,7 +53,7 @@ class SavReader(Header):
                  verbose=False, selectVars=None, idVar=None, rawMode=False,
                  ioUtf8=False, ioLocale=None):
         """ Constructor. Initializes all vars that can be recycled """
-        super(SavReader, self).__init__(savFileName, "rb", None,
+        super(SavReader, self).__init__(savFileName, b"rb", None,
                                         ioUtf8, ioLocale)
         self.savFileName = savFileName
         self.returnHeader = returnHeader
@@ -80,9 +83,9 @@ class SavReader(Header):
     def __enter__(self):
         """ This function opens the spss data file (context manager)."""
         if self.verbose and self.ioUtf8_:
-            print unicode(self).replace(os.linesep, "\n")
+            print(self.replace(os.linesep, "\n"))
         elif self.verbose:
-            print str(self).replace(os.linesep, "\n")
+            print(str(self).replace(os.linesep, "\n"))
         return iter(self)
 
     def __exit__(self, type, value, tb):
@@ -94,7 +97,7 @@ class SavReader(Header):
     def close(self):
         """This function closes the spss data file and does some cleaning."""
         if not segfaults:
-            self.closeSavFile(self.fh, mode="rb")
+            self.closeSavFile(self.fh, mode=b"rb")
         del self.spssio
 
     def __len__(self):
@@ -102,6 +105,7 @@ class SavReader(Header):
         file. For example: len(SavReader(savFileName))"""
         return self.nCases
 
+    # Python 3: see @rich_comparison class decorator
     def __cmp__(self, other):
         """ This function implements behavior for all of the comparison
         operators so comparisons can be made between SavReader instances,
@@ -124,21 +128,25 @@ class SavReader(Header):
     def __str__(self):
         """This function returns a conscise file report of the spss data file
         For example str(SavReader(savFileName))"""
-        return unicode(self).encode(self.fileEncoding)
+        return self.__unicode__().encode(self.fileEncoding)
 
     def __unicode__(self):
         """This function returns a conscise file report of the spss data file,
         For example unicode(SavReader(savFileName))"""
-        self.fileReport = self.getFileReport(self.savFileName, self.varNames,
-                                             self.varTypes, self.formats,
-                                             self.nCases)
-        return self.fileReport
+        return self.getFileReport()
+
+    @property
+    def shape(self):
+        """This function returns the number of rows (nrows) and columns
+        (ncols) as a namedtuple"""
+        dim = (self.nCases, self.numVars)
+        return collections.namedtuple("_", "nrows ncols")(*dim)
 
     def _isAutoRawMode(self):
         """Helper function for formatValues function. Determines whether
         iterating over each individual value is really needed"""
         hasDates = bool(set(self.bareformats.values()) & set(supportedDates))
-        hasNfmt = "N" in self.bareformats
+        hasNfmt = b"N" in self.bareformats
         hasRecodeSysmis = self.recodeSysmisTo is not None
         items = [hasDates, hasNfmt, hasRecodeSysmis, self.ioUtf8_]
         return False if any(items) else True
@@ -150,7 +158,6 @@ class SavReader(Header):
         to <recodeSysmisTo>. If rawMode==True, this function does nothing"""
         if self.rawMode or self.autoRawMode:
             return record  # 6-7 times faster!
-
         for i, value in enumerate(record):
             varName = self.header[i]
             varType = self.varTypes[varName]
@@ -171,12 +178,12 @@ class SavReader(Header):
                     fmt = supportedDates[bareformat_]
                     args = (value, fmt, self.recodeSysmisTo)
                     record[i] = self.spss2strDate(*args)
-                    if bareformat_ == "QYR" and record[i]:
+                    if bareformat_ == b"QYR" and record[i]:
                         # convert month to quarter, e.g. 12 Q 1990 --> 4 Q 1990
                         # There is no such thing as a %q strftime directive
                         try:
                             record[i] = QUARTERS[record[i][:2]] + record[i][2:]
-                        except KeyError:
+                        except (KeyError, TypeError):
                             record[i] = self.recodeSysmisTo
             elif varType > 0:
                 value = value[:varType]
@@ -261,6 +268,7 @@ class SavReader(Header):
 
         is_index = False
         rstart = cstart = 0
+        cstop = cstep = None
         try:
             row, col = key
             if row < 0:
@@ -456,39 +464,35 @@ class SavReader(Header):
                 self.gregorianEpoch = datetime.datetime(1582, 10, 14, 0, 0, 0)
             theDate = (self.gregorianEpoch +
                        datetime.timedelta(seconds=spssDateValue))
-            return datetime.datetime.strftime(theDate, fmt)
-        except OverflowError:
-            return recodeSysmisTo
-        except TypeError:
-            return recodeSysmisTo
-        except ValueError:
+            return bytez(datetime.datetime.strftime(theDate, fmt))
+        except (OverflowError, TypeError, ValueError):
             return recodeSysmisTo
 
-    def getFileReport(self, savFileName, varNames, varTypes,
-                      formats, nCases):
+    def getFileReport(self):
         """ This function prints a report about basic file characteristics """
-        bytes = os.path.getsize(savFileName)
-        kb = float(bytes) / 2**10
-        mb = float(bytes) / 2**20
+        filesize = os.path.getsize(self.savFileName)
+        kb = float(filesize) / 2**10
+        mb = float(filesize) / 2**20
         (fileSize, label) = (mb, "MB") if mb > 1 else (kb, "kB")
-        systemString = self.systemString
+        systemString = self.systemString.decode(self.fileEncoding)
         spssVersion = ".".join(map(str, self.spssVersion))
         lang, cp = locale.getlocale()
         intEnc = "Utf-8/Unicode" if self.ioUtf8 else "Codepage (%s)" % cp
         varlist = []
-        line = "  %%0%sd. %%s (%%s - %%s)" % len(str(len(varNames) + 1))
-        for cnt, varName in enumerate(varNames):
-            lbl = "string" if varTypes[varName] > 0 else "numerical"
-            format_ = formats[varName]
+        line = "  %%0%sd. %%s (%%s - %%s)" % len(str(len(self.varNames) + 1))
+        for cnt, varName in enumerate(self.varNames):
+            lbl = "string" if self.varTypes[varName] > 0 else "numerical"
+            format_ = self.formats[varName].decode(self.fileEncoding)
+            varName = varName.decode(self.fileEncoding) 
             varlist.append(line % (cnt + 1, varName, format_, lbl))
-        info = {"savFileName": savFileName,
+        info = {"savFileName": self.savFileName,
                 "fileSize": fileSize,
                 "label": label,
-                "nCases": nCases,
-                "nCols": len(varNames),
-                "nValues": nCases * len(varNames),
+                "nCases": self.nCases,
+                "nCols": len(self.varNames),
+                "nValues": self.nCases * len(self.varNames),
                 "spssVersion": "%s (%s)" % (systemString, spssVersion),
-                "ioLocale": self.ioLocale,
+                "ioLocale": self.ioLocale.decode(self.fileEncoding),
                 "ioUtf8": intEnc,
                 "fileEncoding": self.fileEncoding,
                 "fileCodePage": self.fileCodePage,
@@ -499,22 +503,24 @@ class SavReader(Header):
                 "sep": os.linesep,
                 "asterisks": 70 * "*"}
         report = ("%(asterisks)s%(sep)s" +
-                  "*File %(savFileName)r (%(fileSize)3.2f %(label)s) has " +
+                  "*File '%(savFileName)s' (%(fileSize)3.2f %(label)s) has " +
                   "%(nCols)s columns (variables) and %(nCases)s rows " +
                   "(%(nValues)s values)%(sep)s" +
                   "*The file was created with SPSS version: %(spssVersion)s%" +
                   "(sep)s" +
-                  "*The interface locale is: %(ioLocale)r%(sep)s" +
+                  "*The interface locale is: '%(ioLocale)s'%(sep)s" +
                   "*The interface mode is: %(ioUtf8)s%(sep)s" +
-                  "*The file encoding is: %(fileEncoding)r (Code page: " +
+                  "*The file encoding is: '%(fileEncoding)s' (Code page: " +
                   "%(fileCodePage)s)%(sep)s" +
                   "*File encoding and the interface encoding are compatible:" +
                   " %(isCompatible)s%(sep)s" +
-                  "*Your computer's locale is: %(local_language)r (Code " +
+                  "*Your computer's locale is: '%(local_language)s' (Code " +
                   "page: %(local_encoding)s)%(sep)s" +
                   "*The file contains the following variables:%(sep)s" +
-                  "%(varlist)s%(sep)s%(asterisks)s%(sep)s")
-        return report % info
+                  "%(varlist)s%(sep)s%(asterisks)s%(sep)s") % info
+        if hasattr(report, "decode"):
+            report = report.decode(self.fileEncoding)
+        return report
 
     def getHeader(self, selectVars):
         """This function returns the variable names, or a selection thereof
@@ -526,7 +532,7 @@ class SavReader(Header):
             if diff:
                 msg = "Variable names misspecified (%r)" % ", ".join(diff)
                 raise NameError(msg)
-            varPos = [varNames.index(v) for v in self.varNames
+            varPos = [self.varNames.index(v) for v in self.varNames
                       if v in selectVars]
             self.selector = operator.itemgetter(*varPos)
             header = self.selector(self.varNames)
