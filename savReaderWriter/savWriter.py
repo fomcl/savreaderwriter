@@ -39,8 +39,8 @@ class SavWriter(Header):
           {'someNumvar1': {'values': [999, -1, -2]}, # discrete values
            'someNumvar2': {'lower': -9, 'upper':-1}, # range, cf. -9 THRU -1
            'someNumvar3': {'lower': -9, 'upper':-1, 'value': 999},
-           'someStrvar1': {'values': ['foo', 'bar', 'baz']},
-           'someStrvar2': {'values': 'bletch'}}
+           'someStrvar1': {'values': [b'foo', b'bar', b'baz']},
+           'someStrvar2': {'values': b'bletch'}}
     ---The following three parameters must all three be set, if used---
     -measureLevels: measurement level dictionary {varName: <level>}
      Valid levels are: "unknown", "nominal", "ordinal", "scale",
@@ -62,8 +62,8 @@ class SavWriter(Header):
       {'Binary': 'Yes'}, 'educ': {'DemographicVars': '1'}}. Cf. VARIABLE
       ATTRIBUTES. (default: None)
     -fileAttributes: file attributes dictionary {attribName: attribValue}
-      For example: {'RevisionDate[1]': '10/29/2004', 'RevisionDate[2]':
-      '10/21/2005'}. Square brackets indicate attribute arrays, which must
+      For example: {b'RevisionDate[1]': b'10/29/2004', b'RevisionDate[2]':
+      b'10/21/2005'}. Square brackets indicate attribute arrays, which must
       start with 1. Cf. FILE ATTRIBUTES. (default: None)
     -fileLabel: file label string, which defaults to "File created by user
       <username> at <datetime>" is file label is None. Cf. FILE LABEL
@@ -91,7 +91,7 @@ class SavWriter(Header):
       with mode="cp". (default: None)
 
     Typical use:
-    records = [['Test1', 1, 1], ['Test2', 2, 1]]
+    records = [[b'Test1', 1, 1], [b'Test2', 2, 1]]
     varNames = ['var1', 'v2', 'v3']
     varTypes = {'var1': 5, 'v2': 0, 'v3': 0}
     savFileName = "test.sav"

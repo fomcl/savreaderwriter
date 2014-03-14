@@ -43,9 +43,9 @@ class SavReader(Header):
 
     Typical use:
     savFileName = "d:/someFile.sav"
-    with SavReader(savFileName, returnHeader=True) as sav:
-        header = sav.next()
-        for line in sav:
+    with SavReader(savFileName, returnHeader=True) as reader:
+        header = reader.next()
+        for line in reader:
             process(line)
     """
 
