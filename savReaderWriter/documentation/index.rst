@@ -12,7 +12,7 @@ Welcome to savReaderWriter's documentation!
 .. module:: savReaderWriter
    :platform: Linux, Windows, Mac OS, HP-UX, AIX, Solaris, zLinux
    :synopsis: Read/Write SPSS system files (.sav, .zsav)
-.. moduleauthor:: Albert-Jan Roskam <fomcl@yahoo.com>
+.. moduleauthor:: Albert-Jan Roskam
 
 .. _`IBM SPSS Statistics Command Syntax Reference.pdf`: ftp://public.dhe.ibm.com/software/analytics/spss/documentation/statistics/20.0/en/client/Manuals/IBM_SPSS_Statistics_Command_Syntax_Reference.pdf
 .. _`International License Agreement`: ./_static/LA_en
@@ -62,7 +62,7 @@ Installation
 
 Platforms
 ----------
-As shown in **Table 0** below, this program works for Linux (incl. z/Linux), Windows, Mac OS (32 and 64 bit), AIX-64, HP-UX and Solaris-64. However, it has only been tested on Linux 32 (Ubuntu and Mint), Windows (mostly on Windows XP 32, but also a few times on Windows 7 64), and Mac OS (with an earlier version of savReaderWriter). The other OSs are entirely untested.
+As shown in **Table 0** below, this program works for Linux (incl. z/Linux), Windows, Mac OS (32 and 64 bit), AIX-64, HP-UX and Solaris-64. Version 3.2 has been tested on Linux 32 (Ubuntu and Mint), Windows (mostly on Windows XP 32, but also a few times on Windows 7 64), and Mac OS (with an earlier version of savReaderWriter). Version 3.3 has been tested on Linux 64. The other OSs are entirely untested. I intend to use Jenkins CI and Vagrant to systematically test more platforms in the future (time, time!).
 
 .. exceltable:: **Table 0.** supported platforms for ``savReaderWriter`` 
    :file: ./platforms.xls
@@ -77,11 +77,18 @@ The program can be installed by running::
 
 Or alternatively::
 
-    pip install savReaderWriter
+    pip install savReaderWriter --allow-all-external
 
 To get the 'bleeding edge' version straight from the repository do::
 
     pip install -U -e git+https://bitbucket.org/fomcl/savreaderwriter.git#egg=savreaderwriter
+
+.. versionchanged:: 3.3
+
+* The ``savReaderWriter`` program now runs on Python 2 and 3. It is tested with Python 2.7, 3.3 and PyPy under Debian Linux debian 3.2.0-4-AMD64.
+* Under Python 3.3, the data are in ``bytes``! Use the b' prefix when writing string data, or write data in unicode mode (``ioUtf=True``).
+* Several bugs were removed, notably two that prevented the I/O modules from loading in 64-bit Linux and 64-bit Windows systems (NB: these bugs were entirely unrelated). I re-downloaded the SPSS I/O v21 FP1 modules because the Win 64 libs were incorrectly compiled. In addition, long variable labels were truncated to 120 characters, which is now fixed.
+* This has not yet been tested for performance.
 
 .. versionchanged:: 3.2
 
@@ -98,11 +105,17 @@ The ``cWriterow`` package is a faster Cython implementation of the pyWriterow me
     easy_install cython
     python setup.py build_ext --inplace
 
+TODO: Note that ``cWriterow`` is *not* yet ready for use under Python 3 (in fact, the code may need to be fixed for Python 2, too).
+
 **psyco.**
-The ``psyco`` package may be installed to speed up reading (66 % faster).
+The ``psyco`` package may be installed to speed up reading (66 % faster). Note that psyco is no longer maintained and that this will therefore be removed from the program at some point.
 
 **numpy.**
 The ``numpy`` package should be installed if you intend to use array slicing (e.g ``data[:2,2:4]``).
+
+Enviroment variable
+-------------------
+To issue warnings you can set an enviroment variable ``SAVRW_DISPLAY_WARNS`` to any of the following actions: "error", "ignore", "always", "default", "module", "once". If the enviroment variable is not defined, warnings are ignored. Note that warnings are usually harmless, e.g. ``SPSS_NO_LABELS``. See: http://docs.python.org/2/library/warnings.html. 
 
 :mod:`SavWriter` -- Write SPSS system files
 ============================================================================
@@ -126,11 +139,20 @@ The ``numpy`` package should be installed if you intend to use array slicing (e.
 
       .. code:: python
 
-         missingValues = {"someNumvar1": {"values": [999, -1, -2]},  # discrete values
-                          "someNumvar2": {"lower": -9, "upper": -1}, # range, cf. MISSING VALUES x (-9 THRU -1)
-                          "someNumvar3": {"lower": -9, "upper": -1, "value": 999},
-                          "someStrvar1": {"values": ["foo", "bar", "baz"]},
-                          "someStrvar2": {"values': "bletch"}}
+         missingValues = { \
+
+           # discrete values
+           b"someNumvar1": {"values": [999, -1, -2]},
+
+           # range, cf. MISSING VALUES x (-9 THRU -1)
+           # note also that 'lower', 'upper', 'value(s)' are without b' prefix
+           b"someNumvar2": {"lower": -9, "upper": -1},
+           b"someNumvar3": {"lower": -9, "upper": -1, "value": 999},
+
+           # string variables can have up to three missing values  
+           b"someStrvar1": {"values": [b"foo", b"bar", b"baz"]},
+           b"someStrvar2": {"values': b"bletch"}
+         }
      
       .. warning:: *measureLevels, columnWidths, alignments must all three be set, if used*
 
@@ -148,13 +170,15 @@ The ``numpy`` package should be installed if you intend to use array slicing (e.
 
       .. code:: python
 
-         varAttributes = {'gender': {'Binary': 'Yes'}, 'educ': {'DemographicVars': '1'}}
+         varAttributes = {b'gender': {b'Binary': b'Yes'}, 
+                          b'educ': {b'DemographicVars': b'1'}}
 
    :param fileAttributes: file attributes dictionary ``{attribName: attribValue}``. Square brackets indicate  attribute arrays, which must  start with 1. Cf. ``FILE ATTRIBUTES``. (default: ``None``). For example:
 
       .. code:: python
 
-         fileAttributes = {'RevisionDate[1]': '10/29/2004', 'RevisionDate[2]': '10/21/2005'} 
+         fileAttributes = {b'RevisionDate[1]': b'10/29/2004', 
+                           b'RevisionDate[2]': b'10/21/2005'} 
 
    :param fileLabel: file label string, which defaults to "File created by user <username> at <datetime>" if file label is ``None``. Cf. ``FILE LABEL`` (default: ``None``). 
 
@@ -166,7 +190,7 @@ The ``numpy`` package should be installed if you intend to use array slicing (e.
 
    :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will  be. Valid values are ``True`` (UTF-8/unicode mode, cf. ``SET UNICODE=ON``) or ``False`` (Codepage mode, ``SET  UNICODE=OFF``) (default: ``False``). 
 
-   :param ioLocale: indicates the locale of the I/O module, cf. ``SET LOCALE`` (default: ``None``, which is the  same as ``".".join(locale.getlocale())``. Locale specification is OS-dependent. in
+   :param ioLocale: indicates the locale of the I/O module, cf. ``SET LOCALE`` (default: ``None``, which is the  same as ``".".join(locale.getlocale())``. Locale specification is OS-dependent. See also under ``SavHeaderReader``.
 
    :param mode: indicates the mode in which <savFileName> should be opened. Possible values are "wb" (write),  "ab" (append), "cp" (copy: initialize header using <refSavFileName> as a reference file, cf. ``APPLY DICTIONARY``). (default: "wb"). 
 
@@ -175,21 +199,17 @@ The ``numpy`` package should be installed if you intend to use array slicing (e.
 
 Typical use::
     
-    savFileName = "someFile.sav"
-    records = [['Test1', 1, 1], ['Test2', 2, 1]]
+    savFileName = 'someFile.sav'
+    records = [[b'Test1', 1, 1], [b'Test2', 2, 1]]
     varNames = ['var1', 'v2', 'v3']
     varTypes = {'var1': 5, 'v2': 0, 'v3': 0}
     with SavWriter(savFileName, varNames, varTypes) as writer:
         for record in records:
             writer.writerow(record)
 
-.. seealso::
-
-    More code examples can be found in the ``doc_tests`` folder
-
 :mod:`SavReader` -- Read SPSS system files
 ============================================================================
-.. function:: SavReader(savFileName, [returnHeader=False, recodeSysmisTo=None,                 verbose=False, selectVars=None, idVar=None, rawMode=False, ioUtf8=False, ioLocale=None])
+.. function:: SavReader(savFileName, [returnHeader=False, recodeSysmisTo=None, verbose=False, selectVars=None, idVar=None, rawMode=False, ioUtf8=False, ioLocale=None])
 
    **Read SPSS system files (.sav, .zsav)**
 
@@ -209,7 +229,7 @@ Typical use::
 
    :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will be. Valid values are True (UTF-8 mode aka Unicode mode) and False (Codepage mode). Cf. ``SET UNICODE=ON/OFF`` (default = ``False``)
 
-   :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = ``None``, which corresponds to ``".".join(locale.getlocale())``)
+   :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = ``None``, which corresponds to ``".".join(locale.getlocale())``). See also under ``SavHeaderReader``.
 
 .. warning::
 
@@ -217,32 +237,38 @@ Typical use::
 
 Typical use::
     
-    savFileName = "someFile.sav"
-    with SavReader(savFileName, returnHeader=True) as reader:
+    with SavReader("someFile.sav", returnHeader=True) as reader:
         header = next(reader)
         for line in reader:
             process(line)
 
 Use of ``__getitem__`` and other methods::
-    
-    data = SavReader(savFileName, idVar="id")
+
+    data = SavReader("someFile.sav")
     with data:
-        print "The file contains %d records" % len(data)
-        print unicode(data)  # prints a file report
-        print "The first six records look like this\n", data[:6]
-        print "The first record looks like this\n", data[0]
-        print "The last four records look like this\n", data.tail(4)
-        print "The first five records look like this\n", data.head()
+        # fetch all the data, if it fits into memory 
 	allData = data.all()
-        print "First column:\n", data[..., 0]  # requires numpy
-        print "Row 4 & 5, first three cols\n", data[4:6, :3]  # requires numpy
-        ## ... Do a binary search for records --> idVar
-        print data.get(4, "not found")  # gets 1st record where id==4
+        
+        # fetch subsets of the data
+        print("The first six records look like this\n"), data[:6]
+        print("The first record looks like this\n"), data[0]
+        print("The last four records look like this\n"), data.tail(4)
+        print("The first five records look like this\n"), data.head()
+        print("First column:\n"), data[..., 0]  # requires numpy
+        print("Row 4 & 5, first three cols\n"), data[4:6, :3]  # requires numpy
 
+        # check the number of records 
+        print("The file contains %d records" % len(data))
 
-.. seealso::
+        # print a file report
+        print(str(data))
 
-    More code examples can be found in the ``doc_tests`` folder
+    # Do a binary search for records --> idVar
+    # Assumes there is a variable named 'id' in someFile.sav.
+    data = SavReader("someFile.sav", idVar="id")
+    with data:
+        print(data.get(4, "not found"))  # gets 1st record where id==4
+
 
 :mod:`SavHeaderReader` -- Read SPSS file meta data
 ============================================================================
@@ -255,7 +281,21 @@ Use of ``__getitem__`` and other methods::
 
    :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will be. Valid values are ``True`` (UTF-8 mode aka Unicode mode) and ``False`` (Codepage mode). Cf. ``SET UNICODE=ON/OFF`` (default = ``False``)
 
-   :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = ``None``, which corresponds to ``".".join(locale.getlocale())``)
+   :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = ``None``, which corresponds to ``".".join(locale.getlocale())``). Example where this may be needed:
+
+      .. code:: python
+
+         # wrong: variables with accented characters are returned as v1, v2, v3
+         >>> with SavHeaderReader('german.sav') as header:
+         ...     print(header.varNames)
+         [b'python', b'programmieren', b'macht', b'v1', b'v2', b'v3']
+
+         # correct: variable names contain non-ascii characters
+         # locale definition and presence is OS-specific
+         # Linux: sudo localedef -f CP1252 -i de_DE /usr/lib/locale/de_DE.cp1252
+         >>> with SavHeaderReader('german.sav', ioLocale='de_DE.cp1252') as header:
+         ...     print(header.varNames)
+         [b'python', b'programmieren', b'macht', b'\xfcberhaupt', b'v\xf6llig', b'spa\xdf']
 
 .. warning::
 
@@ -264,13 +304,9 @@ Use of ``__getitem__`` and other methods::
 Typical use::
 
     with SavHeaderReader(savFileName) as header:
-        metadata = header.dataDictionary()
-        report = unicode(header)
-        print report 
-
-.. seealso::
-
-    More code examples can be found in the ``doc_tests`` folder
+        metadata = header.dataDictionary(True)
+        report = str(header)
+        print(report)
 
 Formats
 ----------
@@ -285,30 +321,33 @@ SPSS knows just two different data types: string and numerical data. These data 
    :file: ./formats.xls
    :header: 1
    :selection: A1:D19
+
 *Note.* The User Programmable currency formats (CCA, CCB, CCC and CCD) cannot be defined or written by ``SavWriter`` and existing definitions cannot be read by ``SavReader``.
 
 Date formats
 -------------
 **Dates in SPSS.** Date formats are a group of numerical formats. SPSS stores dates as the number of seconds since midnight, October 14, 1582 (the beginning of the Gregorian calendar). In SPSS, the user can make these seconds human-readable by giving them a print and/or write format (usually these are set at the same time using the ``FORMATS`` command). Examples of such display formats include ``ADATE`` (American date, *mmddyyyy*) and ``EDATE`` (European date, *ddmmyyyy*), ``SDATE`` (Asian/Sortable date, *yyyymmdd*) and ``JDATE`` (Julian date). 
 
-**Reading dates.** ``SavReader`` deliberately does *not* honor the different SPSS date display formats, but instead tries to convert them to the more practical (sortable) and less ambibiguous ISO 8601 format (*yyyy-mm-dd*). You can easily change this behavior by modifying the ``supportedDates`` dictionary in ``__init__.py``. **Table 2** below shows how ``SavReader`` converts SPSS dates. Where applicable, the SPSS-to-Python conversion always results in the 'long' version of a date/time. For instance, ``TIME5`` and ``TIME40.16`` both result in a ``%H:%M:%S.%f``-style format. If you do not want ``SavReader`` to automatically convert dates, you can set ``rawMode=True``. If you use this setting, keep in mind that ``SavReader`` will also not convert system missing values (``$SYSMIS``) to an empty string; instead sysmis values will appear as the smallest value that can be represented on that system (``-1 * sys.float_info.max``)
+**Reading dates.** ``SavReader`` deliberately does *not* honor the different SPSS date display formats, but instead tries to convert them to the more practical (sortable) and less ambiguous ISO 8601 format (*yyyy-mm-dd*). You can easily change this behavior by modifying the ``supportedDates`` dictionary in ``__init__.py``. **Table 2** below shows how ``SavReader`` converts SPSS dates. Where applicable, the SPSS-to-Python conversion always results in the 'long' version of a date/time. For instance, ``TIME5`` and ``TIME40.16`` both result in a ``%H:%M:%S.%f``-style format. If you do not want ``SavReader`` to automatically convert dates, you can set ``rawMode=True``. If you use this setting, keep in mind that ``SavReader`` will also not convert system missing values (``$SYSMIS``) to an empty string; instead sysmis values will appear as the smallest value that can be represented on that system (``-1 * sys.float_info.max``)
 
 .. exceltable:: **Table 2.** Date formats in SPSS and ``SavReader`` 
    :file: ./dates.xls
    :header: 1
    :selection: A1:I25
+
 *Note.*
 [1] `IBM SPSS Statistics Command Syntax Reference.pdf`_
 [2] http://docs.python.org/2/library/datetime.html
 [3] ISO 8601 format dates are used wherever possible, e.g. mmddyyyy (``ADATE``) and ddmmyyyy (``EDATE``) is not maintained.
 [4] Months are converted to quarters using a simple lookup table
-[5] weekday, month names depend on host locale (not on ioLocale argument)
+[5] weekday, month names depend on host locale (not on ``ioLocale`` argument)
 
 **Writing dates.** With ``SavWriter`` a Python date string value (e.g. "2010-10-25") can be converted to an SPSS Gregorian date (i.e., just a whole bunch of seconds) by using the ``spssDateTime`` method, e.g.::
 
-    kwargs = dict(savFileName="/tmp/date.sav", varNames=['aDate'], varTypes={'aDate': 0}, formats={'aDate': 'EDATE40'})
+    kwargs = dict(savFileName='/tmp/date.sav', varNames=['aDate'], 
+                  varTypes={'aDate': 0}, formats={'aDate': 'EDATE40'})
     with SavWriter(**kwargs) as writer:
-        spssDateValue = writer.spssDateTime("2010-10-25", "%Y-%m-%d")
+        spssDateValue = writer.spssDateTime(b'2010-10-25', '%Y-%m-%d')
         writer.writerow([spssDateValue])
 
 The display format of the date (i.e., the way it looks in the SPSS data editor after opening the .sav file) may be set by specifying the ``formats`` dictionary (see also **Table 1**). This is one of the optional arguments of the ``SavWriter`` initializer. Without such a specification, the date will look like a large integer (the number of seconds since the beginning of the Gregorian calendar).

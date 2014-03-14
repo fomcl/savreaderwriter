@@ -93,9 +93,10 @@ class SPSSIOWarning(UserWarning):
     """
     Warning class for the IBM SPSS Statistics Input Output Module
 
-    If the environment variable SAVRW_DISPLAY_WARNS is undefined or 0
-    (False) warnings are ignored. If it is 1 (True) warnings (non-fatal
-    exceptions) are displayed once for every location where they occur.
+    If the environment variable SAVRW_DISPLAY_WARNS is undefined or 'ignore'
+    warnings are ignored. Other valid actions are "error", "always", "default", 
+    "module", "once".
+    See: http://docs.python.org/2/library/warnings.html. 
     """
     pass
 
