@@ -1,6 +1,6 @@
 graft savReaderWriter/cWriterow
 graft savReaderWriter/documentation
-graft savReaderWriter/doc_tests
+graft savReaderWriter/unit_tests
 graft savReaderWriter/test_data
 graft savReaderWriter/spssio
 #prune savReaderWriter/spssio
