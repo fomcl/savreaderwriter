@@ -123,7 +123,7 @@ class Generic(object):
         elif pf.startswith("sunos") and is_64bit:
             spssio = self._loadLibs("sol64")
         else:
-            msg = "Your platform (%r) is not supported" % pf
+            msg = "Your platform (%r, %s) is not supported" % (pf, arch)
             raise EnvironmentError(msg)
 
         return spssio
