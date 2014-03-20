@@ -15,7 +15,8 @@ Welcome to savReaderWriter's documentation!
 .. moduleauthor:: Albert-Jan Roskam
 
 .. _`IBM SPSS Statistics Command Syntax Reference.pdf`: ftp://public.dhe.ibm.com/software/analytics/spss/documentation/statistics/20.0/en/client/Manuals/IBM_SPSS_Statistics_Command_Syntax_Reference.pdf
-.. _`International License Agreement`: ./_static/LA_en
+.. _`International License Agreement`: ./_static/LA_en.txt
+.. _`OS X and Python locale snippet`: ./_static/mac_os_x_locale_quirks.txt
 
 In the documentation below, the associated SPSS commands are given in ``CAPS``.
 See also the `IBM SPSS Statistics Command Syntax Reference.pdf`_ for info about SPSS syntax.
@@ -83,9 +84,38 @@ To get the 'bleeding edge' version straight from the repository do::
 
     pip install -U -e git+https://bitbucket.org/fomcl/savreaderwriter.git#egg=savreaderwriter
 
+
+.. note::
+
+   **Users of Mac OS X** need to do two additional things:
+
+   * ``DYLD_LIBRARY_PATH`` needs to be set to the directory where the SPSS I/O libraries for Mac OS X live. You may also want to edit your ``~/.bashrc`` accordingly.
+   * ``ioLocale`` needs to be set manually (work-around). The ``ioLocale`` is the locale of the SPSS I/O, which is supposed to be copied from the host system, if unset (i.e., equal to ``None``). However, Python ``locale.setlocale`` and ``locale.getlocale`` are `quirky in Mac OS X <http://stackoverflow.com/questions/1629699/locale-getlocale-problems-on-osx>`_ (see also this `OS X and Python locale snippet`_). 
+
+   The code below shows an example that uses Python 2.7.2 (Python 3.3.5 also works) under Mac OS X Mountain Lion 10.9.1: 
+
+   .. code:: sh
+
+      fomcls-Mac-Pro:~ fomcl$ uname -a
+      Darwin fomcls-Mac-Pro.local 12.2.0 Darwin Kernel Version 12.2.0: Sat Aug 25 00:48:52 PDT 2012; root:xnu-2050.18.24~1/RELEASE_X86_64 x86_6
+      fomcls-Mac-Pro:~ fomcl$ export DYLD_LIBRARY_PATH=/Library/Python/2.7/site-packages/savReaderWriter/spssio/macos
+      fomcls-Mac-Pro:savReaderWriter fomcl$ python
+      Python 2.7.2 (default, Jun 20 2012, 16:23:33) [GCC 4.2.1 Compatible Apple Clang 4.0 (tags/Apple/clang-418.0.60)] on darwin
+      >>> import savReaderWriter
+      >>> savFileName = "/Library/Python/2.7/site-packages/savReaderWriter/test_data/Employee data.sav"
+      >>> with savReaderWriter.SavReader(savFileName, ioLocale='en_US.UTF-8') as reader:
+      ...     for line in reader:
+      ...         print line
+      ... 
+      [1.0, 'm', '1952-02-03', 15.0, 3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0]
+      [2.0, 'm', '1958-05-23', 16.0, 1.0, 40200.0, 18750.0, 98.0, 36.0, 0.0]
+      [3.0, 'f', '1929-07-26', 12.0, 1.0, 21450.0, 12000.0, 98.0, 381.0, 0.0]
+      [4.0, 'f', '1947-04-15', 8.0, 1.0, 21900.0, 13200.0, 98.0, 190.0, 0.0]
+      # etc. etc.
+
 .. versionchanged:: 3.3
 
-* The ``savReaderWriter`` program now runs on Python 2 and 3. It is tested with Python 2.7, 3.3 and PyPy under Debian Linux debian 3.2.0-4-AMD64.
+* The ``savReaderWriter`` program now runs on Python 2 and 3. It is tested with Python 2.7, 3.3 and PyPy under Debian Linux 3.2.0-4-AMD64.
 * Under Python 3.3, the data are in ``bytes``! Use the b' prefix when writing string data, or write data in unicode mode (``ioUtf=True``).
 * Several bugs were removed, notably two that prevented the I/O modules from loading in 64-bit Linux and 64-bit Windows systems (NB: these bugs were entirely unrelated). I re-downloaded the SPSS I/O v21 FP1 modules because the Win 64 libs were incorrectly compiled. In addition, long variable labels were truncated to 120 characters, which is now fixed.
 * This has not yet been tested for performance.
@@ -246,6 +276,7 @@ Use of ``__getitem__`` and other methods::
 
     data = SavReader("someFile.sav")
     with data:
+
         # fetch all the data, if it fits into memory 
 	allData = data.all()
         
