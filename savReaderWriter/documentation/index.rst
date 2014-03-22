@@ -89,7 +89,7 @@ To get the 'bleeding edge' version straight from the repository do::
 
    **Users of Mac OS X** need to do two additional things:
 
-   * ``DYLD_LIBRARY_PATH`` needs to be set to the directory where the SPSS I/O libraries for Mac OS X live. You may also want to edit your ``~/.bashrc`` accordingly.
+   * ``DYLD_LIBRARY_PATH`` needs to be set to the directory where the SPSS I/O libraries for Mac OS X live. If you also set ``LANG`` environment variable, you may skip the next ``ioLocale`` step. You may also want to edit your ``~/.bashrc`` accordingly. 
    * ``ioLocale`` needs to be set manually (work-around). The ``ioLocale`` is the locale of the SPSS I/O, which is supposed to be copied from the host system, if unset (i.e., equal to ``None``). However, Python ``locale.setlocale`` and ``locale.getlocale`` are `quirky in Mac OS X <http://stackoverflow.com/questions/1629699/locale-getlocale-problems-on-osx>`_ (see also this `OS X and Python locale snippet`_). 
 
    The code below shows an example that uses Python 2.7.2 (Python 3.3.5 also works) under Mac OS X Mountain Lion 10.9.1: 
@@ -99,6 +99,7 @@ To get the 'bleeding edge' version straight from the repository do::
       fomcls-Mac-Pro:~ fomcl$ uname -a
       Darwin fomcls-Mac-Pro.local 12.2.0 Darwin Kernel Version 12.2.0: Sat Aug 25 00:48:52 PDT 2012; root:xnu-2050.18.24~1/RELEASE_X86_64 x86_6
       fomcls-Mac-Pro:~ fomcl$ export DYLD_LIBRARY_PATH=/Library/Python/2.7/site-packages/savReaderWriter/spssio/macos
+      fomcls-Mac-Pro:~ fomcl$ export LANG=en_US.UTF-8  # if you also do this, specifiying ioLocale is usually not needed
       fomcls-Mac-Pro:savReaderWriter fomcl$ python
       Python 2.7.2 (default, Jun 20 2012, 16:23:33) [GCC 4.2.1 Compatible Apple Clang 4.0 (tags/Apple/clang-418.0.60)] on darwin
       >>> import savReaderWriter
