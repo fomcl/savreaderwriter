@@ -212,6 +212,7 @@ class SavReader(Header):
             stop = self.nCases
 
         selection = self.selectVars is not None
+        selectOne = len(self.selectVars) == 1 if self.selectVars else None
         for case in xrange(start, stop, step):
             if start:
                 # only call this when iterating over part of the records
@@ -225,7 +226,7 @@ class SavReader(Header):
 
             if selection:
                 record = self.selector(record)
-                record = [record] if len(record) == 1 else list(record)
+                record = [record] if selectOne else list(record)
             record = self.formatValues(record)
             yield record
 
@@ -536,7 +537,7 @@ class SavReader(Header):
                       if v in selectVars]
             self.selector = operator.itemgetter(*varPos)
             header = self.selector(self.varNames)
-            header = [header] if not isinstance(header, tuple) else header
+            header = [header] if not isinstance(header, tuple) else list(header)
         else:
             msg = ("Variable names list misspecified. Must be 'None' or a " +
                    "list or tuple of existing variables")
