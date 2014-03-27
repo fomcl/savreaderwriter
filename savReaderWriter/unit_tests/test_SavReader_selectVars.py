@@ -9,7 +9,7 @@ import unittest
 from savReaderWriter import *
 
 
-class test_SavReader_typical_use(unittest.TestCase):
+class test_SavReader_selectVars(unittest.TestCase):
     """Read a selection of a file"""
 
     def setUp(self):
