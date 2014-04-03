@@ -170,7 +170,7 @@ class test_SavWriter_elaborate(unittest.TestCase):
 
         # fileLabel
         regex = (b"File created by user '\w+' at \w+ \w+ "
-                 b"\d+ \d+:\d+:\d+ \d{4}")
+                 b" ?\d+ \d+:\d+:\d+ \d{4}")
         m = re.match(regex,getattr(metadata, 'fileLabel'), re.I)
         self.assertTrue(bool(m))
 

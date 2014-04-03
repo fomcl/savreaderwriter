@@ -265,7 +265,7 @@ class SavWriter(Header):
             else:
                 value = pad_string(value, varType)
                 if self.ioUtf8_ and isinstance(value, unicode):
-                    value = value.encode("utf-8")          # TODO correct this
+                    value = value.encode("utf-8")
             record[i] = value
         self.record = record
 

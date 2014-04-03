@@ -1,25 +1,28 @@
+
+# cdef pad_string(char* s, int width):
+#     cdef int padding
+#     padding = -8 * (width // -8)
+#     return (padding - len(s)) * b' ' + s
+
 def cWriterow(self, record):
+    """ This function writes one record, which is a Python list,
+    Faster implementation of the _pyWriterow method."""
     cdef int varType
-    cdef float sysmis
     cdef Py_ssize_t i
-    sysmis = self.sysmis_
-    for i, varName in enumerate(self.varNames):
+    float_ = float
+    for i, value in enumerate(record):
         varName = self.varNames[i]
         varType = self.varTypes[varName]
         if varType == 0:
             try:
-                numValue = float(record[i])
-            except ValueError:
-                numValue = sysmis
-            except TypeError:
-                numValue = sysmis
-            record[i] = numValue
+                value = float_(value)
+            except (ValueError, TypeError):
+                value = self.sysmis_
         else:
-            value = record[i]
-            if self.ioUtf8_ and isinstance(value, unicode):
-                valueX = (<unicode>value).encode("utf-8")
-                strValue = valueX
-            else:
-                strValue = self.pad_8_lookup[varType] % value
-            record[i] = strValue
+            #value = self.pad_string(value, varType)
+            #value = pad_string(value, varType)
+            #if self.ioUtf8_ and isinstance(value, unicode):
+            if self.ioUtf8_ and varType:
+                value = value.encode("utf-8")
+        record[i] = value
     self.record = record

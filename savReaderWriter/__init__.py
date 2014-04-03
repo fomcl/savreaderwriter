@@ -27,14 +27,24 @@ try:
 except ImportError:
     numpyOk = False
 
+
+# cWriterow is a faster Cython implementation of pyWriterow.
+# Environment variable SAVRW_USE_CWRITEROW can be used to toggle cWriterow
+# 'on' or 'off' (mainly for testing). Crashes if 'on' but no cWriterow.
 try:
     from cWriterow import cWriterow  # writing 66 % faster
     cWriterowOK = True
 except ImportError:
     cWriterowOK = False
+savrw_use_cWriterow = os.environ.get("SAVRW_USE_CWRITEROW").lower()
+if savrw_use_cWriterow in ("0", "off", "false"):
+    cWriterowOK = False
+elif savrw_use_cWriterow in ("1", "on", "true"):
+    cWriterowOK = True
 
+
+# author and version info, for e.g. use in fileLabel
 __author__ = "Albert-Jan Roskam" + " " + "@".join(["fomcl", "yahoo.com"])
-
 if getattr(sys, 'frozen', False):
     # The application is frozen by cx_freeze
     __version__ = open(os.path.join(os.path.dirname(sys.executable),
@@ -42,7 +52,10 @@ if getattr(sys, 'frozen', False):
 else:
     __version__ = open(os.path.join(os.path.dirname(__file__),
                         "VERSION")).read().strip()
+version = __version__
 
+
+# some constants
 allFormats = {
     1: (b"SPSS_FMT_A", b"Alphanumeric"),
     2: (b"SPSS_FMT_AHEX", b"Alphanumeric hexadecimal"),
@@ -119,7 +132,6 @@ userMissingValues = {
     "SPSS_MISS_RANGE": -2,
     "SPSS_MISS_RANGEANDVAL": -3}
 
-version = __version__
 
 sys.path.insert(0, os.path.dirname(__file__))
 from py3k import *

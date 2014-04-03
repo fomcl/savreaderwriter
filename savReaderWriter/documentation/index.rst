@@ -144,9 +144,13 @@ The ``psyco`` package may be installed to speed up reading (66 % faster). Note t
 **numpy.**
 The ``numpy`` package should be installed if you intend to use array slicing (e.g ``data[:2,2:4]``).
 
-Enviroment variable
--------------------
-To issue warnings you can set an enviroment variable ``SAVRW_DISPLAY_WARNS`` to any of the following actions: "error", "ignore", "always", "default", "module", "once". If the enviroment variable is not defined, warnings are ignored. Note that warnings are usually harmless, e.g. ``SPSS_NO_LABELS``. See: http://docs.python.org/2/library/warnings.html. 
+Enviroment variables
+---------------------
+**SAVRW_DISPLAY_WARNS.** To issue warnings you can set an enviroment variable ``SAVRW_DISPLAY_WARNS`` to any of the following actions: "error", "ignore", "always", "default", "module", "once". If the enviroment variable is not defined, warnings are ignored. Note that warnings are usually harmless, e.g. ``SPSS_NO_LABELS``. See: http://docs.python.org/2/library/warnings.html. 
+
+**SAVRW_USE_CWRITEROW.** You can use this variable to toggle between the ``cWriterow`` and the ``pyWriterow`` method, by setting this variable to ``ON`` or ``OFF``, respectively. This is intended for testing purposes.
+
+**DYLD_LIBRARY_PATH.** Users of Mac OSX need to set this variable, see elsewhere in this documentation.
 
 :mod:`SavWriter` -- Write SPSS system files
 ============================================================================
