@@ -1,8 +1,8 @@
 
-# cdef pad_string(char* s, int width):
-#     cdef int padding
-#     padding = -8 * (width // -8)
-#     return (padding - len(s)) * b' ' + s
+cdef pad_string(char* s, int width):
+     cdef int padding
+     padding = -8 * (width // -8)
+     return s + (padding - len(s)) * b' '
 
 def cWriterow(self, record):
     """ This function writes one record, which is a Python list,
@@ -20,9 +20,9 @@ def cWriterow(self, record):
                 value = self.sysmis_
         else:
             #value = self.pad_string(value, varType)
-            #value = pad_string(value, varType)
-            #if self.ioUtf8_ and isinstance(value, unicode):
-            if self.ioUtf8_ and varType:
+            value = pad_string(value, varType)
+            #if self.ioUtf8_ and varType:
+            if self.ioUtf8_ and isinstance(value, unicode):
                 value = value.encode("utf-8")
         record[i] = value
     self.record = record
