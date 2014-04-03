@@ -8,8 +8,9 @@ import time
 from savReaderWriter import *
 from py3k import *
 from header import *
-if cWriterowOK:
-    cWriterow = cWriterow.cWriterow  # TODO: make this Python3-ready (or make a Python 3 version)
+
+if cWriterowOK and not isPy3k:
+    cWriterow = cWriterow.cWriterow
 
 class SavWriter(Header):
 

@@ -32,6 +32,7 @@ except ImportError:
 # Environment variable SAVRW_USE_CWRITEROW can be used to toggle cWriterow
 # 'on' or 'off' (mainly for testing). Crashes if 'on' but no cWriterow.
 try:
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "cWriterow"))
     from cWriterow import cWriterow  # writing 66 % faster
     cWriterowOK = True
 except ImportError:
