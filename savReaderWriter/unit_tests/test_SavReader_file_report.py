@@ -7,6 +7,7 @@
 
 import unittest
 import sys
+import os
 import gocept.testing.assertion
 from savReaderWriter import *
 
@@ -16,7 +17,7 @@ report_expected = """\
 *The file was created with SPSS version: MS Windows Release 11.0 spssio32.dll (11.1.0)
 *The interface locale is: '...'
 *The interface mode is: Codepage (...)
-*The file encoding is: 'utf_8' (Code page: 65001)
+*The file encoding is: '...' (Code page: ...)
 *File encoding and the interface encoding are compatible: ...
 *Your computer's locale is: '...' (Code page: ...)
 *The file contains the following variables:
@@ -31,7 +32,7 @@ report_expected = """\
   09. prevexp (F6 - numerical)
   10. minority (F1 - numerical)
 **********************************************************************
-"""
+""".replace("\n", os.linesep) 
 
 class test_SavReader_file_report(unittest.TestCase, gocept.testing.assertion.Ellipsis):
     """Generate a file report"""

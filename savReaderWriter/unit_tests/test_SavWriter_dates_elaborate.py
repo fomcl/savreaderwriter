@@ -9,18 +9,27 @@ import unittest
 import os
 import tempfile
 import sys
+import functools
+from time import strftime, strptime
 from savReaderWriter import *
 
+if sys.version_info[0] > 2:
+    bytes = functools.partial(bytes, encoding='utf-8')
+
+# make sure the test passes in other locales too
+stamp  = lambda v, fmt: bytes(strftime(fmt, strptime(v, '%Y-%m-%d')))
+wed1, august = stamp('2010-08-11', '%A'), stamp('2010-08-11', '%B')
+wed2, january = stamp('1910-01-12', '%A'), stamp('1910-01-12', '%B')
 records_expected = \
-    [[b'2010-08-11 00:00:00', b'32 WK 2010', b'2010-08-11', b'3 Q 2010', 
-      b'2010-08-11', b'2010-08-11', b'11 00:00:00', b'2010-08-11', b'August',
-      b'August 2010', b'00:00:00.000000', b'2010-08-11', b'Wednesday'],
-     [b'1910-01-12 00:00:00', b'02 WK 1910', b'1910-01-12', b'1 Q 1910', 
-      b'1910-01-12', b'1910-01-12', b'12 00:00:00', b'1910-01-12', b'January', 
-      b'January 1910', b'00:00:00.000000', b'1910-01-12', b'Wednesday'],
-     [None, None, None, None, None, None, None, 
+    [[b'2010-08-11 00:00:00', b'32 WK 2010', b'2010-08-11', b'3 Q 2010',
+      b'2010-08-11', b'2010-08-11', b'11 00:00:00', b'2010-08-11', august,
+      august + b' 2010', b'00:00:00.000000', b'2010-08-11', wed1],
+     [b'1910-01-12 00:00:00', b'02 WK 1910', b'1910-01-12', b'1 Q 1910',
+      b'1910-01-12', b'1910-01-12', b'12 00:00:00', b'1910-01-12', january,
+      january + b' 1910', b'00:00:00.000000', b'1910-01-12', wed2],
+     [None, None, None, None, None, None, None,
       None, None, None, None, None, None],
-     [None, None, None, None, None, None, None, 
+     [None, None, None, None, None, None, None,
       None, None, None, None, None, None]]
 
 # This test passes the second time it is run. 
@@ -28,7 +37,6 @@ class test_SavWriter_dates_elaborate(unittest.TestCase):
 
     def setUp(self):
         ## first, create a test file
-        self.maxDiff = None
         self.savFileName = os.path.join(tempfile.gettempdir(), "test_dates.sav")
         varNames = [b'var_datetime', b'var_wkyr', b'var_date', b'var_qyr', b'var_edate',
                     b'var_sdate', b'var_dtime', b'var_jdate', b'var_month', b'var_moyr',

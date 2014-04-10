@@ -7,6 +7,7 @@
 
 import unittest
 import sys
+import os
 from savReaderWriter import *
 
 report_expected = """\
@@ -138,7 +139,7 @@ jobtime -- 0
 minority -- 0
 prevexp -- 0
 salary -- 0
-salbegin -- 0"""
+salbegin -- 0""".replace("\n", os.linesep)
 
 report_expected_ioUtf8 = """\
 File 'greetings.sav' built using SavReaderWriter.py version 3.1.1 (Thu Jan 17 16:35:14 2013)
@@ -186,9 +187,9 @@ line -- input
 #VARTYPES
 Bondjoû -- 20
 greeting -- 50
-line -- 0"""
+line -- 0""".replace("\n", os.linesep)
 
-class test_SavReader_metadata_report(unittest.TestCase):
+class test_SavHeaderReader_metadata_report(unittest.TestCase):
     """Generate a metadata report"""
 
     def setUp(self):
