@@ -448,10 +448,10 @@ class SavReader(Header):
         MAXCACHE = 10**4
 
         def memf(*x):
+            if len(cache) >= MAXCACHE:
+                cache.popitem()
             if x not in cache:
                 cache[x] = f(*x)
-            if len(cache) > MAXCACHE:
-                cache.popitem()
             return cache[x]
         return memf
 
