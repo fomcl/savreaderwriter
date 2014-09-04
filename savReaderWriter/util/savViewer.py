@@ -23,6 +23,8 @@ Currently supported are:
 
 Commandline use: python savViewer.py somefile.sav
 GUI use: python savViewer.py 
+
+Suitable for use with Python 2.7 and 3.3
 """
 
 __author__ = "Albert-Jan Roskam"
@@ -31,7 +33,10 @@ __version__ = "1.0.0"
 __date__ = "2014-09-04"
 
 
-# Python 3 (untested)
+# Python 3
+
+py3k = sys.version_info.major >= 3
+
 try:
    from itertools import izip_longest
 except ImportError:
@@ -316,7 +321,11 @@ class SavIter(ExtIterBase):
 
     @property
     def varNames(self):
-        return self.records.varNames
+        decode = lambda x: unicode(x, self.fileEncoding)
+        try:
+            return list(map(decode, self.records.varNames))
+        except TypeError:
+            return self.records.varNames  # ioUtf8=True
 
     def data(self, savFileName):
         kwargs = dict(savFileName=savFileName, ioUtf8=True, recodeSysmisTo=float("nan"))
@@ -402,8 +411,9 @@ class Menu(QMainWindow):
                           "All Files (*)")
         args = ('Open file', directory, selectedFilter) 
         self.table.savFileName = QFileDialog.getOpenFileName(self, *args)
-        fs_encoding = sys.getfilesystemencoding()  # windows okay? mbcs??
-        self.table.savFileName = unicode(self.table.savFileName, fs_encoding)
+        if not py3k: 
+            fs_encoding = sys.getfilesystemencoding()  # windows okay? mbcs??
+            self.table.savFileName = unicode(self.table.savFileName, fs_encoding)
         self.read_file()
 
     def create_spinbox_group(self):
@@ -557,8 +567,11 @@ class Table(QDialog):
         else:
             self.create_table(self.block_size, varNames)
 
-        # set row/column labels        
-        self.table.setVerticalHeaderLabels(QStringList(map(str, block)))
+        # set row/column labels
+        if py3k:        
+            self.table.setVerticalHeaderLabels(list(map(str, block)))
+        else:
+            self.table.setVerticalHeaderLabels(QStringList(map(str, block)))
         self.table.setHorizontalHeaderLabels(varNames)
 
         # fill the grid with values. The very last block is annoying
