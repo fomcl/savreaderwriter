@@ -444,16 +444,19 @@ class SavReader(Header):
     def memoize(f):
         """Memoization decorator
         http://code.activestate.com/recipes/577219-minimalistic-memoization/"""
+        # see also issue # 22 
         cache = {}
-        MAXCACHE = 10**4
+        MAXCACHE = 10 ** 7
 
         def memf(*x):
-            if len(cache) >= MAXCACHE:
-                cache.popitem()
-            if x not in cache:
-                cache[x] = f(*x)
-            return cache[x]
-        return memf
+            if x in cache:
+                return cache[x]
+            elif len(cache) < MAXCACHE:
+                result = f(*x)
+                cache[x] = result
+                return result
+            return f(*x)
+        return memf 
 
     @memoize
     def spss2strDate(self, spssDateValue, fmt, recodeSysmisTo):
