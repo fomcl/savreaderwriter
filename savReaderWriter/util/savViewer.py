@@ -29,8 +29,8 @@ Suitable for use with Python 2.7 and 3.3
 
 __author__ = "Albert-Jan Roskam"
 __email__ = "@".join(["fomcl", "yahoo." + "com"])
-__version__ = "1.0.0"
-__date__ = "2014-09-04"
+__version__ = "1.0.1"
+__date__ = "2014-09-05"
 
 
 # Python 3
@@ -576,13 +576,13 @@ class Table(QDialog):
 
         # fill the grid with values. The very last block is annoying
         for row, fake_row in izip_longest(block, fake_block):
+            record = data[row]
+            row_exists = row is not None
             for col in range(dim.ncols):
-                 row_exists = row is not None
                  if row_exists:
                     try:
-                        value = self._convert(data[row][col], encoding)
+                        value = self._convert(record[col], encoding)
                     except IndexError:
-                        #raise Exception("row: %d, col: %d, data: %s" % (row, col, list(data)))
                         value = ""  # could be needed for multisheet xls files
                     table_item = QTableWidgetItem(value)
                     if value == u"nan":
