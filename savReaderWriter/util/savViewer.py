@@ -422,7 +422,6 @@ class Menu(QMainWindow):
         self.main_layout.addWidget(group)
 
         hbox = QHBoxLayout()
-        hbox.setMargin(0)
         hbox.setSpacing(0)
 
         # initialize spinbox with some defaults
