@@ -576,8 +576,9 @@ class Table(QDialog):
 
         # fill the grid with values. The very last block is annoying
         for row, fake_row in izip_longest(block, fake_block):
-            record = data[row]
             row_exists = row is not None
+            if row_exists:
+                record = data[row]
             for col in range(dim.ncols):
                  if row_exists:
                     try:
