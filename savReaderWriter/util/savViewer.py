@@ -333,7 +333,7 @@ class SavIter(ExtIterBase):
         if not data.isCompatibleEncoding():
             del kwargs["ioUtf8"]
             encoding = data.fileEncoding.replace("_", "-")
-            locale_ = locale.getdefaultlocale()[0] + "." + encoding
+            locale_ = locale.getlocale()[0] + "." + encoding
             kwargs["ioLocale"] = locale_
             data.close()
             try:
