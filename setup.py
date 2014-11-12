@@ -39,7 +39,7 @@ package_data = {'savReaderWriter': ['spssio/include/*.*',
                                     'spssio/license/*',
                                     'cWriterow/*.*',
                                     'documentation/*.*',
-                                    'doc_tests/*.*',
+                                    'unit_tests/*.*',
                                     'test_data/*.*',
                                     'README','VERSION', 
                                     'TODO', 'COPYRIGHT']}
@@ -116,12 +116,6 @@ setup(name='savReaderWriter',
                    'Topic :: Database']
       )
 
-# ugly, but it works
-# for f in ['README','VERSION', 'TODO', 'COPYRIGHT']:
-#     p = os.path.dirname(__file__)
-#     src = os.path.join(p, f)
-#     dst = os.path.join(p, "savReaderWriter", f)
-#     shutil.copy(src, dst)
 
 with open(os.path.join(path, "savReaderWriter", "SHA1VERSION"), "wb") as f:
     try:
