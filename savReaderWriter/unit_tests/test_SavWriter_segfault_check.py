@@ -17,11 +17,19 @@ class test_SavWriter_throws_no_segfault(unittest.TestCase):
         self.records = [[b"x", 1], [b"y", 777], [b"z", 10 ** 6]]
         self.args = (self.savFileName, varNames, varTypes)
 
-    def test_check_segfault(self):        
+    def test_check_segfault_numeric(self):        
         """Test if incorrect specification raises ctypes.ArgumentError, 
         not segfault"""
-        valueLabels = {b"a_numeric": {b"1": b"male", b"2": b"female"},
-                       b"a_string": {1: b"male", 2: b"female"}}
+        valueLabels = {b"a_numeric": {b"1": b"male", b"2": b"female"}}
+        with self.assertRaises(ctypes.ArgumentError):
+            with rw.SavWriter(*self.args, valueLabels=valueLabels) as writer:
+                writer.writerows(self.records)
+
+    def test_check_segfault_char(self):        
+        """Test if incorrect specification raises ctypes.ArgumentError, 
+        not segfault"""
+        # c_char_p is wrapped in c_char_p3k in py3k.py, hence a separate test
+        valueLabels = {b"a_string": {1: b"male", 2: b"female"}}
         with self.assertRaises(ctypes.ArgumentError):
             with rw.SavWriter(*self.args, valueLabels=valueLabels) as writer:
                 writer.writerows(self.records)
