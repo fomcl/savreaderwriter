@@ -1123,10 +1123,13 @@ class Header(Generic):
                    "+ <nCases> three-element groups of other date info "
                    "(all ints)")
             raise TypeError(msg)
-        func = self.spssio.spssSetDateVariables
+
         nElements = len(dateInfo)
+        func = self.spssio.spssSetDateVariables
+        func.argtypes = [c_int, c_int, (c_long * nElements)]
+
         dateInfoArr = (c_long * nElements)(*dateInfo)
-        retcode = func(c_int(self.fh), c_int(nElements), dateInfoArr)
+        retcode = func(self.fh, nElements, dateInfoArr)
         if retcode:
             checkErrsWarns("Problem setting TRENDS information", retcode)
 
