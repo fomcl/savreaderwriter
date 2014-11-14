@@ -359,8 +359,12 @@ class Header(Generic):
         isStringVar = re.compile(regex, re.IGNORECASE)
         regex = b"(?P<printFormat>[A-Z]+)(?P<printWid>\d+)\.?(?P<printDec>\d*)"
         isAnyVar = re.compile(regex, re.IGNORECASE)
+
         funcP = self.spssio.spssSetVarPrintFormat  # print type
+        funcP.argtypes = [c_int, c_char_p, c_int, c_int, c_int]
         funcW = self.spssio.spssSetVarWriteFormat  # write type
+        funcW.argtypes = funcP.argtypes
+  
         for varName, format_ in self.encode(formats).items():
             format_ = format_.upper()
             gotString = isStringVar.match(format_)
@@ -385,8 +389,8 @@ class Header(Generic):
             if printFormat is None:
                 raise ValueError(msg)
 
-            args = (c_int(self.fh), c_char_py3k(varName), c_int(printFormat),
-                    c_int(printDec), c_int(printWid))
+            args = (self.fh, c_char_py3k(varName), 
+                    printFormat, printDec, printWid)
             retcode1, retcode2 = funcP(*args), funcW(*args)
             if retcodes.get(retcode1) == "SPSS_INVALID_PRFOR":
                 # invalid PRint FORmat
