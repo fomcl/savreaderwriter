@@ -883,7 +883,10 @@ class Header(Generic):
         nAttr = len(fileAttributes)
         attrNames = (c_char_p * nAttr)(*list(fileAttributes.keys()))
         attrValues = (c_char_p * nAttr)(*list(fileAttributes.values()))
+
         func = self.spssio.spssSetFileAttributes
+        func.argtypes = [c_int, POINTER(c_char_p * nAttr), 
+                         POINTER(c_char_p * nAttr), c_int]
         retcode = func(c_int(self.fh), byref(attrNames),
                        byref(attrValues), c_int(nAttr))
         if retcode:
