@@ -246,17 +246,21 @@ class Header(Generic):
     def valueLabels(self, valueLabels):
         if not valueLabels:
             return
+  
         valLabN = self.spssio.spssSetVarNValueLabel
+        valLabN.argtypes = [c_int, c_char_p, c_double, c_char_p]
         valLabC = self.spssio.spssSetVarCValueLabel
+        valLabC.argtypes = [c_int, c_char_p, c_char_p, c_char_p]
+  
         valueLabels = self.encode(valueLabels)
         for varName, valueLabelsX in valueLabels.items():
             valueLabelsX = self.encode(valueLabelsX)
             for value, label in valueLabelsX.items():
                 if self.varTypes[varName] == 0:
-                    retcode = valLabN(c_int(self.fh), c_char_py3k(varName),
-                                      c_double(value), c_char_py3k(label))
+                    retcode = valLabN(self.fh, c_char_py3k(varName), 
+                                      value, c_char_py3k(label))
                 else:
-                    retcode = valLabC(c_int(self.fh), c_char_py3k(varName),
+                    retcode = valLabC(self.fh, c_char_py3k(varName),
                                       c_char_py3k(value), c_char_py3k(label))
                 if retcode:
                     msg = "Problem setting value labels of variable %r"
