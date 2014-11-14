@@ -571,6 +571,8 @@ class Header(Generic):
         if not varMeasureLevels:
             return
         func = self.spssio.spssSetVarMeasureLevel
+        func.argtypes = [c_int, c_char_p, c_int]
+
         levels = {b"unknown": 0, b"nominal": 1, b"ordinal": 2, b"scale": 3,
                   b"ratio": 3, b"flag": 4, b"typeless": 5}
         for varName, level in self.encode(varMeasureLevels).items():
@@ -578,7 +580,7 @@ class Header(Generic):
                 msg = "Valid levels are %s"
                 raise ValueError(msg % b", ".join(levels.keys()).decode())
             level = levels.get(level.lower())
-            retcode = func(c_int(self.fh), c_char_py3k(varName), c_int(level))
+            retcode = func(self.fh, c_char_py3k(varName), level)
             if retcode:
                 msg = "Problem setting variable mesasurement level: '%s'"
                 checkErrsWarns(msg % varName.decode(), retcode)
