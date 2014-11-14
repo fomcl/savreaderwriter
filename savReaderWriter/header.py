@@ -291,10 +291,13 @@ class Header(Generic):
     def varLabels(self, varLabels):
         if not varLabels:
             return
+
         func = self.spssio.spssSetVarLabel
+        func.argtypes = [c_int, c_char_p, c_char_p]
+
         varLabels = self.encode(varLabels)
         for varName, varLabel in varLabels.items():
-            retcode = func(c_int(self.fh), c_char_py3k(varName),
+            retcode = func(self.fh, c_char_py3k(varName), 
                            c_char_py3k(varLabel))
             if retcode:
                 msg = ("Problem with setting variable label %r of variable %r"
