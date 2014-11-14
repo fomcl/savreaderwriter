@@ -610,9 +610,9 @@ class Header(Generic):
         if not varColumnWidths:
             return
         func = self.spssio.spssSetVarColumnWidth
+        func.argtypes = [c_int, c_char_p, c_int]
         for varName, varColumnWidth in varColumnWidths.items():
-            retcode = func(c_int(self.fh), c_char_py3k(varName),
-                           c_int(varColumnWidth))
+            retcode = func(self.fh, c_char_py3k(varName), varColumnWidth)
             if retcode:
                 msg = "Error setting variable column width: '%s'"
                 checkErrsWarns(msg % varName.decode(), retcode)
