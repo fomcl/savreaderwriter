@@ -750,10 +750,13 @@ class Header(Generic):
             return
         roles = {"input": 0, "target": 1, "both": 2, "none": 3, "partition": 4,
                  "split": 5,  "frequency": 6, "record ID": 7}
+
         func = self.spssio.spssSetVarRole
+        func.argtypes = [c_int, c_char_p, c_int] 
+
         for varName, varRole in varRoles.items():
             varRole = roles.get(varRole)
-            retcode = func(c_int(self.fh), c_char_py3k(varName), c_int(varRole))
+            retcode = func(self.fh, c_char_py3k(varName), varRole)
             if retcode:
                 msg = "Problem setting variable role %r for variable %r"
                 checkErrsWarns(msg % (varRole, varName), retcode)
