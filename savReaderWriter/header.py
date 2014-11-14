@@ -663,13 +663,15 @@ class Header(Generic):
         if not varAlignments:
             return
         func = self.spssio.spssSetVarAlignment
+        func.argtypes = [c_int, c_char_p, c_int]
+
         alignments = {b"left": 0, b"right": 1, b"center": 2}
         for varName, varAlignment in varAlignments.items():
             if varAlignment.lower() not in alignments:
                 ukeys = b", ".join(alignments.keys()).decode()
                 raise ValueError("Valid alignments are %s" % ukeys)
             alignment = alignments.get(varAlignment.lower())
-            retcode = func(c_int(self.fh), c_char_py3k(varName), c_int(alignment))
+            retcode = func(self.fh, c_char_py3k(varName), alignment)
             if retcode:
                 msg = "Problem setting variable alignment for variable '%s'"
                 checkErrsWarns(msg % varName.decode(), retcode)
