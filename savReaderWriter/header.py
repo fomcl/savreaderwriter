@@ -826,6 +826,9 @@ class Header(Generic):
             nAttr = len(attributes)
             attrNames = (c_char_p * nAttr)(*list(attributes.keys()))
             attrValues = (c_char_p * nAttr)(*list(attributes.values()))
+
+            func.argtypes = [c_int, c_char_p, POINTER(c_char_p * nAttr), 
+                             POINTER(c_char_p * nAttr)]
             retcode = func(c_int(self.fh), c_char_py3k(varName),
                            pointer(attrNames), pointer(attrValues),
                            c_int(nAttr))
