@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import functools
-from ctypes import c_char_p
+from ctypes import c_char_p, ArgumentError
 
 isPy3k = sys.version_info[0] > 2
 
@@ -33,13 +33,18 @@ def bytify(encoding):
     return func
 
 # ctypes.c_char_p does not take unicode strings
+msg = "argument '%s': exceptions.TypeError: wrong type [%s]" 
 if isPy3k:
     def c_char_py3k(s):
         s = s.encode("utf-8") if isinstance(s, str) else s
-        return c_char_p(s)
+        if isinstance(s, (basestring, bytes)):
+            return c_char_p(s)
+        raise ArgumentError(msg % (s, type(s)))
 else:
     def c_char_py3k(s):
-        return c_char_p(s)
+        if isinstance(s, (basestring, bytes)):
+            return c_char_p(s)
+        raise ArgumentError(msg % (s, type(s)))
 c_char_py3k.__doc__ = ("Wrapper for ctypes.c_char_p; in Python 3.x, s is converted to a utf-8 "
 	               "encoded bytestring, in Python 2, it does nothing")
 
