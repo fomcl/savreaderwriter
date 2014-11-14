@@ -1072,7 +1072,8 @@ class Header(Generic):
         if not varName:
             return
         func = self.spssio.spssSetCaseWeightVar
-        retcode = func(c_int(self.fh), c_char_py3k(varName))
+        func.argtypes = [c_int, c_char_p] 
+        retcode = func(self.fh, c_char_py3k(varName))
         if retcode:
             msg = "Problem setting case weight variable name %r" % varName
             checkErrsWarns(msg, retcode)
