@@ -168,6 +168,7 @@ class Header(Generic):
             6: ('SPSS_NAME_BADFIRST', 'Invalid initial char (otherwise OK)')}
         validate = self.spssio.spssValidateVarname
         func = self.spssio.spssSetVarName
+        func.argtypes = [c_int, c_char_p, c_int]
         for varName in self.varNames:
             varLength = self.varTypes[varName]
             retcode = validate(c_char_py3k(varName))
@@ -175,7 +176,7 @@ class Header(Generic):
                 msg = ("%r is an invalid variable name [%r]" %
                        (varName, ": ".join(varNameRetcodes.get(retcode))))
                 raise SPSSIOError(msg, retcode)
-            retcode = func(c_int(self.fh), c_char_py3k(varName), c_int(varLength))
+            retcode = func(self.fh, c_char_py3k(varName), varLength)
             if retcode:
                 msg = "Problem setting variable name %r" % varName
                 checkErrsWarns(msg, retcode)
