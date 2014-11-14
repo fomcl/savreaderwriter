@@ -1153,8 +1153,11 @@ class Header(Generic):
         textInfo = textInfo % info
         if self.ioUtf8 and isinstance(savFileName, unicode):
             textInfo = textInfo.encode("utf-8")
+  
         func = self.spssio.spssSetTextInfo
-        retcode = func(c_int(self.fh), c_char_py3k(textInfo[:256]))
+        func.argtypes = [c_int, c_char_p]
+  
+        retcode = func(self.fh, c_char_py3k(textInfo[:256]))
         if retcode:
             checkErrsWarns("Problem setting textInfo", retcode)
 
