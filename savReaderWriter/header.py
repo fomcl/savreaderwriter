@@ -1319,8 +1319,9 @@ class Header(Generic):
 
         # write GUI information
         if not retcode:
-            args = c_int(self.fh), c_char_py3k(asciiGUID)
+            args = self.fh, c_char_py3k(asciiGUID)
             func = self.spssio.spssSetDEWGUID
+            func.argtypes = [c_int, c_char_p]
             retcode = func(*args)
 
         if retcode:
