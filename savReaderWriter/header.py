@@ -550,14 +550,15 @@ class Header(Generic):
         "ratio", "flag", "typeless". This is used in Spss procedures such as
         CTABLES."""
         func = self.spssio.spssGetVarMeasureLevel
+        func.argtypes = [c_int, c_char_p, POINTER(c_int)]
+
         levels = {0: b"unknown", 1: b"nominal", 2: b"ordinal", 3: b"scale",
                   3: b"ratio", 4: b"flag", 5: b"typeless"}
         measureLevel = c_int()
         varMeasureLevels = {}
         for varName in self.varNames:
             vName = self.vNames[varName]
-            retcode = func(c_int(self.fh), c_char_py3k(vName),
-                           byref(measureLevel))
+            retcode = func(self.fh, c_char_py3k(vName), measureLevel)
             varMeasureLevels[varName] = levels.get(measureLevel.value)
             if retcode:
                 msg = "Problem getting variable measurement level: %r"
