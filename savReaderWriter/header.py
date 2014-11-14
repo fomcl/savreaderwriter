@@ -1180,7 +1180,11 @@ class Header(Generic):
                      (getpass.getuser(), time.asctime()))
         if self.ioUtf8 and isinstance(idStr, unicode):
             idStr = idStr.encode("utf-8")
-        retcode = self.spssio.spssSetIdString(c_int(self.fh), c_char_py3k(idStr))
+
+        func = self.spssio.spssSetIdString
+        func.argtypes = [c_int, c_char_p] 
+
+        retcode = func(self.fh, c_char_py3k(idStr))
         if retcode:
             checkErrsWarns("Problem setting file label (id string)", retcode)
 
