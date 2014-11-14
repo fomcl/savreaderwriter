@@ -706,13 +706,18 @@ class Header(Generic):
     def varSets(self, varSets):
         if not varSets:
             return
+
+        func = self.spssio.spssSetVariableSets
+        func.argtypes = [c_int, c_char_p]   
+
         varSets_ = []
         for varName, varSet in varSets.items():
             varName = varName.decode(self.fileEncoding)
             varSet = (b" ".join(varSet)).decode(self.fileEncoding)
             varSets_.append(("%s= %s" % (varName, varSet)).encode(self.fileEncoding))
+
         varSets_ = c_char_py3k(b"\n".join(varSets_))
-        retcode = self.spssio.spssSetVariableSets(c_int(self.fh), varSets_)
+        retcode = func(self.fh, varSets_)
         if retcode:
             msg = "Problem setting variable set information"
             checkErrsWarns(msg, retcode)
