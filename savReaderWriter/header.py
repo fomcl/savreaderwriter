@@ -641,13 +641,14 @@ class Header(Generic):
         alignment, measurement level and column width all need to be set.
         """
         func = self.spssio.spssGetVarAlignment
+        func.argtypes = [c_int, c_char_p, POINTER(c_int)]
+ 
         alignments = {0: b"left", 1: b"right", 2: b"center"}
         alignment_ = c_int()
         varAlignments = {}
         for varName in self.varNames:
             vName = self.vNames[varName]
-            retcode = func(c_int(self.fh), c_char_py3k(vName),
-                           byref(alignment_))
+            retcode = func(self.fh, c_char_py3k(vName), alignment_)
             alignment = alignments[alignment_.value]
             varAlignments[varName] = alignment
             if retcode:
