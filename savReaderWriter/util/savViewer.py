@@ -29,7 +29,7 @@ Suitable for use with Python 2.7 and 3.3
 
 __author__ = "Albert-Jan Roskam"
 __email__ = "@".join(["fomcl", "yahoo." + "com"])
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 __date__ = "2014-09-05"
 
 
@@ -52,6 +52,8 @@ try:
 except NameError:
     unicode = str
 
+# ensure locale.getlocale won't return (None, None)
+locale.setlocale(locale.LC_ALL, "")  
 
 class ExtIterBase(object):
 
