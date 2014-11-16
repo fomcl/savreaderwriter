@@ -829,9 +829,8 @@ class Header(Generic):
 
             func.argtypes = [c_int, c_char_p, POINTER(c_char_p * nAttr), 
                              POINTER(c_char_p * nAttr)]
-            retcode = func(c_int(self.fh), c_char_py3k(varName),
-                           pointer(attrNames), pointer(attrValues),
-                           c_int(nAttr))
+            retcode = func(self.fh, c_char_py3k(varName),
+                           attrNames, attrValues, nAttr)
             if retcode:
                 msg = "Problem setting variable attributes for variable %r"
                 checkErrsWarns(msg % varName, retcode)
@@ -887,8 +886,7 @@ class Header(Generic):
         func = self.spssio.spssSetFileAttributes
         func.argtypes = [c_int, POINTER(c_char_p * nAttr), 
                          POINTER(c_char_p * nAttr), c_int]
-        retcode = func(c_int(self.fh), byref(attrNames),
-                       byref(attrValues), c_int(nAttr))
+        retcode = func(self.fh, attrNames, attrValues, nAttr)
         if retcode:
             checkErrsWarns("Problem setting file attributes", retcode)
 
@@ -1048,7 +1046,8 @@ class Header(Generic):
             return
         multRespDefs = self._setMultRespDefs(multRespDefs)
         func = self.spssio.spssSetMultRespDefs
-        retcode = func(c_int(self.fh), c_char_py3k(multRespDefs))
+        func.argtypes = [c_int, c_char_p]   
+        retcode = func(self.fh, c_char_py3k(multRespDefs))
         if retcode:
             msg = "Problem setting multiple response definitions"
             checkErrsWarns(msg, retcode)
@@ -1071,8 +1070,10 @@ class Header(Generic):
     def caseWeightVar(self, varName):
         if not varName:
             return
+
         func = self.spssio.spssSetCaseWeightVar
         func.argtypes = [c_int, c_char_p] 
+
         retcode = func(self.fh, c_char_py3k(varName))
         if retcode:
             msg = "Problem setting case weight variable name %r" % varName
