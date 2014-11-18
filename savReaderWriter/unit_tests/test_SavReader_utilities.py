@@ -98,13 +98,15 @@ class test_SavReader_utilities(unittest.TestCase):
        self.assertEqual(records_expected, records_got[:3])  # TODO: BUG
 
     @unittest.skipUnless(numpyOK, "Requires numpy")
-    def test_SavReader_array_slicing(self):
+    def test_SavReader_array_slicing_1(self):
         records_expected = [[b'5.0', b'm', b'1955-02-09'], # TODO: BUG
                             [b'6.0', b'm', b'1958-08-22']] # floats as strings???
         records_got = self.data[4:6, :3]  # Row 4 & 5, first three cols
         self.assertEqual(records_expected, records_got)
 
-        records_expected = map(float, range(1, 475))
+    @unittest.skipUnless(numpyOK, "Requires numpy")
+    def test_SavReader_array_slicing_2(self):
+        records_expected = list(map(float, range(1, 475)))
         records_got = self.data[..., 0]  # First column
         self.assertEqual(records_expected, records_got)
 

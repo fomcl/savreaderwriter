@@ -7,6 +7,7 @@ import operator
 import locale
 import datetime
 import collections
+import functools
 
 from savReaderWriter import *
 from header import *
@@ -270,12 +271,14 @@ class SavReader(Header):
         is_index = False
         rstart = cstart = 0
         cstop = cstep = None
+
         try:
             row, col = key
-            if row < 0:
-                row = nRows + row
-            if col < 0:
-                col = nCols + col
+            # TODO: check negative slices/indices
+            #if row < 0:
+            #    row = nRows + row
+            #if col < 0:
+            #    col = nCols + col
 
             ## ... slices
             if isinstance(row, slice) and col is Ellipsis:
@@ -337,10 +340,12 @@ class SavReader(Header):
             # reader[...]
             rstart, rstop, rstep = 0, nRows, 1
             key = (Ellipsis, Ellipsis)
+
         records = self._items(rstart, rstop, rstep)
         result = numpy.array(list(records))[key].tolist()
         if abs(key[1].start - key[1].stop) == 1:
-            return reduce(list.__add__, result) # flatten list if it's one col
+            # flatten list if it's one col
+            return functools.reduce(list.__add__, result) 
         if is_index:
             return result[0]
         return result
