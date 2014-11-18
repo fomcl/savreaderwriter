@@ -609,8 +609,8 @@ class Table(QDialog):
             return unicode(value)
 
     def managerize(self):
-        rgb = lambda: (randint(0, 255), randint(0, 255), randint(0, 255))
-        return '#%02x%02x%02x' % rgb()
+        rgb = (randint(0, 255), randint(0, 255), randint(0, 255))
+        return '#%02x%02x%02x' % rgb
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
