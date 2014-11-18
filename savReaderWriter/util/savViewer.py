@@ -6,6 +6,8 @@ import abc
 import sys
 import os
 import mmap
+import re
+import locale
 from collections import namedtuple as ntuple
 from random import randint
 
@@ -29,8 +31,8 @@ Suitable for use with Python 2.7 and 3.3
 
 __author__ = "Albert-Jan Roskam"
 __email__ = "@".join(["fomcl", "yahoo." + "com"])
-__version__ = "1.0.2"
-__date__ = "2014-09-05"
+__version__ = "1.0.3"
+__date__ = "2014-11-18"
 
 
 # Python 3
@@ -298,7 +300,6 @@ class SavIter(ExtIterBase):
     def __init__(self, savFileName):
 
         global SavReader, locale
-        import locale
         from savReaderWriter import SavReader
 
         self.savFileName = savFileName
@@ -335,6 +336,7 @@ class SavIter(ExtIterBase):
         if not data.isCompatibleEncoding():
             del kwargs["ioUtf8"]
             encoding = data.fileEncoding.replace("_", "-")
+            encoding = re.sub(r"cp(\d+)", r"\1", encoding)
             locale_ = locale.getlocale()[0] + "." + encoding
             kwargs["ioLocale"] = locale_
             data.close()
