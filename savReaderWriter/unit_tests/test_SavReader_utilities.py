@@ -99,8 +99,8 @@ class test_SavReader_utilities(unittest.TestCase):
 
     @unittest.skipUnless(numpyOK, "Requires numpy")
     def test_SavReader_array_slicing_1(self):
-        records_expected = [[b'5.0', b'm', b'1955-02-09'], # TODO: BUG
-                            [b'6.0', b'm', b'1958-08-22']] # floats as strings???
+        records_expected = [[5.0, b'm', b'1955-02-09'],
+                            [6.0, b'm', b'1958-08-22']]
         records_got = self.data[4:6, :3]  # Row 4 & 5, first three cols
         self.assertEqual(records_expected, records_got)
 

@@ -263,6 +263,14 @@ class SavReader(Header):
             return list(records)
         return next(records)
 
+    def _cast_array(self, cstart, cstop, cstep, raw_result):
+        """Helper for _get_array_slice function"""
+        varNames = self.varNames[slice(cstart, cstop, cstep)]
+        numVars = [v for v in varNames if self.varTypes[v] == 0 and not 
+                   re.search(b"time|date|n\d+", self.formats[v], re.I)]
+        return [[float(item) if v in numVars else item for 
+                v, item in zip(varNames, record)]for record in raw_result]
+
     def _get_array_slice(self, key, nRows, nCols):
         """This is a helper function to implement array slicing with numpy"""
         if not numpyOk:
@@ -274,11 +282,10 @@ class SavReader(Header):
 
         try:
             row, col = key
-            # TODO: check negative slices/indices
-            #if row < 0:
-            #    row = nRows + row
-            #if col < 0:
-            #    col = nCols + col
+            if isinstance(row, int) and row < 0:
+                row = nRows + row
+            if isinstance(col, int) and col < 0:
+                col = nCols + col
 
             ## ... slices
             if isinstance(row, slice) and col is Ellipsis:
@@ -295,6 +302,7 @@ class SavReader(Header):
                 cstart, cstop, cstep = col.indices(nCols)
             elif row is Ellipsis and col is Ellipsis:
                 # reader[..., ...]
+                # DeprecationWarning in recent numpy versions
                 rstart, rstop, rstep = 0, nRows, 1
                 cstart, cstop, cstep = 0, nCols, 1
 
@@ -324,11 +332,10 @@ class SavReader(Header):
                 # reader[1, 1:2]
                 rstart, rstop, rstep = row, row + 1, 1
                 cstart, cstop, cstep = col.indices(nCols)
-
             try:
-                if not 0 <= rstart < nRows:
+                if not 0 <= abs(rstart) < nRows:
                     raise IndexError("Index out of bounds")
-                if not 0 <= cstart < nCols:
+                if not 0 <= abs(cstart) < nCols:
                     raise IndexError("Index out of bounds")
                 key = (Ellipsis, slice(cstart, cstop, cstep))
 
@@ -341,11 +348,17 @@ class SavReader(Header):
             rstart, rstop, rstep = 0, nRows, 1
             key = (Ellipsis, Ellipsis)
 
+        # select the rows, cols respectively
         records = self._items(rstart, rstop, rstep)
-        result = numpy.array(list(records))[key].tolist()
+        raw_result = numpy.array(list(records))[key].tolist()
+
+        # cast the result, so floats become floats again
+        result = self._cast_array(cstart, cstop, cstep, raw_result)
+
+        # flatten list if it's row or one col                 
         if abs(key[1].start - key[1].stop) == 1:
-            # flatten list if it's one col
             return functools.reduce(list.__add__, result) 
+
         if is_index:
             return result[0]
         return result
