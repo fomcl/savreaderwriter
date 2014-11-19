@@ -69,8 +69,7 @@ class test_SavReader_utilities(unittest.TestCase):
         self.assertEqual(records_expected, self.data[0])
 
     def test_SavReader_striding(self):
-        """Read a file, use striding (__getitem__).
-        WARNING: this feature does not work as expected!"""
+        """Read a file, use striding (__getitem__)."""
         records_expected = \
         [[474.0, b'f', b'1968-11-05', 12.0, 1.0, 29400.0, 14250.0, 63.0, 9.0, 0.0], 
          [473.0, b'f', b'1937-11-25', 12.0, 1.0, 21450.0, 12750.0, 63.0, 139.0, 0.0], 
