@@ -98,16 +98,66 @@ class test_SavReader_utilities(unittest.TestCase):
        self.assertEqual(records_expected, records_got[:3])  # TODO: BUG
 
     @unittest.skipUnless(numpyOK, "Requires numpy")
-    def test_SavReader_array_slicing_1(self):
+    def test_SavReader_array_slicing_slicing_1(self):
         records_expected = [[5.0, b'm', b'1955-02-09'],
                             [6.0, b'm', b'1958-08-22']]
         records_got = self.data[4:6, :3]  # Row 4 & 5, first three cols
         self.assertEqual(records_expected, records_got)
 
     @unittest.skipUnless(numpyOK, "Requires numpy")
-    def test_SavReader_array_slicing_2(self):
+    def test_SavReader_array_slicing_slicing_2(self):
+        records_expected = [[1.0, b'm', b'1952-02-03'],
+                            [2.0, b'm', b'1958-05-23'],
+                            [3.0, b'f', b'1929-07-26'],
+                            [472.0, b'm', b'1966-02-21'],
+                            [473.0, b'f', b'1937-11-25'],
+                            [474.0, b'f', b'1968-11-05']]
+        records_got = self.data[..., :3]  # all rows of first three cols
+        self.assertTrue(len(records_got) == 474)
+
+        records_got = records_got[:3] + records_got[-3:]
+        self.assertEqual(records_expected, records_got)
+
+    @unittest.skipUnless(numpyOK, "Requires numpy")
+    def test_SavReader_array_slicing_slicing_3(self):
+        records_expected = [[1.0, b'm', b'1952-02-03', 15.0, 3.0, 
+                             57000.0, 27000.0, 98.0, 144.0, 0.0],
+                            [2.0, b'm', b'1958-05-23', 16.0, 1.0, 
+                             40200.0, 18750.0, 98.0, 36.0, 0.0],
+                            [3.0, b'f', b'1929-07-26', 12.0, 1.0, 
+                             21450.0, 12000.0, 98.0, 381.0, 0.0]]
+        records_got = self.data[:3, ...]  # all cols of first three rows
+        self.assertEqual(records_expected, records_got)
+
+    @unittest.skipUnless(numpyOK, "Requires numpy")
+    def test_SavReader_array_slicing_indexing_1(self):
         records_expected = list(map(float, range(1, 475)))
         records_got = self.data[..., 0]  # First column
+        self.assertEqual(records_expected, records_got)
+
+    @unittest.skipUnless(numpyOK, "Requires numpy")
+    def test_SavReader_array_slicing_indexing_2(self):
+        records_expected = [1.0, b'm', b'1952-02-03', 15.0, 3.0,
+                            57000.0, 27000.0, 98.0, 144.0, 0.0]
+        records_got = self.data[0, ...]  # First row
+        self.assertEqual(records_expected, records_got)
+
+    @unittest.skipUnless(numpyOK, "Requires numpy")
+    def test_SavReader_array_slicing_indexing_3(self):
+        records_expected = [1.0]
+        records_got = self.data[0, 0]  # First value
+        self.assertEqual(records_expected, records_got)
+
+    @unittest.skipUnless(numpyOK, "Requires numpy")
+    def test_SavReader_array_slicing_both_1(self):
+        records_expected = [1.0, 2.0]
+        records_got = self.data[:2, 0]  # First two values of first col
+        self.assertEqual(records_expected, records_got)
+
+    @unittest.skipUnless(numpyOK, "Requires numpy")
+    def test_SavReader_array_slicing_both_1(self):
+        records_expected = [1.0, b'm']
+        records_got = self.data[0, :2]  # First two values of first row
         self.assertEqual(records_expected, records_got)
 
     def test_SavReader_get(self):

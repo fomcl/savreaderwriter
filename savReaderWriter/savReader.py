@@ -356,7 +356,7 @@ class SavReader(Header):
         result = self._cast_array(cstart, cstop, cstep, raw_result)
 
         # flatten list if it's row or one col                 
-        if abs(key[1].start - key[1].stop) == 1:
+        if abs(key[1].start - key[1].stop) == 1 or len(result) == 1:
             return functools.reduce(list.__add__, result) 
 
         if is_index:
