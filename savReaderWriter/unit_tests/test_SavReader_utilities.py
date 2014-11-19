@@ -87,7 +87,6 @@ class test_SavReader_utilities(unittest.TestCase):
         records_got = reversed_records[:5] + reversed_records[-5:]
         self.assertEqual(records_expected, records_got)
 
-    @unittest.skip("striding does NOT work entirely (BUG)")
     def test_SavReader_more_striding(self):
        """This does, unexpectedly, not return the even records"""
        records_expected = \
@@ -95,7 +94,7 @@ class test_SavReader_utilities(unittest.TestCase):
          [3.0, b'f', b'1929-07-26', 12.0, 1.0, 21450.0, 12000.0, 98.0, 381.0, 0.0],
          [5.0, b'm', b'1955-02-09', 15.0, 1.0, 45000.0, 21000.0, 98.0, 138.0, 0.0]]
        records_got = self.data[::2]
-       self.assertEqual(records_expected, records_got[:3])  # TODO: BUG
+       self.assertEqual(records_expected, records_got[:3])
 
     @unittest.skipUnless(numpyOK, "Requires numpy")
     def test_SavReader_array_slicing_slicing_1(self):

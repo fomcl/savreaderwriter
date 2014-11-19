@@ -201,35 +201,29 @@ class SavReader(Header):
         if returnHeader:
             yield self.header
 
-        if all([start == 0, stop is None, step == 1]):  # used as iterator
-            retcode = 0
-        else:
+        used_as_iterator = all([start == 0, stop is None, step == 1])
+        if not used_as_iterator:
             retcode = self.seekNextCase(c_int(self.fh), c_long(0))  # reset
+            if retcode:
+                checkErrsWarns("Problem seeking first case", retcode)
 
-        if retcode:
-            checkErrsWarns("Problem seeking first case", retcode)
-
-        if stop is None:
-            stop = self.nCases
-
+        stop = self.nCases if stop is None else stop
         selection = self.selectVars is not None
         selectOne = len(self.selectVars) == 1 if self.selectVars else None
+
         for case in xrange(start, stop, step):
-            if start:
+            if start or step != 1:
                 # only call this when iterating over part of the records
                 retcode = self.seekNextCase(c_int(self.fh), c_long(case))
                 if retcode:
                     checkErrsWarns("Problem seeking case %d" % case, retcode)
-            elif stop == self.nCases:
-                self.printPctProgress(case, self.nCases)
 
             record = self.record
-
             if selection:
                 record = self.selector(record)
                 record = [record] if selectOne else list(record)
-            record = self.formatValues(record)
-            yield record
+
+            yield self.formatValues(record)
 
     def __iter__(self):
         """This function allows the object to be used as an iterator"""
