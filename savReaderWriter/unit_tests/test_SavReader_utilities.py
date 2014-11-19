@@ -155,7 +155,7 @@ class test_SavReader_utilities(unittest.TestCase):
         self.assertEqual(records_expected, records_got)
 
     @unittest.skipUnless(numpyOK, "Requires numpy")
-    def test_SavReader_array_slicing_both_1(self):
+    def test_SavReader_array_slicing_both_2(self):
         records_expected = [1.0, b'm']
         records_got = self.data[0, :2]  # First two values of first row
         self.assertEqual(records_expected, records_got)
