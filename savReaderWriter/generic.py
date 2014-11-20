@@ -271,7 +271,7 @@ class Generic(object):
         savReaderWriter.Generic("").spssioVersion"""
         if not hasattr(self, "spssio"):
             self.spssio = self.loadLibrary()
-        version_pattern = re.compile(rb"\d+\.\d+\.\d+\.\d+")
+        version_pattern = re.compile(br"\d+\.\d+\.\d+\.\d+")
         for line in open(self.spssio._name, "rb"):
             m = version_pattern.search(line)
             if m:
