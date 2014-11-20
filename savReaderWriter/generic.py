@@ -461,7 +461,9 @@ class Generic(object):
     @ioUtf8.setter
     def ioUtf8(self, ioUtf8):
         try:
-            retcode = self.spssio.spssSetInterfaceEncoding(c_int(int(ioUtf8)))
+            func = self.spssio.spssSetInterfaceEncoding
+            func.argtypes = [c_int]
+            retcode = func(int(ioUtf8))
             if retcode > 0 and not self.encoding_and_locale_set:
                 # not self.encoding_and_locale_set --> nested context managers
                 raise SPSSIOError("Error setting IO interface", retcode)
