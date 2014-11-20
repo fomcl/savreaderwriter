@@ -298,7 +298,8 @@ class Generic(object):
         compression = {b"uncompressed": 0, b"standard": 1, b"zlib": 2}
         compSwitch = compression.get(compSwitch)
         func = self.spssio.spssSetCompression
-        retcode = func(c_int(self.fh), c_int(compSwitch))
+        func.argtypes = [c_int, c_int]
+        retcode = func(self.fh, compSwitch)
         invalidSwitch = retcodes.get(retcode) == 'SPSS_INVALID_COMPSW'
         if invalidSwitch and self.spssVersion[0] < 21:
             msg = "Writing zcompressed files requires >=v21 SPSS I/O libraries"
