@@ -63,7 +63,7 @@ Installation
 
 Platforms
 ----------
-As shown in **Table 0** below, this program works for Linux (incl. z/Linux), Windows, Mac OS (32 and 64 bit), AIX-64, HP-UX and Solaris-64. Version 3.2 has been tested on Linux 32 (Ubuntu and Mint), Windows (mostly on Windows XP 32, but also a few times on Windows 7 64), and Mac OS (with an earlier version of savReaderWriter). Version 3.3 has been tested on Linux 64. The other OSs are entirely untested. I intend to use Jenkins CI and Vagrant to systematically test more platforms in the future (time, time!).
+As shown in **Table 0** below, this program works for Linux (incl. z/Linux), Windows, Mac OS (32 and 64 bit), AIX-64, HP-UX and Solaris-64. The program has been tested with Python 2.7, 3.3 and 3.4 on Debian Linux (32 and 64 bit), Mac OS and Windows 7 (64 bit).
 
 .. exceltable:: **Table 0.** supported platforms for ``savReaderWriter`` 
    :file: ./platforms.xls

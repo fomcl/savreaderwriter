@@ -87,7 +87,7 @@ class test_SavReader_utilities(unittest.TestCase):
         self.assertEqual(records_expected, records_got)
 
     def test_SavReader_more_striding(self):
-       """This does, unexpectedly, not return the even records"""
+       """Return the even records using striding"""
        records_expected = \
         [[1.0, b'm', b'1952-02-03', 15.0, 3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0],
          [3.0, b'f', b'1929-07-26', 12.0, 1.0, 21450.0, 12000.0, 98.0, 381.0, 0.0],
