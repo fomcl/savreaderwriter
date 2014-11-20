@@ -515,7 +515,7 @@ class Generic(object):
             msg = "Use ioUtf8=True to write unicode strings [%s]"
             raise TypeError(msg % sys.exc_info()[1])
         self.wholeCaseOut.argtypes = [c_int, c_char_p]
-        retcode = self.wholeCaseOut(self.fh, c_char_py3k(self.caseBuffer.raw)
+        retcode = self.wholeCaseOut(self.fh, c_char_py3k(self.caseBuffer.raw))
         if retcode:
             checkErrsWarns("Problem writing row\n" + record, retcode)
 
