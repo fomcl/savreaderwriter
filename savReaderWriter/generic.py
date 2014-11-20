@@ -408,8 +408,9 @@ class Generic(object):
         if not localeName:
             localeName = ".".join(locale.getlocale())
         func = self.spssio.spssSetLocale
+        func.argtypes = [c_int, c_char_p]
         func.restype = c_char_p
-        self.setLocale = func(c_int(locale.LC_ALL), c_char_py3k(localeName))
+        self.setLocale = func(locale.LC_ALL, c_char_py3k(localeName))
         if self.setLocale is None:
             raise ValueError("Invalid ioLocale: %r" % localeName)
         return self.setLocale
