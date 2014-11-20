@@ -502,7 +502,7 @@ class Generic(object):
         """Get/Set a whole record from/to a pre-allocated buffer"""
         args = c_int(self.fh), byref(self.caseBuffer)
         retcode = self.wholeCaseIn(*args)
-        if retcode != 0:
+        if retcode:
             checkErrsWarns("Problem reading row", retcode)
         record = list(self.unpack_from(self.caseBuffer))
         return record
@@ -514,9 +514,9 @@ class Generic(object):
         except struct.error:
             msg = "Use ioUtf8=True to write unicode strings [%s]"
             raise TypeError(msg % sys.exc_info()[1])
-        args = c_int(self.fh), c_char_py3k(self.caseBuffer.raw)
-        retcode = self.wholeCaseOut(*args)
-        if retcode != 0:
+        self.wholeCaseOut.argtypes = [c_int, c_char_p]
+        retcode = self.wholeCaseOut(self.fh, c_char_py3k(self.caseBuffer.raw)
+        if retcode:
             checkErrsWarns("Problem writing row\n" + record, retcode)
 
     def printPctProgress(self, nominator, denominator):
