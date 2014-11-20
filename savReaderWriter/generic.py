@@ -263,6 +263,23 @@ class Generic(object):
         return collections.namedtuple("ver", "major minor fixpack")(*ver_info)
 
     @property
+    def spssioVersion(self):
+        """This function returns the version of the IBM SPSS I/O libraries
+        as a named tuple with the fields major, minor, patch, fixpack.
+        May also be inspected by passing an empty savFileName, as in:
+        savReaderWriter.Generic("").spssioVersion"""
+        if not hasattr(self, "spssio"):
+            self.spssio = self.loadLibrary()
+        version_pattern = re.compile(rb"\d+\.\d+\.\d+\.\d+")
+        for line in open(self.spssio._name, "rb"):
+            m = version_pattern.search(line)
+            if m:
+                ver_info = map(int, m.group(0).split(b"."))
+                fields = "major minor patch fixpack"
+                version = collections.namedtuple("SpssioVersion", fields)
+                return version(*ver_info)
+
+    @property
     def fileCompression(self):
         """Get/Set the file compression.
         Returns/Takes a compression switch which may be any of the following:
