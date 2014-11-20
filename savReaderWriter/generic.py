@@ -260,7 +260,8 @@ class Generic(object):
         minor = info["release subnumber"]
         fixpack = info["fixpack number"]
         ver_info = (major, minor, fixpack)
-        return collections.namedtuple("ver", "major minor fixpack")(*ver_info)
+        fields = "major minor fixpack"
+        return collections.namedtuple("SpssVersion", fields)(*ver_info)
 
     @property
     def spssioVersion(self):
@@ -377,7 +378,7 @@ class Generic(object):
         retcode = func(byref(lowest), byref(highest))
         checkErrsWarns("Problem getting min/max missing values", retcode)
         ranges = (lowest.value, highest.value)
-        return collections.namedtuple("range", "lo hi")(*ranges)
+        return collections.namedtuple("MissingValueRange", "lo hi")(*ranges)
 
     @property
     def ioLocale(self):

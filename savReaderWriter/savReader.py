@@ -141,7 +141,7 @@ class SavReader(Header):
         """This function returns the number of rows (nrows) and columns
         (ncols) as a namedtuple"""
         dim = (self.nCases, self.numVars)
-        return collections.namedtuple("_", "nrows ncols")(*dim)
+        return collections.namedtuple("Shape", "nrows ncols")(*dim)
 
     def _isAutoRawMode(self):
         """Helper function for formatValues function. Determines whether
