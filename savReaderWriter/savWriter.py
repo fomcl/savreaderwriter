@@ -9,7 +9,7 @@ from savReaderWriter import *
 from py3k import *
 from header import *
 
-if cWriterowOK and not isPy3k:
+if cWriterowOK:
     cWriterow = cWriterow.cWriterow
 
 class SavWriter(Header):
