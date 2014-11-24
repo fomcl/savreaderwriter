@@ -8,8 +8,11 @@ import os
 import mmap
 import re
 import locale
+import multiprocessing as mp
+import time
 from collections import namedtuple as ntuple
 from random import randint
+from ctypes import c_int, c_long
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -103,20 +106,24 @@ class CsvIter(ExtIterBase):
         import csv 
         import codecs
         import cStringIO
-        import icu
+        import icu  # sudo apt-get install libicu && pip install pyicu
 
         self.csvFileName = csvFileName
         self.fileEncoding_ = self._get_encoding(self.csvFileName)
 
-        self.csvfile = codecs.open(self.csvFileName, "r+", encoding=self.fileEncoding)
+        self.csvfile = codecs.open(self.csvFileName, "r+", self.fileEncoding)
         self.data = self.mapfile(self.csvfile)
-        self.lookup = self._get_row_lookup(self.data)
-
         args = (self.csvFileName, self.fileEncoding)
         self.dialect = self._get_dialect(*args)
         self.varNames_ = self._get_header(*args, dialect=self.dialect)
-        self.shape_ = self._get_shape(*args, dialect=self.dialect,
-                                      varNames=self.varNames)
+        self.Shape = ntuple("Shape", ["nrows", "ncols"])
+
+        self.lookup = mp.Manager().dict()
+        self.lookup_done = False
+        self.process = mp.Process(target=self._get_row_lookup, 
+                                  args=(self.data, self.lookup))
+        self.process.start()
+
 
     def __iter__(self):
         args = (self.csvfile, self.dialect, self.fileEncoding)
@@ -129,23 +136,37 @@ class CsvIter(ExtIterBase):
                 start, end = 0, self.lookup[key]
             else:
                 start, end = self.lookup[key - 1], self.lookup[key]
+
+            try:
+                buff = cStringIO.StringIO(self.data[start: end])
+                return next(csv.reader(buff)) 
+            except StopIteration:
+                pass 
+ 
         except KeyError:
-            raise IndexError("index out of range")
-        return next(csv.reader(cStringIO.StringIO(self.data[start: end])))
+            if not self.process.is_alive():
+                raise IndexError("index out of range")
+            else:
+                print("One moment please, lookup not yet ready enough")
+
+        finally:
+            if self.lookup_done:
+                self.process.join()
 
     def mapfile(self, fileObj):
         size = os.path.getsize(fileObj.name)
         return mmap.mmap(fileObj.fileno(), size)
 
-    def _get_row_lookup(self, data):
-        lino, record_start, lookup = 0, 0, {}
+    def _get_row_lookup(self, data, lookup):
+        lino, record_start = 0, 0
         while True:
-            line = data.readline()
+            line = data.readline().encode(self.fileEncoding)
             record_start += len(line)
             lookup[lino] = record_start
             lino += 1 
             if not line:
                 break
+        self.lookup_done = True 
         return lookup
 
     def close(self):
@@ -167,7 +188,7 @@ class CsvIter(ExtIterBase):
         try:
             csvfile = codecs.open(csvFileName, encoding=encoding)
             sample = csvfile.read(1024)
-            dialect = csv.Sniffer().sniff(sample)
+            dialect = csv.Sniffer().sniff(sample, delimiters=";,\t")
         except csv.Error:
             print("NOTE. Can't guess csv dialect. Assuming excel dialect")
             dialect = csv.excel
@@ -182,8 +203,8 @@ class CsvIter(ExtIterBase):
     def _get_header(self, csvFileName, encoding, dialect):
         try:
             csvfile = codecs.open(csvFileName, encoding=encoding)
-            sample = csvfile.read(1024)
-            has_header = csv.Sniffer().has_header(sample.encode(encoding))
+            sample = csvfile.read(1024).encode(encoding)
+            has_header = csv.Sniffer().has_header(sample)
         except csv.Error:
             has_header = False
         finally:
@@ -197,16 +218,9 @@ class CsvIter(ExtIterBase):
 
     @property
     def shape(self):
-        return self.shape_
-
-    def _get_shape(self, csvFileName, encoding, dialect, varNames):
-        csvfile = codecs.open(csvFileName, encoding=encoding)
-        udata = self.unicode_csv_reader(csvfile, dialect, encoding)
-        for nrows, record in enumerate(udata):
-            pass
-        csvfile.close()
-        ncols = len(varNames)
-        return ntuple("Shape", ["nrows", "ncols"])(nrows, ncols)
+        nrows = 25 if not self.lookup else len(self.lookup) - 1
+        ncols = len(self.varNames)
+        return self.Shape(nrows, ncols)
 
     # source: https://docs.python.org/2/library/csv.html (bottom of page)
     def unicode_csv_reader(self, unicode_csv_data, dialect, encoding, **kwargs):
@@ -309,6 +323,12 @@ class SavIter(ExtIterBase):
         return self.records.__iter__()
 
     def __getitem__(self, key):
+        # TODO: use spssSeekNextCase here!
+        #self.spssio = self.records.spssio
+        #self.fh = self.records.fh
+        #self.seekNextCase = self.spssio.spssSeekNextCase
+        #self.seekNextCase.argtypes = [c_int, c_long]
+        #self.seekNextCase(c_int(self.fh), c_long(key)) 
         return self.records.__getitem__(key)
 
     def close(self):
@@ -355,8 +375,9 @@ ZsavIter = SavIter
 ##################
 class Menu(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, app):
         super(Menu, self).__init__()
+        self.app = app
         self.setWindowTitle("Welcome to Data File Viewer!")
         self.main_widget = QWidget(self)
         self.main_layout = QVBoxLayout(self.main_widget)
@@ -373,6 +394,9 @@ class Menu(QMainWindow):
         self.main_widget.setLayout(self.main_layout)
         self.show()
         self.set_filename()
+
+        self.start_thread()
+        self.update_title()
 
     def create_menu_bar(self):
         menubar = self.menuBar()
@@ -397,8 +421,8 @@ class Menu(QMainWindow):
             self.table.create_table(self.table.block_size, self.table.records.varNames)
             self.table.update_grid()
             nrows, ncols = "{:,}".format(nrows), "{:,}".format(ncols)
-            title = "%s (%s rows, %s columns)" % (self.table.savFileName, nrows, ncols)
-            self.setWindowTitle(title)
+            self.table.title = "%s (%s rows, %s columns)" % (self.table.savFileName, nrows, ncols)
+            self.setWindowTitle(self.table.title)
 
     def showDialog(self):
         if hasattr(self.table, "records"):
@@ -489,6 +513,25 @@ class Menu(QMainWindow):
         else:
             event.ignore()
 
+    def start_thread(self):
+        self.thread = QThread() 
+        self.connect(self.thread , SIGNAL('update(QString)') , self.update_title)
+        self.thread.start()
+
+    def update_title(self):
+        previous_nrows = [0]
+        while True:
+            nrows, ncols = self.table.records.shape
+            title = "{} ({:,} rows, {:,} columns)"
+            title = title.format(self.table.savFileName, nrows, ncols)
+            self.setWindowTitle(title)
+            self.table.vert_scroll.setRange(0, nrows - 1) 
+            self.app.processEvents()
+            time.sleep(0.01)
+            if previous_nrows.pop() >= nrows:
+                break 
+            previous_nrows.append(nrows)
+        self.thread.terminate()
 
 class MyScrollBar(QScrollBar):
     """vertical scroll bar of grid"""
@@ -588,6 +631,9 @@ class Table(QDialog):
                         value = self._convert(record[col], encoding)
                     except IndexError:
                         value = ""  # could be needed for multisheet xls files
+                    except TypeError:
+                        break
+                        #value = "<???>"
                     table_item = QTableWidgetItem(value)
                     if value == u"nan":
                         table_item.setTextColor(QColor("red"))
@@ -614,6 +660,6 @@ class Table(QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    menu = Menu()
+    menu = Menu(app)
     menu.resize(1024, 768)
     sys.exit(app.exec_())
