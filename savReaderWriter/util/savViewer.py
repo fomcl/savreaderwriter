@@ -318,18 +318,25 @@ class SavIter(ExtIterBase):
 
         self.savFileName = savFileName
         self.records = self.data(self.savFileName)
+        #self.init_seekNextCase()
 
     def __iter__(self):
         return self.records.__iter__()
 
     def __getitem__(self, key):
         # TODO: use spssSeekNextCase here!
-        #self.spssio = self.records.spssio
-        #self.fh = self.records.fh
-        #self.seekNextCase = self.spssio.spssSeekNextCase
-        #self.seekNextCase.argtypes = [c_int, c_long]
-        #self.seekNextCase(c_int(self.fh), c_long(key)) 
+        #self.seekNextCase(self.fh, key)
+        #return self.records.record 
         return self.records.__getitem__(key)
+
+    def init_seekNextCase(self):
+        self.spssio = self.records.spssio
+        self.fh = self.records.fh
+        self.seekNextCase = self.spssio.spssSeekNextCase
+        self.seekNextCase.argtypes = [c_int, c_long]
+        retcode = self.seekNextCase(self.fh, self.shape.nrows)
+        #if retcode:
+        #    raise SPSSIOError("error seeking case", retcode)  
 
     def close(self):
         return self.records.close()
@@ -396,7 +403,7 @@ class Menu(QMainWindow):
         self.set_filename()
 
         self.start_thread()
-        self.update_title()
+        self.update_screen()
 
     def create_menu_bar(self):
         menubar = self.menuBar()
@@ -515,23 +522,23 @@ class Menu(QMainWindow):
 
     def start_thread(self):
         self.thread = QThread() 
-        self.connect(self.thread , SIGNAL('update(QString)') , self.update_title)
+        self.connect(self.thread , SIGNAL('update(QString)') , self.update_screen)
         self.thread.start()
 
-    def update_title(self):
-        previous_nrows = [0]
+    def update_screen(self):
+        title = "{} ({:,} rows, {:,} columns)"
+        previous_nrows = 0
         while True:
             nrows, ncols = self.table.records.shape
-            title = "{} ({:,} rows, {:,} columns)"
             title = title.format(self.table.savFileName, nrows, ncols)
             self.setWindowTitle(title)
             self.table.vert_scroll.setRange(0, nrows - 1) 
+            self.spin_box.setRange(-nrows, nrows)
             self.app.processEvents()
-            time.sleep(0.01)
-            if previous_nrows.pop() >= nrows:
-                break 
-            previous_nrows.append(nrows)
-        self.thread.terminate()
+            time.sleep(0.05)
+            if previous_nrows >= nrows:
+                break
+            previous_nrows = nrows
 
 class MyScrollBar(QScrollBar):
     """vertical scroll bar of grid"""
