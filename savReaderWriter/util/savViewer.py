@@ -138,6 +138,16 @@ class CsvIter(ExtIterBase):
                 start, end = self.lookup[key - 1], self.lookup[key]
 
             try:
+                #if py3k:  
+                # 3.x csv requires unicode
+                #line = self.data[start:end].strip()
+                #row = next(csv.reader([line.decode('utf-8')]))
+                #return row
+                #else:
+                # 2.x csv lacks unicode support
+                #line = self.data[start:end].strip()
+                #row = next(csv.reader([line]))
+                #return [cell.decode('utf-8') for cell in row]
                 buff = cStringIO.StringIO(self.data[start: end])
                 return next(csv.reader(buff)) 
             except StopIteration:
@@ -526,10 +536,10 @@ class Menu(QMainWindow):
         self.thread.start()
 
     def update_screen(self):
-        title = "{} ({:,} rows, {:,} columns)"
-        previous_nrows = 0
+        previous_nrows = -1
         while True:
             nrows, ncols = self.table.records.shape
+            title = "{} ({:,} rows, {:,} columns)"
             title = title.format(self.table.savFileName, nrows, ncols)
             self.setWindowTitle(title)
             self.table.vert_scroll.setRange(0, nrows - 1) 
@@ -537,7 +547,7 @@ class Menu(QMainWindow):
             self.app.processEvents()
             time.sleep(0.05)
             if previous_nrows >= nrows:
-                break
+                break 
             previous_nrows = nrows
 
 class MyScrollBar(QScrollBar):
