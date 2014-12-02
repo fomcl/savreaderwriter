@@ -8,7 +8,7 @@ import os
 import mmap
 import re
 import locale
-import multiprocessing as mp
+import threading
 import time
 from collections import namedtuple as ntuple
 from random import randint
@@ -102,28 +102,36 @@ class CsvIter(ExtIterBase):
 
     def __init__(self, csvFileName):
     
-        global csv, codecs, cStringIO, icu 
+        global csv, codecs, icu 
         import csv 
         import codecs
         import cStringIO
-        import icu  # sudo apt-get install libicu && pip install pyicu
+        try:
+            import icu  # sudo apt-get install libicu && pip install pyicu
+            self.icuOk = True
+        except ImportError:
+            self.icuOk = False
 
         self.csvFileName = csvFileName
+
+        self.fileSize = os.path.getsize(self.csvFileName)
+        self.sampleSize = 2048 if self.fileSize > 2048 else self.fileSize
         self.fileEncoding_ = self._get_encoding(self.csvFileName)
 
         self.csvfile = codecs.open(self.csvFileName, "r+", self.fileEncoding)
         self.data = self.mapfile(self.csvfile)
-        args = (self.csvFileName, self.fileEncoding)
-        self.dialect = self._get_dialect(*args)
-        self.varNames_ = self._get_header(*args, dialect=self.dialect)
+        self.dialect = self._get_dialect(self.csvFileName, self.fileEncoding)
+        self.varNames_ = self._get_header(self.csvFileName, 
+                                          self.fileEncoding, 
+                                          self.dialect)
         self.Shape = ntuple("Shape", ["nrows", "ncols"])
 
-        self.lookup = mp.Manager().dict()
+        self.lookup = list()
         self.lookup_done = False
-        self.process = mp.Process(target=self._get_row_lookup, 
-                                  args=(self.data, self.lookup))
-        self.process.start()
-
+        self.thread = threading.Thread(target=self._get_row_lookup,
+                                       args=(open(self.csvFileName, "rb"),),
+                                       name="lookup maker thread")
+        self.thread.start()
 
     def __iter__(self):
         args = (self.csvfile, self.dialect, self.fileEncoding)
@@ -131,53 +139,42 @@ class CsvIter(ExtIterBase):
 
     def __getitem__(self, key):
         """return an item from a memory-mapped csv file"""
-        try: 
-            if key == 0:
-                start, end = 0, self.lookup[key]
-            else:
-                start, end = self.lookup[key - 1], self.lookup[key]
-
-            try:
-                #if py3k:  
-                # 3.x csv requires unicode
-                #line = self.data[start:end].strip()
-                #row = next(csv.reader([line.decode('utf-8')]))
-                #return row
-                #else:
-                # 2.x csv lacks unicode support
-                #line = self.data[start:end].strip()
-                #row = next(csv.reader([line]))
-                #return [cell.decode('utf-8') for cell in row]
-                buff = cStringIO.StringIO(self.data[start: end])
-                return next(csv.reader(buff)) 
-            except StopIteration:
-                pass 
- 
-        except KeyError:
-            if not self.process.is_alive():
-                raise IndexError("index out of range")
-            else:
+        try:
+            start = self.lookup[key]
+            end = self.lookup[key + 1]
+        except IndexError:
+            end = self.fileSize
+            if self.thread.is_alive():
                 print("One moment please, lookup not yet ready enough")
-
+            elif abs(key) >= len(self.lookup):
+                raise IndexError("index out of range")
         finally:
             if self.lookup_done:
-                self.process.join()
+                self.thread.join()
+
+        if py3k:  
+            # 3.x csv requires unicode
+            line = self.data[start:end].strip().decode(self.fileEncoding_)
+            return next(csv.reader(line, dialect=self.dialect))
+        else:
+            # 2.x csv lacks unicode support
+            line = self.data[start:end].strip()
+            row = next(csv.reader([line], dialect=self.dialect))
+            return [cell.decode(self.fileEncoding_) for cell in row]
 
     def mapfile(self, fileObj):
         size = os.path.getsize(fileObj.name)
         return mmap.mmap(fileObj.fileno(), size)
 
-    def _get_row_lookup(self, data, lookup):
-        lino, record_start = 0, 0
-        while True:
-            line = data.readline().encode(self.fileEncoding)
-            record_start += len(line)
-            lookup[lino] = record_start
-            lino += 1 
+    def _get_row_lookup(self, fObj):
+        record_start = 0
+        for line in fObj:
             if not line:
                 break
-        self.lookup_done = True 
-        return lookup
+            self.lookup.append(record_start)
+            # len(), because fObj.tell() --> won't work with threading
+            record_start += len(line)  
+        self.lookup_done = True
 
     def close(self):
         self.csvfile.close()
@@ -187,8 +184,10 @@ class CsvIter(ExtIterBase):
         return self.fileEncoding_
 
     def _get_encoding(self, csvFileName):
+        if not self.icuOk:
+            return locale.getpreferredencoding()
         with open(csvFileName) as csvfile:
-            sample = csvfile.read(1024)
+            sample = csvfile.read(self.sampleSize)
         cd = icu.CharsetDetector()
         cd.setText(sample)
         encoding = cd.detect().getName()
@@ -197,7 +196,7 @@ class CsvIter(ExtIterBase):
     def _get_dialect(self, csvFileName, encoding):
         try:
             csvfile = codecs.open(csvFileName, encoding=encoding)
-            sample = csvfile.read(1024)
+            sample = csvfile.read(self.sampleSize).encode(encoding)
             dialect = csv.Sniffer().sniff(sample, delimiters=";,\t")
         except csv.Error:
             print("NOTE. Can't guess csv dialect. Assuming excel dialect")
@@ -213,7 +212,7 @@ class CsvIter(ExtIterBase):
     def _get_header(self, csvFileName, encoding, dialect):
         try:
             csvfile = codecs.open(csvFileName, encoding=encoding)
-            sample = csvfile.read(1024).encode(encoding)
+            sample = csvfile.read(self.sampleSize).encode(encoding)
             has_header = csv.Sniffer().has_header(sample)
         except csv.Error:
             has_header = False
@@ -228,7 +227,7 @@ class CsvIter(ExtIterBase):
 
     @property
     def shape(self):
-        nrows = 25 if not self.lookup else len(self.lookup) - 1
+        nrows = 25 if not self.lookup else len(self.lookup)
         ncols = len(self.varNames)
         return self.Shape(nrows, ncols)
 
@@ -678,5 +677,6 @@ class Table(QDialog):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     menu = Menu(app)
-    menu.resize(1024, 768)
+    screen = QDesktopWidget().screenGeometry()
+    menu.resize(screen.width(), screen.height())
     sys.exit(app.exec_())
