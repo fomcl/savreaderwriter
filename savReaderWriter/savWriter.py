@@ -279,7 +279,5 @@ class SavWriter(Header):
 
     def writerows(self, records):
         """ This function writes all records."""
-        nCases = len(records)
         for case, record in enumerate(records):
             self.writerow(record)
-            self.printPctProgress(case, nCases)
