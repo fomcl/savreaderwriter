@@ -229,7 +229,9 @@ class Generic(object):
                    "compression scheme code", "big/little-endian code",
                    "character representation code"]
         relInfoArr = (c_int * len(relInfo))()
-        retcode = self.spssio.spssGetReleaseInfo(c_int(self.fh), relInfoArr)
+        func = self.spssio.spssGetReleaseInfo
+        func.argtypes = [c_int, (c_int * len(relInfo))]
+        retcode = func(self.fh, relInfoArr)
         checkErrsWarns("Problem getting ReleaseInfo", retcode)
         info = dict([(item, relInfoArr[i]) for i, item in enumerate(relInfo)])
         return info
