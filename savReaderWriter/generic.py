@@ -429,9 +429,10 @@ class Generic(object):
             func = self.spssio.spssIsCompatibleEndoding
         except AttributeError:
             func = self.spssio.spssIsCompatibleEncoding
+        func.argtypes = [c_int, POINTER(c_int)] 
         func.restype = c_bool
         isCompatible = c_int()
-        retcode = func(c_int(self.fh), byref(isCompatible))
+        retcode = func(self.fh, byref(isCompatible))
         msg = "Error testing encoding compatibility: %r" % isCompatible.value
         checkErrsWarns(msg, retcode)
         if not isCompatible.value and not self.ioUtf8:
