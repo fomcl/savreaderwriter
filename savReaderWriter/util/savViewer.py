@@ -316,35 +316,34 @@ class XlsIter(ExtIterBase):
 
 XlsxIter = XlsIter
 
-
 class SavIter(ExtIterBase):
 
     def __init__(self, savFileName):
 
-        global SavReader, locale
+        global SavReader
         from savReaderWriter import SavReader
 
         self.savFileName = savFileName
         self.records = self.data(self.savFileName)
-        #self.init_seekNextCase()
+        self.init_seekNextCase()
+        self.formatValues = self.records.formatValues
 
     def __iter__(self):
-        return self.records.__iter__()
+        # this is not even used here, or anywhere else (csv, xls)
+        for key in xrange(self.shape.nrows):
+            self.seekNextCase(self.fh, key)
+            yield self.formatValues(self.records.record) 
 
     def __getitem__(self, key):
-        # TODO: use spssSeekNextCase here!
-        #self.seekNextCase(self.fh, key)
-        #return self.records.record 
-        return self.records.__getitem__(key)
+        # much faster than SavReader.__getitem__
+        self.seekNextCase(self.fh, key)
+        return self.formatValues(self.records.record) 
 
     def init_seekNextCase(self):
         self.spssio = self.records.spssio
         self.fh = self.records.fh
         self.seekNextCase = self.spssio.spssSeekNextCase
         self.seekNextCase.argtypes = [c_int, c_long]
-        retcode = self.seekNextCase(self.fh, self.shape.nrows)
-        #if retcode:
-        #    raise SPSSIOError("error seeking case", retcode)  
 
     def close(self):
         return self.records.close()
