@@ -105,7 +105,6 @@ class CsvIter(ExtIterBase):
         global csv, codecs, icu 
         import csv 
         import codecs
-        import cStringIO
         try:
             import icu  # sudo apt-get install libicu && pip install pyicu
             self.icuOk = True
@@ -394,6 +393,9 @@ class Menu(QMainWindow):
     def __init__(self, app):
         super(Menu, self).__init__()
         self.app = app
+
+        screen = QDesktopWidget().screenGeometry()
+        self.resize(screen.width(), screen.height())
         self.setWindowTitle("Welcome to Data File Viewer!")
         self.main_widget = QWidget(self)
         self.main_layout = QVBoxLayout(self.main_widget)
@@ -436,9 +438,11 @@ class Menu(QMainWindow):
             self.table.create_vert_scrollbar(nrows)  # redraw
             self.table.create_table(self.table.block_size, self.table.records.varNames)
             self.table.update_grid()
+
             nrows, ncols = "{:,}".format(nrows), "{:,}".format(ncols)
-            self.table.title = "%s (%s rows, %s columns)" % (self.table.savFileName, nrows, ncols)
-            self.setWindowTitle(self.table.title)
+            title = "%s (%s rows, %s columns)" 
+            self.title = title % (self.table.savFileName, nrows, ncols)
+            self.setWindowTitle(self.title)
 
     def showDialog(self):
         if hasattr(self.table, "records"):
@@ -677,6 +681,4 @@ class Table(QDialog):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     menu = Menu(app)
-    screen = QDesktopWidget().screenGeometry()
-    menu.resize(screen.width(), screen.height())
     sys.exit(app.exec_())
