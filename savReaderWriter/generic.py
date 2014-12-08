@@ -352,12 +352,14 @@ class Generic(object):
         """This function returns the IBM SPSS Statistics system-missing
         value ($SYSMIS) for the host system (also called 'NA' in other
         systems)."""
+        if hasattr(self, "_sysmis"):
+            return self._sysmis
         try:
-            sysmis = -1 * sys.float_info[0]  # Python 2.6 and higher.
+            self._sysmis = -1 * sys.float_info[0]  # Python 2.6 and higher.
         except AttributeError:
             self.spssio.spssSysmisVal.restype = c_float
-            sysmis = self.spssio.spssSysmisVal()
-        return sysmis
+            self._sysmis = self.spssio.spssSysmisVal()
+        return self._sysmis
 
     @property
     def missingValuesLowHigh(self):
@@ -368,6 +370,7 @@ class Generic(object):
         at any time."""
         lowest, highest = c_double(), c_double()
         func = self.spssio.spssLowHighVal
+        func.argtypes = [POINTER(c_double), POINTER(c_double)] 
         retcode = func(byref(lowest), byref(highest))
         checkErrsWarns("Problem getting min/max missing values", retcode)
         ranges = (lowest.value, highest.value)
