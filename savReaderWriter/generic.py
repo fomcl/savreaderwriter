@@ -340,7 +340,9 @@ class Generic(object):
         """This function returns a buffer and a pointer to that buffer. A whole
         case will be read into this buffer."""
         caseSize = c_long()
-        retcode = self.spssio.spssGetCaseSize(c_int(self.fh), byref(caseSize))
+        func = self.spssio.spssGetCaseSize
+        func.argtypes = [c_int, POINTER(c_long)]
+        retcode = func(self.fh, byref(caseSize))
         caseBuffer = create_string_buffer(caseSize.value)
         checkErrsWarns("Problem getting case buffer", retcode)
         return caseBuffer
