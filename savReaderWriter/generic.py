@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from ctypes import *
-import ctypes.util
 import struct
 import sys
 import platform
@@ -27,7 +26,6 @@ class Generic(object):
         be set once"""
         locale.setlocale(locale.LC_ALL, "")
         self.savFileName = savFileName
-        self.libc = cdll.LoadLibrary(ctypes.util.find_library("c"))
         self.spssio = self.loadLibrary()
 
         self.wholeCaseIn = self.spssio.spssWholeCaseIn
@@ -128,14 +126,6 @@ class Generic(object):
 
         return spssio
 
-    def errcheck(self, res, func, args):
-        """This function checks for errors during the execution of
-        function <func>"""
-        if not res:
-            msg = "Error performing %r operation on file %r."
-            raise IOError(msg % (func.__name__, self.savFileName))
-        return res
-
     def wide2utf8(self, fn):
         """Take a unicode file name string and encode it to a multibyte string
         that Windows can use to represent file names (CP65001, UTF-8)
@@ -183,34 +173,32 @@ class Generic(object):
         and returns a handle that  should be used for subsequent operations on
         the file. If <savFileName> is opened in mode "cp", meta data
         information aka the spss dictionary is copied from <refSavFileName>"""
-        savFileName = os.path.abspath(savFileName)  # fdopen wants full name
-        try:
-            fdopen = self.libc._fdopen  # Windows
-        except AttributeError:
-            fdopen = self.libc.fdopen   # Linux and others
-        fdopen.argtypes, fdopen.restype = [c_int, c_char_p], c_void_p
-        fdopen.errcheck = self.errcheck
-        mode_ = b"wb" if mode == b"cp" else mode
-        with open(savFileName, mode_.decode("utf-8")) as f:
-            self.fd = fdopen(f.fileno(), mode_)
-        if mode == b"rb":
-            spssOpen = self.spssio.spssOpenRead
-        elif mode == b"wb":
-            spssOpen = self.spssio.spssOpenWrite
-        elif mode == b"cp":
-            spssOpen = self.spssio.spssOpenWriteCopy
-        elif mode == b"ab":
-            spssOpen = self.spssio.spssOpenAppend
+        # determine which spssOpen* function should be used
+        mode = mode.encode("utf-8") if hasattr(mode, "encode") else mode
+        spssOpen = {b"rb": self.spssio.spssOpenRead,
+                    b"wb": self.spssio.spssOpenWrite,
+                    b"cp": self.spssio.spssOpenWriteCopy,
+                    b"ab": self.spssio.spssOpenAppend}.get(mode)
+        if not spssOpen:
+            raise RuntimeError("Invalid mode argument: %r")
 
-        savFileName = self._encodeFileName(savFileName)
-        refSavFileName = self._encodeFileName(refSavFileName)
-        sav = c_char_py3k(savFileName)
-        fh = c_int(self.fd)
+        # get a file descriptor/handle for the file
+        expanduser, abspath = os.path.expanduser, os.path.abspath
+        expandfn = lambda fn: self._encodeFileName(expanduser(abspath(fn)))
+        savFileName = expandfn(savFileName)
+        fh = c_int(os.open(savFileName, os.O_RDWR | os.O_CREAT))
+
+        # open the .sav file
+        savFileName = c_char_py3k(savFileName)
         if mode == b"cp":
-            retcode = spssOpen(sav, c_char_py3k(refSavFileName), pointer(fh))
+            if not refSavFileName:
+                raise ValueError("You must specify a reference (=donor) file")
+            refSavFileName = c_char_py3k(expandfn(refSavFileName))
+            spssOpen.argtypes = [c_char_p, c_char_p, POINTER(c_int)]
+            retcode = spssOpen(savFileName, refSavFileName, byref(fh))
         else:
-            retcode = spssOpen(sav, pointer(fh))
-
+            spssOpen.argtypes = [c_char_p, POINTER(c_int)]
+            retcode = spssOpen(savFileName, byref(fh))
         msg = "Problem opening file %r in mode %r" % (savFileName, mode)
         checkErrsWarns(msg, retcode)
         return fh.value
@@ -231,7 +219,6 @@ class Generic(object):
             retcode = spssClose(c_int(fh))
         msg = "Problem closing file in mode %r" % mode
         checkErrsWarns(msg, retcode)
-        #self.libc.close(self.fd)  ???
 
     @property
     def releaseInfo(self):
