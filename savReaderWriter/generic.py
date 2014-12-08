@@ -278,7 +278,8 @@ class Generic(object):
         compression = {0: b"uncompressed", 1: b"standard", 2: b"zlib"}
         compSwitch = c_int()
         func = self.spssio.spssGetCompression
-        retcode = func(c_int(self.fh), byref(compSwitch))
+        func.argtypes = [c_int, POINTER(c_int)]
+        retcode = func(self.fh, byref(compSwitch))
         checkErrsWarns("Problem getting file compression", retcode)
         return compression.get(compSwitch.value)
 
