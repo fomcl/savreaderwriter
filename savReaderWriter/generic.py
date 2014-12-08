@@ -416,7 +416,8 @@ class Generic(object):
         applicable to a file."""
         nCodePage = c_int()
         func = self.spssio.spssGetFileCodePage
-        retcode = func(c_int(self.fh), byref(nCodePage))
+        func.argtypes = [c_int, POINTER(c_int)] 
+        retcode = func(self.fh, byref(nCodePage))
         checkErrsWarns("Problem getting file codepage", retcode)
         return nCodePage.value
 
