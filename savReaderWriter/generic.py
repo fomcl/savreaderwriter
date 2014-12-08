@@ -180,7 +180,7 @@ class Generic(object):
                     b"cp": self.spssio.spssOpenWriteCopy,
                     b"ab": self.spssio.spssOpenAppend}.get(mode)
         if not spssOpen:
-            raise RuntimeError("Invalid mode argument: %r")
+            raise ValueError("Invalid mode argument: %r")
 
         # get a file descriptor/handle for the file
         expanduser, abspath = os.path.expanduser, os.path.abspath
@@ -395,7 +395,8 @@ class Generic(object):
             return self.setLocale
         else:
             currLocale = ".".join(locale.getlocale())
-            print("NOTE. Locale not set; getting current locale: %s" % currLocale)
+            msg = "NOTE. Locale not set; getting current locale: %s"
+            print(msg % currLocale)
             return currLocale
 
     @ioLocale.setter
