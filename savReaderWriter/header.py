@@ -189,41 +189,60 @@ class Header(Generic):
     @decode
     def valueLabels(self):
         """Get/Set VALUE LABELS.
-        Takes a dictionary of the form {varName: {value: valueLabel}:
+        Takes a dictionary of the form {varName: {value: valueLabel}}:
         --{'numGender': {1: 'female', {2: 'male'}}
         --{'strGender': {'f': 'female', 'm': 'male'}}"""
-        def initArrays(isNumeric=True, size=1000):
-            """default size assumes never more than 1000 labels"""
+        def initArrays(isNumeric=True, size=0):
+            """default size=0 is used to request array size"""
             labelsArr = (POINTER(c_char_p * size))()
             if isNumeric:
                 return (POINTER(c_double * size))(), labelsArr
             return (POINTER(c_char_p * size))(), labelsArr
+
+        funcN = self.spssio.spssGetVarNValueLabels
+        funcC = self.spssio.spssGetVarCValueLabels        
 
         valueLabels = {}
         for varName in self.varNames:
             vName = self.vNames[varName]
             numLabels = c_int()
 
-            # step 1: get array size (numeric values)
+            # step 1a: get array size (numeric values)
             if self.varTypes[varName] == 0:
                 valuesArr, labelsArr = initArrays(True)
-                func = self.spssio.spssGetVarNValueLabels
-                retcode = func(c_int(self.fh), c_char_py3k(vName),
+                func = funcN
+                func.argtypes = [c_int, c_char_p, 
+                                 POINTER(POINTER(c_double * 0)),
+                                 POINTER(POINTER(c_char_p * 0)),
+                                 POINTER(c_int)]  
+                retcode = func(self.fh, c_char_py3k(vName),
                                byref(valuesArr), byref(labelsArr),
                                byref(numLabels))
                 valuesArr, labelsArr = initArrays(True, numLabels.value)
+                func.argtypes = [c_int, c_char_p,
+                                 POINTER(POINTER(c_double * numLabels.value)),
+                                 POINTER(POINTER(c_char_p * numLabels.value)),
+                                 POINTER(c_int)]
 
-            # step 1: get array size (string values)
+            # step 1b: get array size (string values)
             else:
                 valuesArr, labelsArr = initArrays(False)
-                func = self.spssio.spssGetVarCValueLabels
-                retcode = func(c_int(self.fh), c_char_py3k(vName),
+                func = funcC
+                func.argtypes = [c_int, c_char_p, 
+                                 POINTER(POINTER(c_char_p * 0)),
+                                 POINTER(POINTER(c_char_p * 0)), 
+                                 POINTER(c_int)]  
+                retcode = func(self.fh, c_char_py3k(vName),
                                byref(valuesArr), byref(labelsArr),
                                byref(numLabels))
                 valuesArr, labelsArr = initArrays(False, numLabels.value)
+                func.argtypes = [c_int, c_char_p,
+                                 POINTER(POINTER(c_char_p * numLabels.value)),
+                                 POINTER(POINTER(c_char_p * numLabels.value)),
+                                 POINTER(c_int)] 
 
             # step 2: get labels with array of proper size
-            retcode = func(c_int(self.fh), c_char_py3k(vName), byref(valuesArr),
+            retcode = func(self.fh, c_char_py3k(vName), byref(valuesArr),
                            byref(labelsArr), byref(numLabels))
             if retcode:
                 msg = "Problem getting value labels of variable %r"  % varName
