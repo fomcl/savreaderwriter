@@ -816,13 +816,17 @@ class Header(Generic):
         {'var1': {'attr name x': 'attr value x','attr name y': 'attr value y'},
          'var2': {'attr name a': 'attr value a','attr name b': 'attr value b'}}
         """
-        # abbreviation for readability and speed
+        # specify default array + argtypes (zero requests size)
+        DEFAULT_ARRAY_SIZE = 0
         func = self.spssio.spssGetVarAttributes
+        func.argtypes = [c_int, c_char_p,
+                         POINTER(POINTER(c_char_p * DEFAULT_ARRAY_SIZE)),
+                         POINTER(POINTER(c_char_p * DEFAULT_ARRAY_SIZE)), 
+                         POINTER(c_int)]
 
         # initialize arrays
-        MAX_ARRAY_SIZE = 1000
-        attrNamesArr = (POINTER(c_char_p * MAX_ARRAY_SIZE))()
-        attrValuesArr = (POINTER(c_char_p * MAX_ARRAY_SIZE))()
+        attrNamesArr = (POINTER(c_char_p * DEFAULT_ARRAY_SIZE))()
+        attrValuesArr = (POINTER(c_char_p * DEFAULT_ARRAY_SIZE))()
 
         attributes = {}
         for varName in self.varNames:
@@ -830,7 +834,7 @@ class Header(Generic):
 
             # step 1: get array size
             nAttr = c_int()
-            retcode = func(c_int(self.fh), c_char_py3k(vName),
+            retcode = func(self.fh, c_char_py3k(vName),
                            byref(attrNamesArr), byref(attrValuesArr),
                            byref(nAttr))
             if retcode:
@@ -841,7 +845,11 @@ class Header(Generic):
             nAttr = c_int(nAttr.value)
             attrNamesArr = (POINTER(c_char_p * nAttr.value))()
             attrValuesArr = (POINTER(c_char_p * nAttr.value))()
-            retcode = func(c_int(self.fh), c_char_py3k(vName),
+            func.argtypes = [c_int, c_char_p, 
+                             POINTER(POINTER(c_char_p * nAttr.value)),
+                             POINTER(POINTER(c_char_p * nAttr.value)),
+                             POINTER(c_int)]
+            retcode = func(self.fh, c_char_py3k(vName),
                            byref(attrNamesArr), byref(attrValuesArr),
                            byref(nAttr))
             if retcode:
