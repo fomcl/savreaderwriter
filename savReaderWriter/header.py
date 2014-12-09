@@ -636,12 +636,13 @@ class Header(Generic):
         variable alignment, measurement level and column width all needs to
         be set."""
         func = self.spssio.spssGetVarColumnWidth
+        func.argtypes = [c_int, c_char_p, POINTER(c_int)]
+
         varColumnWidth = c_int()
         varColumnWidths = {}
         for varName in self.varNames:
             vName = self.vNames[varName]
-            retcode = func(c_int(self.fh), c_char_py3k(vName),
-                           byref(varColumnWidth))
+            retcode = func(self.fh, c_char_py3k(vName), byref(varColumnWidth))
             if retcode:
                 msg = "Problem getting column width: '%s'"
                 checkErrsWarns(msg % varName.decode(), retcode)
