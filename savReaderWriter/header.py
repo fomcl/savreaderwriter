@@ -1216,8 +1216,12 @@ class Header(Generic):
         Takes a savFileName and returns a string of the form: "File %r built
         using SavReaderWriter.py version %s (%s)". This is akin to, but
         *not* equivalent to the SPSS syntax command DISPLAY DOCUMENTS"""
-        textInfo = create_string_buffer(256)
-        retcode = self.spssio.spssGetTextInfo(c_int(self.fh), byref(textInfo))
+        lenBuff = 256
+        func = self.spssio.spssGetTextInfo 
+        func.argtypes = [c_int, POINTER(c_char * lenBuff)]
+
+        textInfo = create_string_buffer(lenBuff)
+        retcode = func(self.fh, byref(textInfo))
         if retcode:
             checkErrsWarns("Problem getting textInfo", retcode)
         return textInfo.value
@@ -1243,8 +1247,12 @@ class Header(Generic):
         """Get/Set FILE LABEL (id string)
         Takes a file label (basestring), and returns file label, if any, as
         a string."""
-        idStr = create_string_buffer(65)
-        retcode = self.spssio.spssGetIdString(c_int(self.fh), byref(idStr))
+        lenBuff = 65
+        func = self.spssio.spssGetIdString  
+        func.argtypes = [c_int, POINTER(c_char * lenBuff)]
+
+        idStr = create_string_buffer(lenBuff)
+        retcode = func(self.fh, byref(idStr))
         if retcode:
             checkErrsWarns("Error getting file label (id string)", retcode)
         return idStr.value
