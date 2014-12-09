@@ -1072,8 +1072,10 @@ class Header(Generic):
 
         ## Normal Multiple response definitions
         func = self.spssio.spssGetMultRespDefs
+        func.argtypes = [c_int, POINTER(c_char_p)]
+
         mrDefs = c_char_p()
-        retcode = func(c_int(self.fh), pointer(mrDefs))
+        retcode = func(self.fh, byref(mrDefs))
         if retcode:
             msg = "Problem getting multiple response definitions"
             checkErrsWarns(msg, retcode)
@@ -1086,9 +1088,11 @@ class Header(Generic):
             self.freeMemory("spssFreeMultRespDefs", mrDefs)
 
         ## Extended Multiple response definitions
-        mrDefsEx = c_char_p()
         func = self.spssio.spssGetMultRespDefsEx
-        retcode = func(c_int(self.fh), pointer(mrDefsEx))
+        func.argtypes = [c_int, POINTER(c_char_p)]
+
+        mrDefsEx = c_char_p()
+        retcode = func(self.fh, byref(mrDefsEx))
         if retcode:
             msg = "Problem getting extended multiple response definitions"
             checkErrsWarns(msg, retcode)
