@@ -1125,9 +1125,12 @@ class Header(Generic):
         """Get/Set WEIGHT variable.
         Takes a valid varName, and returns weight variable, if any, as a
         string."""
-        varNameBuff = create_string_buffer(65)
+        lenBuff = 65
         func = self.spssio.spssGetCaseWeightVar
-        retcode = func(c_int(self.fh), byref(varNameBuff))
+        func.argtypes = [c_int, POINTER(c_char * lenBuff)]
+
+        varNameBuff = create_string_buffer(lenBuff)
+        retcode = func(self.fh, byref(varNameBuff))
         if retcode > 0:
             msg = "Problem getting case weight variable name"
             raise SPSSIOError(msg, retcode)
