@@ -112,7 +112,8 @@ class Header(Generic):
         spss dataset"""
         numVars = c_int()
         func = self.spssio.spssGetNumberofVariables
-        retcode = func(c_int(self.fh), byref(numVars))
+        func.argtypes = [c_int, POINTER(c_int)]
+        retcode = func(self.fh, byref(numVars))
         if retcode:
             checkErrsWarns("Problem getting number of variables", retcode)
         return numVars.value
