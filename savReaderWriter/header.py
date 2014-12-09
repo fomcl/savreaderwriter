@@ -298,12 +298,16 @@ class Header(Generic):
                                   'educ': 'Educational level (years)'}"""
         lenBuff = MAXLENGTHS['SPSS_MAX_VARLABEL'][0]
         varLabel = create_string_buffer(lenBuff)
+
         func = self.spssio.spssGetVarLabelLong
+        func.argtypes = [c_int, c_char_p, POINTER(c_char * lenBuff), 
+                         c_int, POINTER(c_int)]
+
         varLabels = {}
         for varName in self.varNames:
             vName = self.vNames[varName]
-            retcode = func(c_int(self.fh), c_char_py3k(vName),
-                           byref(varLabel), c_int(lenBuff), byref(c_int()))
+            retcode = func(self.fh, c_char_py3k(vName),
+                           byref(varLabel), lenBuff, byref(c_int()))
             varLabels[varName] = varLabel.value
             if retcode:
                 msg = "Problem getting variable label of variable %r" % varName
