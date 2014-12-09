@@ -775,13 +775,15 @@ class Header(Generic):
         varRoles may be any of the following: 'both', 'frequency', 'input',
         'none', 'partition', 'record ID', 'split', 'target'"""
         func = self.spssio.spssGetVarRole
+        func.argtypes = [c_int, c_char_p, POINTER(c_int)]
+
         roles = {0: b"input", 1: b"target", 2: b"both", 3: b"none", 4: b"partition",
                  5: b"split", 6: b"frequency", 7: b"record ID"}
         varRoles = {}
         varRole_ = c_int()
         for varName in self.varNames:
             vName = self.vNames[varName]
-            retcode = func(c_int(self.fh), c_char_py3k(vName), byref(varRole_))
+            retcode = func(self.fh, c_char_py3k(vName), byref(varRole_))
             varRole = roles.get(varRole_.value)
             varRoles[varName] = varRole
             if retcode:
