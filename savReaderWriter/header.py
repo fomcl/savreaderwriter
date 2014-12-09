@@ -132,12 +132,15 @@ class Header(Generic):
         # initialize arrays
         numVars = self.numberofVariables
         numVars_ = c_int(numVars)
-        varNamesArr = (POINTER(c_char_p * numVars))()
-        varTypesArr = (POINTER(c_int * numVars))()
+        varNamesArr = POINTER(c_char_p * numVars)()
+        varTypesArr = POINTER(c_int * numVars)()
 
         # get variable names
         func = self.spssio.spssGetVarNames
-        retcode = func(c_int(self.fh), byref(numVars_),
+        func.argtypes = [c_int, POINTER(c_int), 
+                         POINTER(POINTER(c_char_p * numVars)),
+                         POINTER(POINTER(c_int * numVars))]
+        retcode = func(self.fh, byref(numVars_),
                        byref(varNamesArr), byref(varTypesArr))
         if retcode:
             checkErrsWarns("Problem getting variable names & types", retcode)
