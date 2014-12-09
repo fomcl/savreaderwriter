@@ -439,14 +439,24 @@ class Header(Generic):
         Range definitions are only possible for numerical variables."""
         if self.varTypes[varName] == 0:
             func = self.spssio.spssGetVarNMissingValues
+            func.argtypes = [c_int, c_char_p, POINTER(c_int),
+                             POINTER(c_double), 
+                             POINTER(c_double),
+                             POINTER(c_double)]
             args = (c_double(), c_double(), c_double())
         else:
+            lenBuff = 9  # char miss vals: max 9 bytes. Newer versions also?
             func = self.spssio.spssGetVarCMissingValues
-            args = (create_string_buffer(9), create_string_buffer(9),
-                    create_string_buffer(9))
+            func.argtypes = [c_int, c_char_p, POINTER(c_int),
+                             POINTER(c_char * lenBuff), 
+                             POINTER(c_char * lenBuff), 
+                             POINTER(c_char * lenBuff)]
+            args = (create_string_buffer(lenBuff), create_string_buffer(lenBuff),
+                    create_string_buffer(lenBuff))
+
         missingFmt = c_int()
         vName = self.vNames[varName]
-        retcode = func(c_int(self.fh), c_char_py3k(vName),
+        retcode = func(self.fh, c_char_py3k(vName),
                        byref(missingFmt), *map(byref, args))
         if retcode:
             msg = "Error getting missing value for variable '%s'" % varName
