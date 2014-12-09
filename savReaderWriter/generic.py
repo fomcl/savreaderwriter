@@ -204,19 +204,15 @@ class Generic(object):
         return fh.value
 
     def closeSavFile(self, fh, mode=b"rb"):
-        """This function closes the sav file associated with <fh> that was open
-        in mode <mode>."""
-        if mode == b"rb":
-            spssClose = self.spssio.spssCloseRead
-        elif mode in (b"wb", b"cp"):
-            spssClose = self.spssio.spssCloseWrite
-        elif mode == b"ab":
-            spssClose = self.spssio.spssCloseAppend
-        else:
-            spssClose, retcode = None, 9999
-
-        if spssClose is not None:
-            retcode = spssClose(c_int(fh))
+        """This function closes the .sav file associated with <fh> that was
+        open in mode <mode>."""
+        mode = mode.encode("utf-8") if hasattr(mode, "encode") else mode
+        spssClose = {b"rb": self.spssio.spssCloseRead,
+                     b"wb": self.spssio.spssCloseWrite,
+                     b"cp": self.spssio.spssCloseWrite,
+                     b"ab": self.spssio.spssCloseAppend}.get(mode)
+        spssClose.argtypes = [c_int]
+        retcode = spssClose(fh) if spssClose else 9999
         msg = "Problem closing file in mode %r" % mode
         checkErrsWarns(msg, retcode)
 
