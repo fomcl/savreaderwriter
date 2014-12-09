@@ -899,21 +899,29 @@ class Header(Generic):
         'revision[2]': '2010-10-22', 'revision[3]': '2010-11-19'}
          """
         # abbreviation for readability
+        DEFAULT_ARRAY_SIZE = 0
         func = self.spssio.spssGetFileAttributes
+        func.argtypes = [c_int, 
+                         POINTER(POINTER(c_char_p * 0)),
+                         POINTER(POINTER(c_char_p * 0)),
+                         POINTER(c_int)]
 
-        # step 1: get array size
-        MAX_ARRAY_SIZE = 100  # assume never more than 100 file attributes
-        attrNamesArr = (POINTER(c_char_p * MAX_ARRAY_SIZE))()
-        attrValuesArr = (POINTER(c_char_p * MAX_ARRAY_SIZE))()
+        # step 1: get array size (zero requests size)
+        attrNamesArr = (POINTER(c_char_p * DEFAULT_ARRAY_SIZE))()
+        attrValuesArr = (POINTER(c_char_p * DEFAULT_ARRAY_SIZE))()
         nAttr = c_int()
-        retcode = func(c_int(self.fh), byref(attrNamesArr),
+        retcode = func(self.fh, byref(attrNamesArr),
                        byref(attrValuesArr), byref(nAttr))
 
         # step 2: get attributes with arrays of proper size
         nAttr = c_int(nAttr.value)
         attrNamesArr = (POINTER(c_char_p * nAttr.value))()
         attrValuesArr = (POINTER(c_char_p * nAttr.value))()
-        retcode = func(c_int(self.fh), byref(attrNamesArr),
+        func.argtypes = [c_int, 
+                         POINTER(POINTER(c_char_p * nAttr.value)),
+                         POINTER(POINTER(c_char_p * nAttr.value)),
+                         POINTER(c_int)]
+        retcode = func(self.fh, byref(attrNamesArr),
                        byref(attrValuesArr), byref(nAttr))
         if retcode:
             checkErrsWarns("Problem getting file attributes", retcode)
