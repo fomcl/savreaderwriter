@@ -655,6 +655,7 @@ class Header(Generic):
             return
         func = self.spssio.spssSetVarColumnWidth
         func.argtypes = [c_int, c_char_p, c_int]
+
         for varName, varColumnWidth in varColumnWidths.items():
             retcode = func(self.fh, c_char_py3k(varName), varColumnWidth)
             if retcode:
@@ -725,9 +726,11 @@ class Header(Generic):
         Returns/Takes a dictionary with SETNAME as keys and a list of SPSS
         variables as values. For example: {'SALARY': ['salbegin',
         'salary'], 'DEMOGR': ['gender', 'minority', 'educ']}"""
-        varSets = c_char_p()
         func = self.spssio.spssGetVariableSets
-        retcode = func(c_int(self.fh), byref(varSets))
+        func.argtypes = [c_int, POINTER(c_char_p)]
+
+        varSets = c_char_p()
+        retcode = func(self.fh, byref(varSets))
         if retcode:
             msg = "Problem getting variable set information"
             checkErrsWarns(msg, retcode)
