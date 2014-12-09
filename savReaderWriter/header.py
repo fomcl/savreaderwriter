@@ -1324,28 +1324,33 @@ class Header(Generic):
             raise ValueError(msg % (sys.byteorder, file_byte_order))
 
         # retrieve length of DEW information (in bytes)
-        pLength, pHashTotal = c_long(), c_long()
         func = self.spssio.spssGetDEWInfo
-        args = c_int(self.fh), byref(pLength), byref(pHashTotal)
-        retcode = func(*args)
+        func.argtypes = [c_int, POINTER(c_long), POINTER(c_long)]
+
+        pLength, pHashTotal = c_long(), c_long()
+        retcode = func(self.fh, byref(pLength), byref(pHashTotal))
         maxData = pLength.value  # Maximum bytes to return
         if not maxData:
             return {}  # file contains no DEW info
 
         # retrieve first segment of DEW information
         if not retcode:
-            nData, pData = c_long(), c_void_p()
             func =  self.spssio.spssGetDEWFirst
-            args = c_int(self.fh), byref(pData), c_long(maxData), byref(nData)
-            retcode = func(*args)
+            func.argtypes = [c_int, POINTER(c_void_p), 
+                             c_long, POINTER(c_long)]
+
+            nData, pData = c_long(), c_void_p()
+            retcode = func(self.fh, byref(pData), maxData, byref(nData))
             dew_information = [pData.value]
 
         # retrieve subsequent segments of DEW information
         if not retcode:
             func = self.spssio.spssGetDEWNext
+            func.argtypes = [c_int, POINTER(c_void_p), c_long, POINTER(c_long)]
+
             for i in range(nData.value - 1):
                 nData = c_long()
-                retcode = func(*args)
+                retcode = func(self.fh, byref(pData), maxData, byref(nData))
                 if retcode > 0:
                     break
                 dew_information.append(pData.value)
