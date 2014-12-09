@@ -340,12 +340,16 @@ class Header(Generic):
                                 'educ': 'F8.2'}"""
         if hasattr(self, "formats_"):
             return self.formats_
-        printFormat_, printDec_, printWid_ = c_int(), c_int(), c_int()
+
         func = self.spssio.spssGetVarPrintFormat
+        func.argtypes = [c_int, c_char_p, POINTER(c_int),
+                         POINTER(c_int), POINTER(c_int)]
+
+        printFormat_, printDec_, printWid_ = c_int(), c_int(), c_int()
         self.formats_ = {}
         for varName in self.varNames:
             vName = self.vNames[varName]
-            retcode = func(c_int(self.fh), c_char_py3k(vName),
+            retcode = func(self.fh, c_char_py3k(vName),
                            byref(printFormat_), byref(printDec_),
                            byref(printWid_))
             if retcode:
