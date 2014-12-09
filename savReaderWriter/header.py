@@ -1288,11 +1288,13 @@ class Header(Generic):
                  10: "TextSmart information",
                  11: ("Measurement level, column width, and " +
                       "alignment for each variable")}
+        func = self.spssio.spssQueryType7
+        func.argtypes = [c_int, c_int, POINTER(c_int)]
+
         type7info = {}
         for subtype, label in subtypes.items():
             bFound = c_int()
-            args = c_int(self.fh), c_int(subtype), byref(bFound)
-            retcode = self.spssio.spssQueryType7(*args)
+            retcode = func(self.fh, subtype, byref(bFound))
             if retcode:
                 checkErrsWarns("Problem retrieving type7 info", retcode)
             type7info[subtype] = (label, bool(bFound.value))
