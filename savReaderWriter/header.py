@@ -1156,15 +1156,20 @@ class Header(Generic):
         (Trends) date variable information, if any, in IBM SPSS Statistics
         data files. Entirely untested and not implemented in reader/writer"""
         # step 1: get array size
-        nElements = c_int()
+        DEFAULT_ARRAY_SIZE = 0
         func = self.spssio.spssGetDateVariables
-        MAX_ARRAY_SIZE = 100
-        dateInfoArr = (POINTER(c_long * MAX_ARRAY_SIZE))()
-        retcode = func(c_int(self.fh), byref(nElements), byref(dateInfoArr))
+        func.argtypes = [c_int, POINTER(c_int), 
+                         POINTER(POINTER(c_long * DEFAULT_ARRAY_SIZE))]
+
+        nElements = c_int()
+        dateInfoArr = (POINTER(c_long * DEFAULT_ARRAY_SIZE))()
+        retcode = func(self.fh, byref(nElements), byref(dateInfoArr))
 
         # step 2: get date info with array of proper size
+        func.argtypes = [c_int, POINTER(c_int), 
+                         POINTER(POINTER(c_long * nElements.value))]
         dateInfoArr = (POINTER(c_long * nElements.value))()
-        retcode = func(c_int(self.fh), byref(nElements), byref(dateInfoArr))
+        retcode = func(self.fh, byref(nElements), byref(dateInfoArr))
         if retcode:
             checkErrsWarns("Problem getting TRENDS information", retcode)
 
