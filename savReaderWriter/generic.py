@@ -186,10 +186,11 @@ class Generic(object):
         expanduser, abspath = os.path.expanduser, os.path.abspath
         expandfn = lambda fn: self._encodeFileName(expanduser(abspath(fn)))
         savFileName = expandfn(savFileName)
-        fh = c_int(os.open(savFileName, os.O_RDWR | os.O_CREAT))
+        fd = os.open(savFileName, os.O_RDWR | os.O_CREAT)
 
         # open the .sav file
         savFileName = c_char_py3k(savFileName)
+        fh = c_int(fd) 
         if mode == b"cp":
             if not refSavFileName:
                 raise ValueError("You must specify a reference (=donor) file")
