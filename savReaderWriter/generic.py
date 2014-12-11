@@ -234,6 +234,13 @@ class Generic(object):
         return info
 
     @property
+    def byteorder(self):
+        """This function returns the byte order of the open file as a string.
+        It returns either 'little' or 'big'.""" 
+        endianness = self.releaseInfo["big/little-endian code"]
+        return "big" if endianness else "little"
+
+    @property
     def spssVersion(self):
         """Return the SPSS version that was used to create the opened file
         as a three-tuple indicating major, minor, and fixpack version as
@@ -313,8 +320,7 @@ class Generic(object):
           (mode="wb") and read/appended using the byte order information
           contained in the SPSS data file (mode is "ab" or "rb" or "cp")"""
         if mode in (b"ab", b"rb", b"cp"):   # derive endianness from file
-            endianness = self.releaseInfo["big/little-endian code"]
-            endianness = ">" if endianness > 0 else "<"
+            endianness = "<" if self.byteorder == "little" else ">"
         elif mode == b"wb":                 # derive endianness from host
             if sys.byteorder == "little":
                 endianness = "<"
