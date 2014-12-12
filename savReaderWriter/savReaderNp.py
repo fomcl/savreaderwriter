@@ -111,14 +111,16 @@ class SavReaderNp(rw.Header):
             array.flush()
             return array #array.astype(self.trunc_dtype)
 
-    def spss2numpyDate(self, spssDateValue, fmt, recodeSysmisTo=np.nan, _memoize={}):
+    def spss2numpyDate(self, spssDateValue, recodeSysmisTo=np.nan, _memoize={}):
         try:
             return _memoize[spssDateValue]
         except KeyError:
             pass
         try:
             theDate = self.gregorianEpoch + datetime.timedelta(seconds=spssDateValue)
-            return np.datetime64(theDate)
+            theDate = np.datetime64(theDate)
+            _memoize[spssDateValue] = theDate
+            return theDate
         except (OverflowError, TypeError, ValueError):
             return recodeSysmisTo
 
