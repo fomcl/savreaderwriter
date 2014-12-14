@@ -2,15 +2,17 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, division
-from pprint import pprint as print
+#from pprint import pprint as print
 import os
-import collections
 import re
-import datetime
+from datetime import timedelta, datetime
 from math import ceil
 from ctypes import *
-import numpy as np
 
+import numpy as np
+import pandas as pd
+
+import sys; sys.path.insert(0, "/home/antonia/Desktop/savreaderwriter")
 import savReaderWriter as rw
 from error import *
 
@@ -20,20 +22,25 @@ from error import *
 # http://docs.scipy.org/doc/numpy/reference/arrays.datetime.html
 # http://stackoverflow.com/questions/16601819/change-dtype-of-recarray-column-for-object-type
 
-class SavReaderNp(rw.Header):
+try:
+    xrange
+except NameError:
+    xrange = range
+
+class SavReaderNp(rw.SavReader):
 
     """
     Read SPSS .sav file data into a numpy array (either in-memory or mmap)
     """
 
     def __init__(self, savFileName, ioUtf8=False, ioLocale=None):
-        super(SavReaderNp, self).__init__(savFileName, mode="rb", 
-          refSavFileName=None, ioUtf8=ioUtf8, ioLocale=ioLocale)
+        super(SavReaderNp, self).__init__(savFileName, 
+           ioUtf8=ioUtf8, ioLocale=ioLocale)
         self.savFileName = savFileName
         self.caseBuffer = self.getCaseBuffer()
         #self.unpack = self.getStruct(self.varTypes, self.varNames).unpack_from
         self.init_funcs()
-        self.gregorianEpoch = datetime.datetime(1582, 10, 14, 0, 0, 0)
+        self.gregorianEpoch = datetime(1582, 10, 14, 0, 0, 0)
 
     def __getitem__(self, key):
         """only indexing (int) is supported"""
@@ -50,6 +57,7 @@ class SavReaderNp(rw.Header):
         for row in xrange(self.shape.nrows):
             self.wholeCaseIn(self.fh, byref(self.caseBuffer))
             record = np.fromstring(self.caseBuffer, self.struct_dtype)
+            #yield self.unpack(self.caseBuffer)
             yield record.astype(self.trunc_dtype)
       
     def init_funcs(self):
@@ -65,13 +73,17 @@ class SavReaderNp(rw.Header):
     def errcheck(self, retcode, func, arguments):
         if retcode > 0:
             error = retcodes.get(retcode, retcode)
-            msg = "function %r with arguments %r throws error: %s" % error
+            msg = "function %r with arguments %r throws error: %s"
+            msg = msg % (func.__name__, arguments, error)
             raise SPSSIOError(msg, retcode)
 
     @property
     def titles(self):
-        return [self.varLabels[varName] if self.varLabels[varName] else 
-                "title %02d" % i for i, varName in enumerate(self.varNames)]
+        if hasattr(self, "titles_"):
+            return self.titles_
+        self.titles_ = [self.varLabels[varName] if self.varLabels[varName]
+                        else varName for varName in self.varNames]
+        return self.titles_
 
     @property
     def struct_dtype(self):
@@ -89,27 +101,16 @@ class SavReaderNp(rw.Header):
         obj = dict(names=self.varNames, formats=formats, titles=self.titles)
         return np.dtype(obj)
 
-    @property
-    def shape(self):
-        Shape = collections.namedtuple("Shape", "nrows ncols")
-        return Shape(self.numberofCases, self.numberofVariables)
- 
     def to_array(self, filename=None):
-        if not filename:
-            #array = np.empty(self.shape, np.object) # self.trunc_dtype)
-            array = np.empty(self.shape, self.trunc_dtype)
-            for row, record in enumerate(self):
-                array[row, :] = record
-            return array
-            #return np.fromiter(self, self.trunc_dtype)
-        else:
-            #array = np.memmap(filename, np.object, 'w+', shape=self.shape)
-            array = np.memmap(filename, self.trunc_dtype, 'w+', shape=self.shape)  
-            for row, record in enumerate(self):
-                #array[row] = self.unpack(self.caseBuffer)
-                array[row, :] = record
+        if filename:
+            array = np.memmap(filename, self.trunc_dtype, 'w+', shape=self.shape.nrows)
+            for row in xrange(self.shape.nrows):
+                array[row] = self[row]
             array.flush()
-            return array #array.astype(self.trunc_dtype)
+        else:
+            array = np.fromiter(self, self.trunc_dtype)
+            #array = pd.DataFrame.from_records(tuple(self))
+        return array
 
     def spss2numpyDate(self, spssDateValue, recodeSysmisTo=np.nan, _memoize={}):
         try:
@@ -117,8 +118,8 @@ class SavReaderNp(rw.Header):
         except KeyError:
             pass
         try:
-            theDate = self.gregorianEpoch + datetime.timedelta(seconds=spssDateValue)
-            theDate = np.datetime64(theDate)
+            theDate = self.gregorianEpoch + timedelta(seconds=spssDateValue)
+            #theDate = np.datetime64(theDate)
             _memoize[spssDateValue] = theDate
             return theDate
         except (OverflowError, TypeError, ValueError):
@@ -126,17 +127,12 @@ class SavReaderNp(rw.Header):
 
 if __name__ == "__main__":
     sav = SavReaderNp("./test_data/Employee data.sav")
-    #for record in sav:
-    #    print(record)
-    #array = sav.to_array() 
-    #print(array.shape) 
-    #print(array)
+    array = sav.to_array()
+    print(array[:5]) 
     print("*****************************")
-    filename = "/tmp/test.dat"
-    array = sav.to_array(filename)
+    array = sav.to_array("/tmp/test.dat")
     print(array.shape) 
-    print(array[0, :])
-    print(sav.shape)
     
-
-
+    df = pd.DataFrame(array) #, dtype=np.dtype("f4"))
+    df.bdate = df["bdate"].apply(sav.spss2numpyDate)
+    print(df.head())
