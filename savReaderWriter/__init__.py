@@ -38,7 +38,7 @@ try:
 except ImportError:
     cWriterowOK = False
 savrw_use_cWriterow = os.environ.get("SAVRW_USE_CWRITEROW", "").lower()
-if savrw_use_cWriterow in ("0", "off", "false"):
+if savrw_use_cWriterow in ("", "0", "off", "false"):
     cWriterowOK = False
 elif savrw_use_cWriterow in ("1", "on", "true"):
     cWriterowOK = True
