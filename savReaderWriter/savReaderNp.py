@@ -8,6 +8,7 @@ import re
 from datetime import timedelta, datetime
 from math import ceil
 from ctypes import *
+from functools import wraps
 
 import numpy as np
 import pandas as pd
@@ -27,10 +28,31 @@ try:
 except NameError:
     xrange = range
 
+def memoized_property(fget):
+    """
+    Return a property attribute for new-style classes that only calls its 
+    getter on the first access. The result is stored and on subsequent 
+    accesses is returned, preventing the need to call the getter any more.
+    source: https://pypi.python.org/pypi/memoized-property/1.0.1
+    """
+    attr_name = "_" + fget.__name__
+    @wraps(fget)
+    def fget_memoized(self):
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, fget(self))
+        return getattr(self, attr_name)
+    return property(fget_memoized)
+
+
 class SavReaderNp(rw.SavReader):
 
     """
     Read SPSS .sav file data into a numpy array (either in-memory or mmap)
+
+    Typical use:
+    from contextlib import closing
+    with closing(SavReaderNp("Employee data.sav")) as reader_np: 
+        array = reader_np.to_array("/tmp/test.dat") # memmapped array 
     """
 
     def __init__(self, savFileName, ioUtf8=False, ioLocale=None):
@@ -38,29 +60,51 @@ class SavReaderNp(rw.SavReader):
            ioUtf8=ioUtf8, ioLocale=ioLocale)
         self.savFileName = savFileName
         self.caseBuffer = self.getCaseBuffer()
-        #self.unpack = self.getStruct(self.varTypes, self.varNames).unpack_from
         self.init_funcs()
         self.gregorianEpoch = datetime(1582, 10, 14, 0, 0, 0)
+        self.varNames
+
+    def _items(self, start, stop, step):
+        for case in xrange(start, stop, step):
+            self.seekNextCase(self.fh, case)
+            self.wholeCaseIn(self.fh, byref(self.caseBuffer))
+            record = np.fromstring(self.caseBuffer, self.struct_dtype)
+            yield record.astype(self.trunc_dtype)
 
     def __getitem__(self, key):
-        """only indexing (int) is supported"""
-        if abs(key) > self.shape.nrows - 1:
-            raise IndexError("index out of bounds")
-        key = self.shape.nrows + key if key < 0 else key
-        self.seekNextCase(self.fh, key)
-        self.wholeCaseIn(self.fh, byref(self.caseBuffer))
-        record = np.fromstring(self.caseBuffer, self.struct_dtype)
-        return record.astype(self.trunc_dtype)
+        """x.__getitem__(y) <==> x[y], where y may be int or slice"""
+        is_slice = isinstance(key, slice)
+        is_index = isinstance(key, int)
+
+        if is_slice:
+            start, stop, step = key.indices(self.shape.nrows)
+            records = (item for item in self._items(start, stop, step)) 
+            return np.fromiter(records, self.trunc_dtype)
+
+        elif is_index:
+            if abs(key) > self.shape.nrows - 1:
+                raise IndexError("index out of bounds")
+            key = self.shape.nrows + key if key < 0 else key
+            self.seekNextCase(self.fh, key)
+            self.wholeCaseIn(self.fh, byref(self.caseBuffer))
+            record = np.fromstring(self.caseBuffer, self.struct_dtype)
+            return record.astype(self.trunc_dtype)
+
+        else:
+            raise TypeError("slice or int required")
 
     def __iter__(self):
+        """x.__iter__() <==> iter(x). Yields records with a 'truncated' dtype:
+        single-precision floats, trailing blanks removed"""
         self.seekNextCase(self.fh, 0)  # rewind
         for row in xrange(self.shape.nrows):
             self.wholeCaseIn(self.fh, byref(self.caseBuffer))
             record = np.fromstring(self.caseBuffer, self.struct_dtype)
-            #yield self.unpack(self.caseBuffer)
             yield record.astype(self.trunc_dtype)
       
     def init_funcs(self):
+        """Helper to initialize C functions of the SPSS I/O module: set their
+        argtypes and errcheck attributes""" 
         self.seekNextCase = self.spssio.spssSeekNextCase
         self.seekNextCase.argtypes = [c_int, c_long]
         self.seekNextCase.errcheck = self.errcheck
@@ -71,66 +115,87 @@ class SavReaderNp(rw.SavReader):
         self.wholeCaseIn.errcheck = self.errcheck
 
     def errcheck(self, retcode, func, arguments):
+        """Checks for return codes > 0 when calling C functions of the 
+        SPSS I/O module"""
         if retcode > 0:
             error = retcodes.get(retcode, retcode)
             msg = "function %r with arguments %r throws error: %s"
             msg = msg % (func.__name__, arguments, error)
             raise SPSSIOError(msg, retcode)
 
-    @property
+    @memoized_property
     def titles(self):
-        if hasattr(self, "titles_"):
-            return self.titles_
-        self.titles_ = [self.varLabels[varName] if self.varLabels[varName]
-                        else varName for varName in self.varNames]
-        return self.titles_
+        """Helper function that uses varLabels to get the titles for a dtype.
+        If no varLabels are available, varNames are used instead"""
+        titles =  [self.varLabels[varName] if self.varLabels[varName]
+                   else varName for varName in self.varNames]
+        return [title.decode(self.fileEncoding) for title in titles]
 
-    @property
+    @memoized_property
     def struct_dtype(self):
+        """Get the struct dtype for the binary record"""
         fmt8 = lambda varType: int(ceil(varType / 8.) * 8)
         varTypes = [self.varTypes[varName] for varName in self.varNames]
-        endian = "<" if self.byteorder == "little" else ">"
-        formats = ['a%d' % fmt8(t) if t else '%sd' % endian for t in varTypes]
-        obj = dict(names=self.varNames, formats=formats, titles=self.titles)
+        byteorder = u"<" if self.byteorder == "little" else u">"
+        names = [v.decode(self.fileEncoding) for v in self.varNames]
+        formats = [u"a%d" % fmt8(t) if t else u"%sd" % 
+                   byteorder for t in varTypes]
+        obj = dict(names=names, formats=formats, titles=self.titles)
         return np.dtype(obj)
 
-    @property
+    @memoized_property
     def trunc_dtype(self):
-        formats = ['a%s' % re.search("\d+", self.formats[v]).group(0) if 
-                   self.varTypes[v] else "f4" for v in self.varNames]
-        obj = dict(names=self.varNames, formats=formats, titles=self.titles)
+        """Get the truncated (single-precision, no trailing spaces) dtype"""
+        encoding = self.fileEncoding 
+        varNames = [v.decode(encoding) for v in self.varNames] 
+        varTypes = {v.decode(encoding): t for v, t in self.varTypes.items()}
+        formats = {v.decode(encoding): fmt.decode(encoding) for 
+                                       v, fmt in self.formats.items()}
+        formats = [u'a%s' % re.search(u"\d+", formats[v]).group(0) if 
+                   varTypes[v] else u"f8" for v in varNames]
+        obj = dict(names=varNames, formats=formats, titles=self.titles)
         return np.dtype(obj)
 
     def to_array(self, filename=None):
+        """Return the data in <savFileName> as a structured array, optionally
+        using <filename> as a memmapped file"""
         if filename:
-            array = np.memmap(filename, self.trunc_dtype, 'w+', shape=self.shape.nrows)
+            array = np.memmap(filename, self.trunc_dtype, 
+                              'w+', shape=self.shape.nrows)
             for row in xrange(self.shape.nrows):
                 array[row] = self[row]
             array.flush()
         else:
             array = np.fromiter(self, self.trunc_dtype)
-            #array = pd.DataFrame.from_records(tuple(self))
         return array
 
-    def spss2numpyDate(self, spssDateValue, recodeSysmisTo=np.nan, _memoize={}):
+    # TODO: automatically convert datetimes
+    def spss2numpyDate(self, spssDateValue, recodeSysmisTo=np.nan, _memo={}):
+        """Convert an SPSS date into a numpy datetime64 date"""
         try:
-            return _memoize[spssDateValue]
+            return _memo[spssDateValue]
         except KeyError:
             pass
         try:
             theDate = self.gregorianEpoch + timedelta(seconds=spssDateValue)
-            #theDate = np.datetime64(theDate)
-            _memoize[spssDateValue] = theDate
+            theDate = np.datetime64(theDate)
+            _memo[spssDateValue] = theDate
             return theDate
         except (OverflowError, TypeError, ValueError):
             return recodeSysmisTo
 
 if __name__ == "__main__":
+
     sav = SavReaderNp("./test_data/Employee data.sav")
+    array = sav.to_array("/tmp/test.dat")
+    print(array[:5])  
+    print(sav[::-5])
+    print(sav[0])
     array = sav.to_array()
     print(array[:5]) 
     print("*****************************")
     array = sav.to_array("/tmp/test.dat")
+    print(array['id'])
     print(array.shape) 
     
     df = pd.DataFrame(array) #, dtype=np.dtype("f4"))
