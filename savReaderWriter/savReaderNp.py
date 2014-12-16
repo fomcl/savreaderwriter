@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, division
-#from pprint import pprint as print
+from pprint import pprint as print
 import os
 import re
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, date, MINYEAR
 from math import ceil
 from ctypes import *
-from functools import wraps
+from functools import wraps, partial
 
 import numpy as np
 import pandas as pd
@@ -44,7 +44,7 @@ def memoized_property(fget):
     return property(fget_memoized)
 
 
-class SavReaderNp(rw.SavReader):
+class SavReaderNp(SavReader):
 
     """
     Read SPSS .sav file data into a numpy array (either in-memory or mmap)
@@ -55,14 +55,20 @@ class SavReaderNp(rw.SavReader):
         array = reader_np.to_array("/tmp/test.dat") # memmapped array 
     """
 
-    def __init__(self, savFileName, ioUtf8=False, ioLocale=None):
+    def __init__(self, savFileName, recodeSysmisTo=np.nan, rawMode=False, 
+                 ioUtf8=False, ioLocale=None):
         super(SavReaderNp, self).__init__(savFileName, 
            ioUtf8=ioUtf8, ioLocale=ioLocale)
+
         self.savFileName = savFileName
+        self.recodeSysmisTo = recodeSysmisTo
+        self.rawMode = rawMode
+        self.ioUtf8 = ioUtf8
+        self.ioLocale = ioLocale
+
         self.caseBuffer = self.getCaseBuffer()
         self.init_funcs()
         self.gregorianEpoch = datetime(1582, 10, 14, 0, 0, 0)
-        self.varNames
 
     def _items(self, start, stop, step):
         for case in xrange(start, stop, step):
@@ -156,20 +162,24 @@ class SavReaderNp(rw.SavReader):
         obj = dict(names=varNames, formats=formats, titles=self.titles)
         return np.dtype(obj)
 
-    def to_array(self, filename=None):
-        """Return the data in <savFileName> as a structured array, optionally
-        using <filename> as a memmapped file"""
-        if filename:
-            array = np.memmap(filename, self.trunc_dtype, 
-                              'w+', shape=self.shape.nrows)
-            for row in xrange(self.shape.nrows):
-                array[row] = self[row]
-            array.flush()
-        else:
-            array = np.fromiter(self, self.trunc_dtype)
-        return array
+    @memoized_property
+    def datetime_dtype(self):
+        """Return the modified dtype in order to accomodate datetime.datetime
+        values that were originally datetimes, stored as floats, in the SPSS
+        file"""
+        is_datetime = re.compile(b"date|time", re.I)
+        datetimevars = [varName for varName in self.varNames if 
+                        is_datetime.search(self.formats[varName])]
+        if not datetimevars:
+            return self.trunc_dtype
+        descr = self.trunc_dtype.descr
+        names = [name for (title, name), fmt in descr]
+        formats = ["datetime64" if name in datetimevars else 
+                   fmt for (title, name), fmt in descr]
+        titles = [title for (title, name), fmt in descr]
+        obj = dict(names=names, formats=formats, titles=titles)
+        return np.dtype(obj)
 
-    # TODO: automatically convert datetimes
     def spss2numpyDate(self, spssDateValue, recodeSysmisTo=np.nan, _memo={}):
         """Convert an SPSS date into a numpy datetime64 date"""
         try:
@@ -184,10 +194,59 @@ class SavReaderNp(rw.SavReader):
         except (OverflowError, TypeError, ValueError):
             return recodeSysmisTo
 
-if __name__ == "__main__":
+    def convert_datetimes(func):
+        """Decorator to convert all the SPSS datetimes into datetime.datetime
+        values"""
+        def _convert_datetimes(self, filename=None):
+            array = func(self, filename)
+            if self.rawMode:
+                return array
 
+            converter = partial(self.spss2numpyDate,
+                                recodeSysmisTo=date(MINYEAR, 1, 1))
+            is_datetime = re.compile(b"date|time", re.I)
+            datetimevars = [varName for varName in self.varNames if 
+                            is_datetime.search(self.formats[varName])]
+            for varName in self.varNames:
+                if not varName in datetimevars:
+                    continue
+                datetimes = (converter(dt) for dt in array[varName])
+                array = array.astype(self.datetime_dtype)
+                array[varName] = np.fromiter(datetimes, dtype=np.datetime64)
+            return array
+        return _convert_datetimes
+
+    @convert_datetimes
+    def to_array(self, filename=None):
+        """Return the data in <savFileName> as a structured array, optionally
+        using <filename> as a memmapped file"""
+        if filename:
+            array = np.memmap(filename, self.trunc_dtype, 
+                              'w+', shape=self.shape.nrows)
+            for row in xrange(self.shape.nrows):
+                array[row] = self[row]
+            array.flush()
+        else:
+            array = np.fromiter(self, self.trunc_dtype)
+        return array
+
+if __name__ == "__main__":
+    import time
+    start = time.time()
     sav = SavReaderNp("./test_data/Employee data.sav")
-    array = sav.to_array("/tmp/test.dat")
+    array = sav.to_array() #"/tmp/test.dat")
+    for lino, line in enumerate(sav):
+        if lino == 473:
+            print(line)
+    sav.close()
+    print("Numpy version: %3.1f" % (time.time() - start))
+    sav = SavReader("./test_data/Employee data.sav")
+    for lino, line in enumerate(sav):
+        if lino == 473:
+            print(line)
+    sav.close()
+    print("Standard version: %3.1f" % (time.time() - start))
+    xxx 
     print(array[:5])  
     print(sav[::-5])
     print(sav[0])
@@ -201,3 +260,4 @@ if __name__ == "__main__":
     df = pd.DataFrame(array) #, dtype=np.dtype("f4"))
     df.bdate = df["bdate"].apply(sav.spss2numpyDate)
     print(df.head())
+
