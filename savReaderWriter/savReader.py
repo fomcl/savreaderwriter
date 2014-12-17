@@ -11,6 +11,7 @@ import functools
 
 from savReaderWriter import *
 from header import *
+from helpers import *
 
 @rich_comparison
 @implements_to_string
@@ -136,12 +137,12 @@ class SavReader(Header):
         For example unicode(SavReader(savFileName))"""
         return self.getFileReport()
 
-    @property
+    @memoized_property
     def shape(self):
         """This function returns the number of rows (nrows) and columns
         (ncols) as a namedtuple"""
-        dim = (self.nCases, self.numVars)
-        return collections.namedtuple("Shape", "nrows ncols")(*dim)
+        shape = (self.nCases, self.numVars)
+        return collections.namedtuple("Shape", "nrows ncols")(*shape)
 
     def _isAutoRawMode(self):
         """Helper function for formatValues function. Determines whether
@@ -452,23 +453,6 @@ class SavReader(Header):
         spss data file."""
         return (self.numVars, self.nCases, self.varNames, self.varTypes,
                 self.formats, self.varLabels, self.valueLabels)
-
-    def memoize(f):
-        """Memoization decorator
-        http://code.activestate.com/recipes/577219-minimalistic-memoization/"""
-        # see also issue # 22 
-        cache = {}
-        MAXCACHE = 10 ** 7
-
-        def memf(*x):
-            if x in cache:
-                return cache[x]
-            elif len(cache) < MAXCACHE:
-                result = f(*x)
-                cache[x] = result
-                return result
-            return f(*x)
-        return memf 
 
     @memoize
     def spss2strDate(self, spssDateValue, fmt, recodeSysmisTo):

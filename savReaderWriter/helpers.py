@@ -18,3 +18,19 @@ def memoized_property(fget):
         return getattr(self, attr_name)
     return property(fget_memoized)
 
+def memoize(f):
+    """Memoization decorator
+    source: http://code.activestate.com/recipes/577219-minimalistic-memoization/"""
+    # see also issue # 22 
+    cache = {}
+    MAXCACHE = 10 ** 7
+
+    def memf(*x):
+        if x in cache:
+            return cache[x]
+        elif len(cache) < MAXCACHE:
+            result = f(*x)
+            cache[x] = result
+            return result
+        return f(*x)
+    return memf 
