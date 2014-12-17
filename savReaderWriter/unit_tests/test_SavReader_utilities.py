@@ -6,12 +6,16 @@
 ##############################################################################
 
 import unittest
+import sys
+
 try:
     import numpy
     numpyOK = True
 except ImportError:
     numpyOK = False
+
 from savReaderWriter import *
+from py3k import *
 
 class test_SavReader_utilities(unittest.TestCase):
     """Read a file and use __len__, __getitem__"""
@@ -95,14 +99,14 @@ class test_SavReader_utilities(unittest.TestCase):
        records_got = self.data[::2]
        self.assertEqual(records_expected, records_got[:3])
 
-    @unittest.skipUnless(numpyOK, "Requires numpy")
+    @unittest.skipUnless(numpyOK and isCPython, "Requires numpy, not numpypy")
     def test_SavReader_array_slicing_slicing_1(self):
         records_expected = [[5.0, b'm', b'1955-02-09'],
                             [6.0, b'm', b'1958-08-22']]
         records_got = self.data[4:6, :3]  # Row 4 & 5, first three cols
         self.assertEqual(records_expected, records_got)
 
-    @unittest.skipUnless(numpyOK, "Requires numpy")
+    @unittest.skipUnless(numpyOK and isCPython, "Requires numpy, not numpypy")
     def test_SavReader_array_slicing_slicing_2(self):
         records_expected = [[1.0, b'm', b'1952-02-03'],
                             [2.0, b'm', b'1958-05-23'],
@@ -116,7 +120,7 @@ class test_SavReader_utilities(unittest.TestCase):
         records_got = records_got[:3] + records_got[-3:]
         self.assertEqual(records_expected, records_got)
 
-    @unittest.skipUnless(numpyOK, "Requires numpy")
+    @unittest.skipUnless(numpyOK and isCPython, "Requires numpy, not numpypy")
     def test_SavReader_array_slicing_slicing_3(self):
         records_expected = [[1.0, b'm', b'1952-02-03', 15.0, 3.0, 
                              57000.0, 27000.0, 98.0, 144.0, 0.0],
@@ -127,32 +131,32 @@ class test_SavReader_utilities(unittest.TestCase):
         records_got = self.data[:3, ...]  # all cols of first three rows
         self.assertEqual(records_expected, records_got)
 
-    @unittest.skipUnless(numpyOK, "Requires numpy")
+    @unittest.skipUnless(numpyOK and isCPython, "Requires numpy, not numpypy")
     def test_SavReader_array_slicing_indexing_1(self):
         records_expected = list(map(float, range(1, 475)))
         records_got = self.data[..., 0]  # First column
         self.assertEqual(records_expected, records_got)
 
-    @unittest.skipUnless(numpyOK, "Requires numpy")
+    @unittest.skipUnless(numpyOK and isCPython, "Requires numpy, not numpypy")
     def test_SavReader_array_slicing_indexing_2(self):
         records_expected = [1.0, b'm', b'1952-02-03', 15.0, 3.0,
                             57000.0, 27000.0, 98.0, 144.0, 0.0]
         records_got = self.data[0, ...]  # First row
         self.assertEqual(records_expected, records_got)
 
-    @unittest.skipUnless(numpyOK, "Requires numpy")
+    @unittest.skipUnless(numpyOK and isCPython, "Requires numpy, not numpypy")
     def test_SavReader_array_slicing_indexing_3(self):
         records_expected = [1.0]
         records_got = self.data[0, 0]  # First value
         self.assertEqual(records_expected, records_got)
 
-    @unittest.skipUnless(numpyOK, "Requires numpy")
+    @unittest.skipUnless(numpyOK and isCPython, "Requires numpy, not numpypy")
     def test_SavReader_array_slicing_both_1(self):
         records_expected = [1.0, 2.0]
         records_got = self.data[:2, 0]  # First two values of first col
         self.assertEqual(records_expected, records_got)
 
-    @unittest.skipUnless(numpyOK, "Requires numpy")
+    @unittest.skipUnless(numpyOK and isCPython, "Requires numpy, not numpypy")
     def test_SavReader_array_slicing_both_2(self):
         records_expected = [1.0, b'm']
         records_got = self.data[0, :2]  # First two values of first row

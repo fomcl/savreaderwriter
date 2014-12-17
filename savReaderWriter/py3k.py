@@ -16,6 +16,11 @@ try:
 except NameError:
     xrange = range
 
+try:
+    isCPython = sys.subversion[0] == "CPython"
+except AttributeError:
+    isCPython = sys.implementation.name == "cpython"
+
 # bytes keyword has a second argument in Python 3
 if isPy3k:
     bytez = functools.partial(bytes, encoding="utf-8")
