@@ -16,6 +16,7 @@ import pandas as pd
 import sys; sys.path.insert(0, "/home/antonia/Desktop/savreaderwriter")
 from savReaderWriter import *
 from error import *
+from helpers import *
 
 
 # http://docs.scipy.org/doc/numpy/reference/generated/numpy.recarray.html
@@ -27,22 +28,6 @@ try:
     xrange
 except NameError:
     xrange = range
-
-def memoized_property(fget):
-    """
-    Return a property attribute for new-style classes that only calls its 
-    getter on the first access. The result is stored and on subsequent 
-    accesses is returned, preventing the need to call the getter any more.
-    source: https://pypi.python.org/pypi/memoized-property/1.0.1
-    """
-    attr_name = "_" + fget.__name__
-    @wraps(fget)
-    def fget_memoized(self):
-        if not hasattr(self, attr_name):
-            setattr(self, attr_name, fget(self))
-        return getattr(self, attr_name)
-    return property(fget_memoized)
-
 
 class SavReaderNp(SavReader):
 
@@ -261,8 +246,9 @@ class SavReaderNp(SavReader):
             array.flush()
         else:
             array = np.empty(self.shape.nrows, self.trunc_dtype)
-            for row, record in enumerate(self):
-                array[row] = record
+            for row in xrange(self.shape.nrows):
+            #for row, record in enumerate(self):
+                array[row] = self[row]
             #array = np.fromiter(self, self.trunc_dtype)  # Less efficient than loop??
         return array
 
@@ -287,25 +273,25 @@ if __name__ == "__main__":
         #print(sav.shape) 
     """
     start = time.time()
-    klass = SavReaderNp
+    klass = globals()[sys.argv[1]] 
     filename = "./test_data/Employee data.sav"
-    filename = '/home/albertjan/nfs/Public/bigger.sav'
+    #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename)) as sav:
-        for record in sav:
-            pass 
+        array = sav.all()
         #records = sav.all() #"/tmp/test.dat")
-    print("Numpy version: %5.3f" % (time.time() - start))
+    print("%s version: %5.3f" % (sys.argv[1], (time.time() - start)))
 
+    """
     start = time.time()
     klass = SavReader
     filename = "./test_data/Employee data.sav"
-    filename = '/home/albertjan/nfs/Public/bigger.sav'
+    #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename)) as sav:
         for record in sav:
             pass 
         #records = sav.all() #"/tmp/test.dat")
     print("Standard version: %5.3f" % (time.time() - start))
-    """
+
     print(array[:5])  
     print(sav[::-5])
     print(sav[0])
