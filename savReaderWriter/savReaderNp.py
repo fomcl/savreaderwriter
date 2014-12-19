@@ -8,7 +8,7 @@ import re
 from datetime import timedelta, datetime, date, MINYEAR
 from math import ceil
 from ctypes import *
-from functools import wraps, partial
+from functools import wraps
 
 import numpy as np
 import pandas as pd
@@ -18,6 +18,9 @@ from savReaderWriter import *
 from error import *
 from helpers import *
 
+# TODO: now focuses entirely on recarrays (heterogeneous) , also for ndarrays (homogeneous)
+# TODO: get this working under Python 3
+# TODO: write some unittests
 
 # http://docs.scipy.org/doc/numpy/reference/generated/numpy.recarray.html
 # http://docs.scipy.org/doc/numpy/reference/generated/numpy.memmap.html
@@ -55,9 +58,6 @@ class SavReaderNp(SavReader):
         self.init_funcs()
         self.gregorianEpoch = datetime(1582, 10, 14, 0, 0, 0)
         self.do_convert_datetimes = True
-        self.no_datetime_conversion = self.rawMode or not self.datetimevars \
-                                      or not self.do_convert_datetimes
-
         self.nrows, self.ncols = self.shape
 
     def _items(self, start, stop, step):
@@ -66,7 +66,7 @@ class SavReaderNp(SavReader):
             self.seekNextCase(self.fh, case)
             self.wholeCaseIn(self.fh, byref(self.caseBuffer))
             record = np.fromstring(self.caseBuffer, self.struct_dtype)
-            yield record.astype(self.trunc_dtype)
+            yield record #.astype(self.trunc_dtype)
 
     def convert_datetimes(func):
         """Decorator to convert all the SPSS datetimes into datetime.datetime
@@ -82,7 +82,7 @@ class SavReaderNp(SavReader):
             for varName in self.uvarNames:
                 if not varName in self.datetimevars:
                     continue
-                datetimes = (self.converter(dt) for dt in array[varName])
+                datetimes = (self.spss2numpyDate(dt) for dt in array[varName])
                 array = array.astype(self.datetime_dtype)
                 array[varName] = np.fromiter(datetimes, dtype=np.datetime64)  # TODO: this doesn't work in Python 3
             return array
@@ -95,9 +95,12 @@ class SavReaderNp(SavReader):
         is_index = isinstance(key, int)
         
         if is_slice:
+            # TODO: check if I did this in SavReader
             start, stop, step = key.indices(self.nrows)
+            if any([x > self.nrows for x in map(abs, [start, stop, step])]): 
+                raise IndexError("index out of bounds")
             records = (item for item in self._items(start, stop, step)) 
-            return np.fromiter(records, self.trunc_dtype)
+            return np.fromiter(records, self.struct_dtype) #.self.trunc_dtype)
 
         elif is_index:
             if abs(key) > self.nrows - 1:
@@ -106,7 +109,7 @@ class SavReaderNp(SavReader):
             self.seekNextCase(self.fh, key)
             self.wholeCaseIn(self.fh, byref(self.caseBuffer))
             record = np.fromstring(self.caseBuffer, self.struct_dtype)
-            return record.astype(self.trunc_dtype)
+            return record #.astype(self.trunc_dtype)
 
         else:
             raise TypeError("slice or int required")
@@ -123,17 +126,17 @@ class SavReaderNp(SavReader):
         dont_convert_dates = (self.rawMode or not self.datetimevars or \
                               not self.do_convert_datetimes)
 
-        self.seekNextCase(self.fh, 0)  # rewind
+        #sself.seekNextCase(self.fh, 0)  # rewind
         for row in xrange(self.nrows):
             self.wholeCaseIn(self.fh, byref(self.caseBuffer))
-            record = np.fromstring(self.caseBuffer.raw, struct_dtype)
+            record = np.fromstring(self.caseBuffer, struct_dtype)
             if dont_convert_dates:
                 yield record.astype(trunc_dtype)
                 continue
 
             # TODO: find a numpy solution for the list comp below
-            items = [self.converter(record[v][0]) if v in datetimevars else
-                     record[v][0] for v in uvarNames]
+            items = [self.spss2numpyDate(record[v][0]) if v in datetimevars 
+                     else record[v][0] for v in uvarNames]
             record = record.astype(datetime_dtype)
             record[:] = tuple(items)
             yield record
@@ -149,9 +152,6 @@ class SavReaderNp(SavReader):
         self.wholeCaseIn = self.spssio.spssWholeCaseIn
         self.wholeCaseIn.argtypes = [c_int, POINTER(c_char * self.record_size)]
         self.wholeCaseIn.errcheck = self.errcheck
-
-        self.converter = partial(self.spss2numpyDate,
-                                 recodeSysmisTo=date(MINYEAR, 1, 1))
 
     def errcheck(self, retcode, func, arguments):
         """Checks for return codes > 0 when calling C functions of the 
@@ -226,19 +226,15 @@ class SavReaderNp(SavReader):
         obj = dict(names=self.uvarNames, formats=formats, titles=self.titles)
         return np.dtype(obj)
 
-    def spss2numpyDate(self, spssDateValue, recodeSysmisTo=np.nan, _memo={}):
+    @memoize
+    def spss2numpyDate(self, spssDateValue):
         """Convert an SPSS date into a numpy datetime64 date"""
-        try:
-            return _memo[spssDateValue]
-        except KeyError:
-            pass
         try:
             theDate = self.gregorianEpoch + timedelta(seconds=spssDateValue)
             theDate = np.datetime64(theDate)
-            _memo[spssDateValue] = theDate
             return theDate
         except (OverflowError, TypeError, ValueError):
-            return recodeSysmisTo
+            return date(MINYEAR, 1, 1)
 
     @convert_datetimes
     def to_array(self, filename=None):
@@ -274,29 +270,29 @@ if __name__ == "__main__":
     import time
     from contextlib import closing
     start = time.time()
-
-    """    
-    with SavReaderNp("./test_data/Employee data.sav") as sav:
+    klass = globals()[sys.argv[1]]
+ 
+    with closing(klass("./test_data/Employee data.sav", rawMode=False)) as sav:
         for record in sav:
             print(record)
             pass  
-
+    """
     #with closing(SavReaderNp('/home/albertjan/nfs/Public/bigger.sav')) as sav:
         #array = sav.to_array("/tmp/test.dat")
         #print(array[0])
         #print(sav.shape) 
-    """
+
     start = time.time()
     klass = globals()[sys.argv[1]] 
     filename = "./test_data/Employee data.sav"
-    filename = '/home/antonia/Desktop/big.sav'
+    #filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename)) as sav:
         array = sav.all()
         #records = sav.all() #"/tmp/test.dat")
     print("%s version: %5.3f" % (sys.argv[1], (time.time() - start)))
+    print(array[0])
 
-    """
     start = time.time()
     klass = SavReader
     filename = "./test_data/Employee data.sav"
