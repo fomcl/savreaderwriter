@@ -143,4 +143,4 @@ from savReader import *
 from savWriter import *
 from savHeaderReader import *
 
-__all__ = ["SavReader", "SavWriter", "SavHeaderReader"]
+__all__ = ["SavReader", "SavWriter", "SavHeaderReader", "SavReaderNp"]
