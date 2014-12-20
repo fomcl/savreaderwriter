@@ -142,5 +142,6 @@ from header import *
 from savReader import *
 from savWriter import *
 from savHeaderReader import *
+from savReaderNp import *
 
 __all__ = ["SavReader", "SavWriter", "SavHeaderReader", "SavReaderNp"]

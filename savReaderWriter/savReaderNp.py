@@ -85,7 +85,7 @@ class SavReaderNp(SavReader):
                     continue
                 datetimes = (self.spss2numpyDate(dt) for dt in array[varName])
                 array = array.astype(self.datetime_dtype)
-                array[varName] = np.fromiter(datetimes, dtype=np.datetime64)  # TODO: this doesn't work in Python 3
+                array[varName] = np.fromiter(datetimes, np.datetime64, self.nrows)  # TODO: this doesn't work in Python 3
             return array
         return _convert_datetimes
 
@@ -96,10 +96,9 @@ class SavReaderNp(SavReader):
         is_index = isinstance(key, int)
         
         if is_slice:
-            # TODO: check if I did this in SavReader
             start, stop, step = key.indices(self.nrows)
             records = (item for item in self._items(start, stop, step)) 
-            return np.fromiter(records, self.struct_dtype) #.self.trunc_dtype)
+            return np.fromiter(records, self.struct_dtype, self.nrows)
 
         elif is_index:
             if abs(key) > self.nrows - 1:
@@ -126,7 +125,7 @@ class SavReaderNp(SavReader):
         for row in xrange(self.nrows):
             self.wholeCaseIn(self.fh, byref(self.caseBuffer))
             record = self.unpack(self.caseBuffer)
-            if self.rawMode:
+            if self.rawMode or not self.do_convert_datetimes:
                 yield record
                 continue
             yield tuple([self.spss2numpyDate(value) if v in datetimevars else
@@ -260,21 +259,18 @@ class SavReaderNp(SavReader):
     def to_array(self, filename=None):
         """Return the data in <savFileName> as a structured array, optionally
         using <filename> as a memmapped file"""
+        self.do_convert_datetimes = False  # no date conversion in __iter__ 
         if filename:
             array = np.memmap(filename, self.trunc_dtype, 
                               'w+', shape=self.nrows)
             for row, record in enumerate(self):
                 array[row] = record
-            #array[:] = np.fromiter(self, self.trunc_dtype)  # MemoryError
+            #array[:] = np.fromiter(self, self.struct_dtype, self.nrows)  # MemoryError
             array.flush()
         else:
-            #self.do_convert_datetimes = False  
             array = np.empty(self.nrows, self.datetime_dtype)
-            for row, record in enumerate(self):
-                array[row] = record
-            #array = np.fromiter(self, self.datetime_dtype)  # Less efficient than loop??
-        # disable @convert_datetimes in to_array
-        #self.do_convert_datetimes = True
+            array = np.fromiter(self, self.struct_dtype, self.nrows)
+        self.do_convert_datetimes = True
         return array
 
     def all(self):
@@ -290,9 +286,9 @@ if __name__ == "__main__":
     start = time.time() 
     filename = "./test_data/Employee data.sav"
     #filename = '/home/antonia/Desktop/big.sav'
-    #filename = '/home/albertjan/nfs/Public/bigger.sav'
-    with closing(klass(filename, rawMode=False)) as sav:
-        print(sav.all())
+    filename = '/home/albertjan/nfs/Public/bigger.sav'
+    with closing(klass(filename, rawMode=True)) as sav:
+        #arr = sav.all()
         #print(sav.datetime_dtype)
         for record in sav:
             #print(record)
