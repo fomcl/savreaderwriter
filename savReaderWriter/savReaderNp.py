@@ -40,7 +40,7 @@ class SavReaderNp(SavReader):
     Typical use:
     from contextlib import closing
     with closing(SavReaderNp("Employee data.sav")) as reader_np: 
-        array = reader_np.to_array("/tmp/test.dat") # memmapped array 
+        array = reader_np.toarray("/tmp/test.dat") # memmapped array 
     """
 
     def __init__(self, savFileName, recodeSysmisTo=np.nan, rawMode=False, 
@@ -80,12 +80,18 @@ class SavReaderNp(SavReader):
                 self.do_convert_datetimes):
                 return array
 
+            # calculate count so fromiter can pre-allocate
+            count = self.nrows if not args else -1
+            if len(args) == 1 and isinstance(args[0], slice):
+                start, stop, step = args[0].indices(self.nrows)
+                count = (stop - start) // step
+
             for varName in self.uvarNames:
                 if not varName in self.datetimevars:
                     continue
                 datetimes = (self.spss2numpyDate(dt) for dt in array[varName])
                 array = array.astype(self.datetime_dtype)
-                array[varName] = np.fromiter(datetimes, np.datetime64, self.nrows)  # TODO: this doesn't work in Python 3
+                array[varName] = np.fromiter(datetimes, np.datetime64, count)  # TODO: this doesn't work in Python 3
             return array
         return _convert_datetimes
 
@@ -97,9 +103,9 @@ class SavReaderNp(SavReader):
         
         if is_slice:
             start, stop, step = key.indices(self.nrows)
-            records = (item for item in self._items(start, stop, step)) 
-            return np.fromiter(records, self.struct_dtype, self.nrows)
-
+            records = (item for item in self._items(start, stop, step))
+            count = (stop - start) // step
+            record = np.fromiter(iter(records), self.struct_dtype, count)
         elif is_index:
             if abs(key) > self.nrows - 1:
                 raise IndexError("index out of bounds")
@@ -107,10 +113,11 @@ class SavReaderNp(SavReader):
             self.seekNextCase(self.fh, key)
             self.wholeCaseIn(self.fh, byref(self.caseBuffer))
             record = np.fromstring(self.caseBuffer, self.struct_dtype)
-            return record #.astype(self.trunc_dtype)
-
         else:
             raise TypeError("slice or int required")
+
+        self.seekNextCase(self.fh, 0)  # rewind for __iter__
+        return record
 
     # TODO: consider if this could replace SavReader.__iter__
     def __iter__(self):
@@ -121,7 +128,6 @@ class SavReaderNp(SavReader):
         varTypes = self.varTypes
         datetimevars = self.datetimevars
         
-        #self.seekNextCase(self.fh, 0)  # rewind
         for row in xrange(self.nrows):
             self.wholeCaseIn(self.fh, byref(self.caseBuffer))
             record = self.unpack(self.caseBuffer)
@@ -144,7 +150,6 @@ class SavReaderNp(SavReader):
         dont_convert_dates = (self.rawMode or not self.datetimevars or \
                               not self.do_convert_datetimes)
 
-        #self.seekNextCase(self.fh, 0)  # rewind
         for row in xrange(self.nrows):
             self.wholeCaseIn(self.fh, byref(self.caseBuffer))
             record = np.fromstring(self.caseBuffer, struct_dtype)
@@ -250,13 +255,13 @@ class SavReaderNp(SavReader):
         #print(spssDateValue)
         try:
             theDate = self.gregorianEpoch + timedelta(seconds=spssDateValue)
-            theDate = np.datetime64(theDate)
+            #theDate = np.datetime64(theDate)
             return theDate
         except (OverflowError, TypeError, ValueError):
             return date(MINYEAR, 1, 1)
 
     @convert_datetimes
-    def to_array(self, filename=None):
+    def toarray(self, filename=None):
         """Return the data in <savFileName> as a structured array, optionally
         using <filename> as a memmapped file"""
         self.do_convert_datetimes = False  # no date conversion in __iter__ 
@@ -265,17 +270,15 @@ class SavReaderNp(SavReader):
                               'w+', shape=self.nrows)
             for row, record in enumerate(self):
                 array[row] = record
-            #array[:] = np.fromiter(self, self.struct_dtype, self.nrows)  # MemoryError
             array.flush()
         else:
-            array = np.empty(self.nrows, self.datetime_dtype)
             array = np.fromiter(self, self.struct_dtype, self.nrows)
         self.do_convert_datetimes = True
         return array
 
     def all(self):
-        """Wrapper for to_array; overrides the SavReader version"""
-        return self.to_array()
+        """Wrapper for toarray; overrides the SavReader version"""
+        return self.toarray()
 
 
 if __name__ == "__main__":
@@ -286,10 +289,11 @@ if __name__ == "__main__":
     start = time.time() 
     filename = "./test_data/Employee data.sav"
     #filename = '/home/antonia/Desktop/big.sav'
-    filename = '/home/albertjan/nfs/Public/bigger.sav'
-    with closing(klass(filename, rawMode=True)) as sav:
-        #arr = sav.all()
-        #print(sav.datetime_dtype)
+    #filename = '/home/albertjan/nfs/Public/bigger.sav'
+    with closing(klass(filename, rawMode=False)) as sav:
+        arr = sav.all()
+        #print(sav.datetime_dtype
+        print(sav[0:3])
         for record in sav:
             #print(record)
             #print(type(record[2]))
@@ -297,7 +301,7 @@ if __name__ == "__main__":
     print("%s version: %5.3f" % (sys.argv[1], (time.time() - start)))
     """
     #with closing(SavReaderNp('/home/albertjan/nfs/Public/bigger.sav')) as sav:
-        #array = sav.to_array("/tmp/test.dat")
+        #array = sav.toarray("/tmp/test.dat")
         #print(array[0])
         #print(sav.shape) 
 
@@ -325,10 +329,10 @@ if __name__ == "__main__":
     print(array[:5])  
     print(sav[::-5])
     print(sav[0])
-    array = sav.to_array()
+    array = sav.toarray()
     print(array[:5]) 
     print("*****************************")
-    array = sav.to_array("/tmp/test.dat")
+    array = sav.toarray("/tmp/test.dat")
     print(array['id'])
     print(array.shape) 
     
