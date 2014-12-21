@@ -80,12 +80,13 @@ class SavReaderNp(SavReader):
                 start, stop, step = args[0].indices(self.nrows)
                 count = (stop - start) // step
 
-            array = array.astype(self.datetime_dtype)
+            
             for varName in self.uvarNames:
                 if not varName in self.datetimevars:
                     continue
                 datetimes = (self.spss2numpyDate(dt) for dt in array[varName])
-                array[varName] = np.fromiter(datetimes, 'datetime64[us]', count)  # TODO: this doesn't work in Python 3
+                array = array.astype(self.datetime_dtype)
+                array[varName] = np.fromiter(datetimes, np.datetime64, count)  # TODO: this doesn't work in Python 3
             return array
         return _convert_datetimes
 
@@ -245,7 +246,6 @@ class SavReaderNp(SavReader):
         formats = ["datetime64[us]" if name in self.datetimevars else 
                    fmt for (title, name), fmt in self.trunc_dtype.descr]
         obj = dict(names=self.uvarNames, formats=formats, titles=self.titles)
-        print(obj); print(np.dtype(obj).metadata)
         return np.dtype(obj)
 
     @memoize
@@ -292,13 +292,13 @@ if __name__ == "__main__":
     #filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename, rawMode=False)) as sav:
-        arr = sav.all()
+        print(sav.all())
         #print(sav.datetime_dtype
         print(sav[0:3])
-        for record in sav:
+        #for record in sav:
             #print(record)
             #print(type(record[2]))
-            pass  
+            #pass  
     print("%s version: %5.3f" % (sys.argv[1], (time.time() - start)))
     """
     #with closing(SavReaderNp('/home/albertjan/nfs/Public/bigger.sav')) as sav:
