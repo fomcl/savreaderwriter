@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-import datetime
+#import datetime
 import tempfile
 import os
 import numpy as np
 import numpy.testing
-import sys; sys.path.insert(0, "/home/antonia/Desktop/savreaderwriter/savReaderWriter")
+import sys; sys.path.insert(0, "/home/antonia/Desktop/savreaderwriter")
+from savReaderWriter import *
 from savReaderNp import *
 
 class Test_SavReaderNp(unittest.TestCase):
@@ -18,7 +19,7 @@ class Test_SavReaderNp(unittest.TestCase):
     def test_getitem_indexing(self):
         self.npreader = SavReaderNp(self.filename)
         actual = self.npreader[0].tolist()
-        desired = [(1.0, 'm', datetime(1952, 2, 3, 0, 0), 15.0, 
+        desired = [(1.0, b'm', datetime.datetime(1952, 2, 3, 0, 0), 15.0, 
                     3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0)]
         self.assertEquals(actual, desired)
 
@@ -30,7 +31,7 @@ class Test_SavReaderNp(unittest.TestCase):
     def test_getitem_indexing_raw(self):
         self.npreader = SavReaderNp(self.filename, rawMode=True)
         actual = self.npreader[0].tolist()
-        desired = [(1.0, 'm       ', 11654150400.0, 15.0, 
+        desired = [(1.0, b'm       ', 11654150400.0, 15.0, 
                     3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0)]
         self.assertEquals(actual, desired)
 
@@ -38,9 +39,9 @@ class Test_SavReaderNp(unittest.TestCase):
         self.npreader = SavReaderNp(self.filename)
         actual = self.npreader[0:2].tolist()
         desired = \
-        [(1.0, 'm', datetime(1952, 2, 3, 0, 0), 15.0, 
+        [(1.0, b'm', datetime.datetime(1952, 2, 3, 0, 0), 15.0, 
           3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0), 
-         (2.0, 'm', datetime(1958, 5, 23, 0, 0), 16.0, 
+         (2.0, b'm', datetime.datetime(1958, 5, 23, 0, 0), 16.0, 
           1.0, 40200.0, 18750.0, 98.0, 36.0, 0.0)]
         self.assertEquals(actual, desired)
 
@@ -52,13 +53,13 @@ class Test_SavReaderNp(unittest.TestCase):
         self.npreader = SavReaderNp(self.filename)
         actual = self.npreader[3::-1].tolist()
         desired = \
-        [(4.0, 'f', datetime(1947, 4, 15, 0, 0), 8.0, 
+        [(4.0, b'f', datetime.datetime(1947, 4, 15, 0, 0), 8.0, 
           1.0, 21900.0, 13200.0, 98.0, 190.0, 0.0), 
-         (3.0, 'f', datetime(1929, 7, 26, 0, 0), 12.0, 
+         (3.0, b'f', datetime.datetime(1929, 7, 26, 0, 0), 12.0, 
           1.0, 21450.0, 12000.0, 98.0, 381.0, 0.0), 
-         (2.0, 'm', datetime(1958, 5, 23, 0, 0), 16.0, 
+         (2.0, b'm', datetime.datetime(1958, 5, 23, 0, 0), 16.0, 
           1.0, 40200.0, 18750.0, 98.0, 36.0, 0.0), 
-         (1.0, 'm', datetime(1952, 2, 3, 0, 0), 15.0, 
+         (1.0, b'm', datetime.datetime(1952, 2, 3, 0, 0), 15.0, 
           3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0)]
         self.assertEquals(actual, desired)
 
@@ -80,11 +81,11 @@ class Test_SavReaderNp(unittest.TestCase):
                     u'Months since Hire', u'Previous Experience (months)',
                     u'Minority Classification']}
         desired = np.array(\
-        [(1.0, 'm', datetime(1952, 2, 3, 0, 0), 15.0, 
+        [(1.0, b'm', datetime.datetime(1952, 2, 3, 0, 0), 15.0, 
           3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0),
-         (2.0, 'm', datetime(1958, 5, 23, 0, 0), 16.0, 
+         (2.0, b'm', datetime.datetime(1958, 5, 23, 0, 0), 16.0, 
           1.0, 40200.0, 18750.0, 98.0, 36.0, 0.0),
-         (3.0, 'f', datetime(1929, 7, 26, 0, 0), 12.0, 
+         (3.0, b'f', datetime.datetime(1929, 7, 26, 0, 0), 12.0, 
           1.0, 21450.0, 12000.0, 98.0, 381.0, 0.0)],
         dtype=np.dtype(obj))
         #numpy.testing.assert_allclose(actual, desired, rtol=1e-5)
@@ -95,11 +96,11 @@ class Test_SavReaderNp(unittest.TestCase):
         self.npreader = SavReaderNp(self.filename, rawMode=True)
         actual = self.npreader.toarray()[:3].tolist()
         desired = \
-        [(1.0, 'm', 11654150400.0, 15.0, 3.0,
+        [(1.0, b'm', 11654150400.0, 15.0, 3.0,
           57000.0, 27000.0, 98.0, 144.0, 0.0),
-         (2.0, 'm', 11852956800.0, 16.0, 1.0, 
+         (2.0, b'm', 11852956800.0, 16.0, 1.0, 
           40200.0, 18750.0, 98.0, 36.0, 0.0),
-         (3.0, 'f', 10943337600.0, 12.0, 1.0, 
+         (3.0, b'f', 10943337600.0, 12.0, 1.0, 
           21450.0, 12000.0, 98.0, 381.0, 0.0)]
         self.assertEquals(actual, desired)
   
@@ -108,11 +109,11 @@ class Test_SavReaderNp(unittest.TestCase):
         mmapfile = tempfile.mkstemp()[1]
         actual = self.npreader.toarray(mmapfile)[:3].tolist()
         desired = \
-        [(1.0, 'm', datetime(1952, 2, 3, 0, 0), 15.0, 
+        [(1.0, b'm', datetime.datetime(1952, 2, 3, 0, 0), 15.0, 
           3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0),
-         (2.0, 'm', datetime(1958, 5, 23, 0, 0), 16.0, 
+         (2.0, b'm', datetime.datetime(1958, 5, 23, 0, 0), 16.0, 
           1.0, 40200.0, 18750.0, 98.0, 36.0, 0.0),
-         (3.0, 'f', datetime(1929, 7, 26, 0, 0), 12.0, 
+         (3.0, b'f', datetime.datetime(1929, 7, 26, 0, 0), 12.0, 
           1.0, 21450.0, 12000.0, 98.0, 381.0, 0.0)]
         self.assertEquals(actual, desired)
         os.remove(mmapfile)
@@ -122,11 +123,11 @@ class Test_SavReaderNp(unittest.TestCase):
         mmapfile = tempfile.mkstemp()[1]
         actual = self.npreader.toarray(mmapfile)[:3].tolist()
         desired = \
-        [(1.0, 'm', 11654150400.0, 15.0, 3.0,
+        [(1.0, b'm', 11654150400.0, 15.0, 3.0,
           57000.0, 27000.0, 98.0, 144.0, 0.0),
-         (2.0, 'm', 11852956800.0, 16.0, 1.0, 
+         (2.0, b'm', 11852956800.0, 16.0, 1.0, 
           40200.0, 18750.0, 98.0, 36.0, 0.0),
-         (3.0, 'f', 10943337600.0, 12.0, 1.0, 
+         (3.0, b'f', 10943337600.0, 12.0, 1.0, 
           21450.0, 12000.0, 98.0, 381.0, 0.0)]
         self.assertEquals(actual, desired)
         os.remove(mmapfile)
@@ -137,7 +138,7 @@ class Test_SavReaderNp(unittest.TestCase):
         self.npreader[5]
         actual = next(iter(self.npreader))
         desired = \
-        (1.0, 'm', datetime(1952, 2, 3, 0, 0), 15.0, 
+        (1.0, b'm', datetime.datetime(1952, 2, 3, 0, 0), 15.0, 
          3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0)
         self.assertEquals(actual, desired)
       

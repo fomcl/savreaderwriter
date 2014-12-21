@@ -5,7 +5,7 @@ from __future__ import print_function, division
 from pprint import pprint as print
 import os
 import re
-from datetime import timedelta, datetime, date, MINYEAR
+import datetime
 from math import ceil
 from ctypes import *
 from functools import wraps
@@ -51,7 +51,7 @@ class SavReaderNp(SavReader):
         self.caseBuffer = self.getCaseBuffer()
         self.unpack = self.getStruct(self.varTypes, self.varNames).unpack_from 
         self.init_funcs()
-        self.gregorianEpoch = datetime(1582, 10, 14, 0, 0, 0)
+        self.gregorianEpoch = datetime.datetime(1582, 10, 14, 0, 0, 0)
         self.do_convert_datetimes = True
         self.nrows, self.ncols = self.shape
 
@@ -253,11 +253,11 @@ class SavReaderNp(SavReader):
         """Convert an SPSS date into a numpy datetime64 date"""
         #print(spssDateValue)
         try:
-            theDate = self.gregorianEpoch + timedelta(seconds=spssDateValue)
+            theDate = self.gregorianEpoch + datetime.timedelta(seconds=spssDateValue)
             #theDate = np.datetime64(theDate)
             return theDate
         except (OverflowError, TypeError, ValueError):
-            return date(MINYEAR, 1, 1)
+            return datetime.date(datetime.MINYEAR, 1, 1)
 
     @convert_datetimes
     def toarray(self, filename=None, dtype="trunc_dtype"):
