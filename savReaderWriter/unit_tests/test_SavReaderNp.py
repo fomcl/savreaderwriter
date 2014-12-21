@@ -90,6 +90,18 @@ class Test_SavReaderNp(unittest.TestCase):
         #numpy.testing.assert_allclose(actual, desired, rtol=1e-5)
         self.assertEquals(actual.tolist(), desired.tolist())
         self.assertEquals(actual.dtype, desired.dtype)
+
+    def test_toarray_inmemory_raw(self):
+        self.npreader = SavReaderNp(self.filename, rawMode=True)
+        actual = self.npreader.toarray()[:3].tolist()
+        desired = \
+        [(1.0, 'm', 11654150400.0, 15.0, 3.0,
+          57000.0, 27000.0, 98.0, 144.0, 0.0),
+         (2.0, 'm', 11852956800.0, 16.0, 1.0, 
+          40200.0, 18750.0, 98.0, 36.0, 0.0),
+         (3.0, 'f', 10943337600.0, 12.0, 1.0, 
+          21450.0, 12000.0, 98.0, 381.0, 0.0)]
+        self.assertEquals(actual, desired)
   
     def test_toarray_memmap(self):
         self.npreader = SavReaderNp(self.filename)
@@ -102,6 +114,20 @@ class Test_SavReaderNp(unittest.TestCase):
           1.0, 40200.0, 18750.0, 98.0, 36.0, 0.0),
          (3.0, 'f', datetime(1929, 7, 26, 0, 0), 12.0, 
           1.0, 21450.0, 12000.0, 98.0, 381.0, 0.0)]
+        self.assertEquals(actual, desired)
+        os.remove(mmapfile)
+
+    def test_toarray_memmap_raw(self):
+        self.npreader = SavReaderNp(self.filename, rawMode=True)
+        mmapfile = tempfile.mkstemp()[1]
+        actual = self.npreader.toarray(mmapfile)[:3].tolist()
+        desired = \
+        [(1.0, 'm', 11654150400.0, 15.0, 3.0,
+          57000.0, 27000.0, 98.0, 144.0, 0.0),
+         (2.0, 'm', 11852956800.0, 16.0, 1.0, 
+          40200.0, 18750.0, 98.0, 36.0, 0.0),
+         (3.0, 'f', 10943337600.0, 12.0, 1.0, 
+          21450.0, 12000.0, 98.0, 381.0, 0.0)]
         self.assertEquals(actual, desired)
         os.remove(mmapfile)
 

@@ -115,8 +115,8 @@ class SavReaderNp(SavReader):
             record = np.fromstring(self.caseBuffer, self.struct_dtype)
         else:
             raise TypeError("slice or int required")
-
-        self.seekNextCase(self.fh, 0)  # rewind for __iter__
+        # rewind for possible subsequent call to __iter__
+        self.seekNextCase(self.fh, 0)
         return record
 
     # TODO: consider if this could replace SavReader.__iter__
@@ -261,18 +261,20 @@ class SavReaderNp(SavReader):
             return date(MINYEAR, 1, 1)
 
     @convert_datetimes
-    def toarray(self, filename=None):
+    def toarray(self, filename=None, dtype="trunc_dtype"):
         """Return the data in <savFileName> as a structured array, optionally
-        using <filename> as a memmapped file"""
+        using <filename> as a memmapped file. Dtype can be eiter "trunc_dtype"
+        (single-precision floats, trimmed strings) or "struct_dtype" (double
+         precision floats, strings with trailing blanks)"""
         self.do_convert_datetimes = False  # no date conversion in __iter__ 
+        dtype = getattr(self, dtype)
         if filename:
-            array = np.memmap(filename, self.trunc_dtype, 
-                              'w+', shape=self.nrows)
+            array = np.memmap(filename, dtype, 'w+', shape=self.nrows)
             for row, record in enumerate(self):
                 array[row] = record
             array.flush()
         else:
-            array = np.fromiter(self, self.struct_dtype, self.nrows)
+            array = np.fromiter(self, dtype, self.nrows)
         self.do_convert_datetimes = True
         return array
 
