@@ -20,12 +20,6 @@ from helpers import *
 
 # TODO: now focuses entirely on recarrays (heterogeneous) , also for ndarrays (homogeneous)
 # TODO: get this working under Python 3
-# TODO: write some unittests
-
-# http://docs.scipy.org/doc/numpy/reference/generated/numpy.recarray.html
-# http://docs.scipy.org/doc/numpy/reference/generated/numpy.memmap.html
-# http://docs.scipy.org/doc/numpy/reference/arrays.datetime.html
-# http://stackoverflow.com/questions/16601819/change-dtype-of-recarray-column-for-object-type
 
 try:
     xrange
@@ -86,12 +80,12 @@ class SavReaderNp(SavReader):
                 start, stop, step = args[0].indices(self.nrows)
                 count = (stop - start) // step
 
+            array = array.astype(self.datetime_dtype)
             for varName in self.uvarNames:
                 if not varName in self.datetimevars:
                     continue
                 datetimes = (self.spss2numpyDate(dt) for dt in array[varName])
-                array = array.astype(self.datetime_dtype)
-                array[varName] = np.fromiter(datetimes, np.datetime64, count)  # TODO: this doesn't work in Python 3
+                array[varName] = np.fromiter(datetimes, 'datetime64[us]', count)  # TODO: this doesn't work in Python 3
             return array
         return _convert_datetimes
 
@@ -115,8 +109,10 @@ class SavReaderNp(SavReader):
             record = np.fromstring(self.caseBuffer, self.struct_dtype)
         else:
             raise TypeError("slice or int required")
+
         # rewind for possible subsequent call to __iter__
         self.seekNextCase(self.fh, 0)
+
         return record
 
     # TODO: consider if this could replace SavReader.__iter__
@@ -244,9 +240,12 @@ class SavReaderNp(SavReader):
         file"""
         if not self.datetimevars:
             return self.trunc_dtype
-        formats = ["datetime64" if name in self.datetimevars else 
+        #formats = ["<M8[us]" if name in self.datetimevars else 
+        #           fmt for (title, name), fmt in self.trunc_dtype.descr]
+        formats = ["datetime64[us]" if name in self.datetimevars else 
                    fmt for (title, name), fmt in self.trunc_dtype.descr]
         obj = dict(names=self.uvarNames, formats=formats, titles=self.titles)
+        print(obj); print(np.dtype(obj).metadata)
         return np.dtype(obj)
 
     @memoize
@@ -278,9 +277,9 @@ class SavReaderNp(SavReader):
         self.do_convert_datetimes = True
         return array
 
-    def all(self):
+    def all(self, filename=None, dtype="trunc_dtype"):
         """Wrapper for toarray; overrides the SavReader version"""
-        return self.toarray()
+        return self.toarray(filename, dtype)
 
 
 if __name__ == "__main__":

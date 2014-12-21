@@ -5,9 +5,9 @@ import unittest
 import datetime
 import tempfile
 import os
-import sys; sys.path.insert(0, "/home/antonia/Desktop/savreaderwriter/savReaderWriter")
 import numpy as np
 import numpy.testing
+import sys; sys.path.insert(0, "/home/antonia/Desktop/savreaderwriter/savReaderWriter")
 from savReaderNp import *
 
 class Test_SavReaderNp(unittest.TestCase):
