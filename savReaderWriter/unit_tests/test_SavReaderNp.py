@@ -21,7 +21,7 @@ class Test_SavReaderNp(unittest.TestCase):
         actual = self.npreader[0].tolist()
         desired = [(1.0, b'm', datetime.datetime(1952, 2, 3, 0, 0), 15.0, 
                     3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0)]
-        self.assertEquals(actual, desired)
+        self.assertEqual(actual, desired)
 
     def test_getitem_indexing_IndexError(self):
         self.npreader = SavReaderNp(self.filename)
@@ -33,7 +33,7 @@ class Test_SavReaderNp(unittest.TestCase):
         actual = self.npreader[0].tolist()
         desired = [(1.0, b'm       ', 11654150400.0, 15.0, 
                     3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0)]
-        self.assertEquals(actual, desired)
+        self.assertEqual(actual, desired)
 
     def test_getitem_slicing(self):
         self.npreader = SavReaderNp(self.filename)
@@ -43,11 +43,11 @@ class Test_SavReaderNp(unittest.TestCase):
           3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0), 
          (2.0, b'm', datetime.datetime(1958, 5, 23, 0, 0), 16.0, 
           1.0, 40200.0, 18750.0, 98.0, 36.0, 0.0)]
-        self.assertEquals(actual, desired)
+        self.assertEqual(actual, desired)
 
     def test_getitem_indexing_IndexError(self):
         self.npreader = SavReaderNp(self.filename)
-        self.assertEquals(self.npreader[475:666].tolist(), []) 
+        self.assertEqual(self.npreader[475:666].tolist(), []) 
 
     def test_getitem_striding(self):
         self.npreader = SavReaderNp(self.filename)
@@ -61,7 +61,7 @@ class Test_SavReaderNp(unittest.TestCase):
           1.0, 40200.0, 18750.0, 98.0, 36.0, 0.0), 
          (1.0, b'm', datetime.datetime(1952, 2, 3, 0, 0), 15.0, 
           3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0)]
-        self.assertEquals(actual, desired)
+        self.assertEqual(actual, desired)
 
     # ---------------
 
@@ -70,7 +70,7 @@ class Test_SavReaderNp(unittest.TestCase):
         actual = self.npreader.toarray()[:3]
 
         obj = \
-        {'formats': ['<f8', '|S1', 'datetime64', '<f8', '<f8',
+        {'formats': ['<f8', '|S1', 'datetime64[us]', '<f8', '<f8',
                      '<f8', '<f8', '<f8', '<f8', '<f8'],
          'names': [u'id', u'gender', u'bdate', u'educ', u'jobcat',
                    u'salary', u'salbegin', u'jobtime', u'prevexp', 
@@ -89,8 +89,8 @@ class Test_SavReaderNp(unittest.TestCase):
           1.0, 21450.0, 12000.0, 98.0, 381.0, 0.0)],
         dtype=np.dtype(obj))
         #numpy.testing.assert_allclose(actual, desired, rtol=1e-5)
-        self.assertEquals(actual.tolist(), desired.tolist())
-        self.assertEquals(actual.dtype, desired.dtype)
+        self.assertEqual(actual.tolist(), desired.tolist())
+        self.assertEqual(actual.dtype, desired.dtype)
 
     def test_toarray_inmemory_raw(self):
         self.npreader = SavReaderNp(self.filename, rawMode=True)
@@ -102,7 +102,7 @@ class Test_SavReaderNp(unittest.TestCase):
           40200.0, 18750.0, 98.0, 36.0, 0.0),
          (3.0, b'f', 10943337600.0, 12.0, 1.0, 
           21450.0, 12000.0, 98.0, 381.0, 0.0)]
-        self.assertEquals(actual, desired)
+        self.assertEqual(actual, desired)
   
     def test_toarray_memmap(self):
         self.npreader = SavReaderNp(self.filename)
@@ -115,7 +115,7 @@ class Test_SavReaderNp(unittest.TestCase):
           1.0, 40200.0, 18750.0, 98.0, 36.0, 0.0),
          (3.0, b'f', datetime.datetime(1929, 7, 26, 0, 0), 12.0, 
           1.0, 21450.0, 12000.0, 98.0, 381.0, 0.0)]
-        self.assertEquals(actual, desired)
+        self.assertEqual(actual, desired)
         os.remove(mmapfile)
 
     def test_toarray_memmap_raw(self):
@@ -129,7 +129,7 @@ class Test_SavReaderNp(unittest.TestCase):
           40200.0, 18750.0, 98.0, 36.0, 0.0),
          (3.0, b'f', 10943337600.0, 12.0, 1.0, 
           21450.0, 12000.0, 98.0, 381.0, 0.0)]
-        self.assertEquals(actual, desired)
+        self.assertEqual(actual, desired)
         os.remove(mmapfile)
 
     def test_getitem_then_iter(self):
@@ -140,7 +140,7 @@ class Test_SavReaderNp(unittest.TestCase):
         desired = \
         (1.0, b'm', datetime.datetime(1952, 2, 3, 0, 0), 15.0, 
          3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0)
-        self.assertEquals(actual, desired)
+        self.assertEqual(actual, desired)
       
     def tearDown(self):
         self.npreader.close()

@@ -61,7 +61,7 @@ class SavReaderNp(SavReader):
             self.seekNextCase(self.fh, case)
             self.wholeCaseIn(self.fh, byref(self.caseBuffer))
             record = np.fromstring(self.caseBuffer, self.struct_dtype)
-            yield record #.astype(self.trunc_dtype)
+            yield record
 
     def convert_datetimes(func):
         """Decorator to convert all the SPSS datetimes into datetime.datetime
@@ -79,14 +79,15 @@ class SavReaderNp(SavReader):
             if len(args) == 1 and isinstance(args[0], slice):
                 start, stop, step = args[0].indices(self.nrows)
                 count = (stop - start) // step
-            
+
+            # now fill the array with datetimes
+            dt_array = array.astype(self.datetime_dtype)            
             for varName in self.uvarNames:
                 if not varName in self.datetimevars:
                     continue
                 datetimes = (self.spss2numpyDate(dt) for dt in array[varName])
-                array = array.astype(self.datetime_dtype)
-                array[varName] = np.fromiter(datetimes, "datetime64[ns]", count)  # TODO: this doesn't work in Python 3
-            return array
+                dt_array[varName] = np.fromiter(datetimes, "datetime64[us]", count)
+            return dt_array
         return _convert_datetimes
 
     @convert_datetimes
@@ -112,10 +113,8 @@ class SavReaderNp(SavReader):
 
         # rewind for possible subsequent call to __iter__
         self.seekNextCase(self.fh, 0)
-
         return record
 
-    # TODO: consider if this could replace SavReader.__iter__
     def __iter__(self):
         """x.__iter__() <==> iter(x). Yields records as a tuple.
         If rawMode=True, trailing spaces of strings are not removed
@@ -133,32 +132,6 @@ class SavReaderNp(SavReader):
             yield tuple([self.spss2numpyDate(value) if v in datetimevars else
                          value.rstrip() if varTypes[v] else value for value, v
                          in zip(record, varNames)])
-
-    def astypedIter(self):
-        """x.__iter__() <==> iter(x). Yields records with an astyped 
-        ('truncated') dtype: single-precision floats, trailing blanks
-        removed. This is *much* slower than __iter__"""
-        trunc_dtype = self.trunc_dtype
-        struct_dtype = self.struct_dtype
-        datetime_dtype = self.datetime_dtype
-        uvarNames = self.uvarNames
-        datetimevars = self.datetimevars
-        dont_convert_dates = (self.rawMode or not self.datetimevars or \
-                              not self.do_convert_datetimes)
-
-        for row in xrange(self.nrows):
-            self.wholeCaseIn(self.fh, byref(self.caseBuffer))
-            record = np.fromstring(self.caseBuffer, struct_dtype)
-            if dont_convert_dates:
-                yield record.astype(trunc_dtype)
-                continue
-
-            # TODO: find a numpy solution for the list comp below
-            items = [self.spss2numpyDate(record[v][0]) if v in datetimevars 
-                     else record[v][0] for v in uvarNames]
-            record = record.astype(datetime_dtype)
-            record[:] = tuple(items)
-            yield record
       
     def init_funcs(self):
         """Helper to initialize C functions of the SPSS I/O module: set their
@@ -233,15 +206,13 @@ class SavReaderNp(SavReader):
         obj = dict(names=self.uvarNames, formats=formats, titles=self.titles)
         return np.dtype(obj)
 
-    @memoized_property
+    @property
     def datetime_dtype(self):
         """Return the modified dtype in order to accomodate datetime.datetime
         values that were originally datetimes, stored as floats, in the SPSS
         file"""
         if not self.datetimevars:
             return self.trunc_dtype
-        #formats = ["<M8[us]" if name in self.datetimevars else 
-        #           fmt for (title, name), fmt in self.trunc_dtype.descr]
         formats = ["datetime64[us]" if name in self.datetimevars else 
                    fmt for (title, name), fmt in self.trunc_dtype.descr]
         obj = dict(names=self.uvarNames, formats=formats, titles=self.titles)
@@ -249,14 +220,14 @@ class SavReaderNp(SavReader):
 
     @memoize
     def spss2numpyDate(self, spssDateValue):
-        """Convert an SPSS date into a numpy datetime64 date"""
-        #print(spssDateValue)
+        """Convert an SPSS date into a numpy datetime64 date. Errors are
+        returned as datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0)"""
         try:
             theDate = self.gregorianEpoch + datetime.timedelta(seconds=spssDateValue)
             #theDate = np.datetime64(theDate)
             return theDate
         except (OverflowError, TypeError, ValueError):
-            return datetime.date(datetime.MINYEAR, 1, 1)
+            return datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0)
 
     @convert_datetimes
     def toarray(self, filename=None, dtype="trunc_dtype"):
@@ -287,58 +258,14 @@ if __name__ == "__main__":
 
     klass = globals()[sys.argv[1]]
     start = time.time() 
-    filename = "./test_data/Employee data.sav"
-    #filename = '/home/antonia/Desktop/big.sav'
+    #filename = "./test_data/Employee data.sav"
+    filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename, rawMode=False)) as sav:
         #print(sav.all())
-        #print(sav.datetime_dtype
-        #print(sav[5])
-        print(next(iter(sav)))
-        #for record in sav:
-            #print(record)
-            #print(type(record[2]))
-            #pass  
-    print("%s version: %5.3f" % (sys.argv[1], (time.time() - start)))
-    """
-    #with closing(SavReaderNp('/home/albertjan/nfs/Public/bigger.sav')) as sav:
-        #array = sav.toarray("/tmp/test.dat")
-        #print(array[0])
-        #print(sav.shape) 
-
-    start = time.time()
-    klass = globals()[sys.argv[1]] 
-    filename = "./test_data/Employee data.sav"
-    #filename = '/home/antonia/Desktop/big.sav'
-    #filename = '/home/albertjan/nfs/Public/bigger.sav'
-    with closing(klass(filename)) as sav:
-        array = sav.all()
-        #records = sav.all() #"/tmp/test.dat")
-    print("%s version: %5.3f" % (sys.argv[1], (time.time() - start)))
-    print(array[0])
-
-    start = time.time()
-    klass = SavReader
-    filename = "./test_data/Employee data.sav"
-    #filename = '/home/albertjan/nfs/Public/bigger.sav'
-    with closing(klass(filename)) as sav:
         for record in sav:
-            pass 
-        #records = sav.all() #"/tmp/test.dat")
-    print("Standard version: %5.3f" % (time.time() - start))
+            #print(record)
+            pass  
+    print("%s version: %5.3f" % (sys.argv[1], (time.time() - start)))
 
-    print(array[:5])  
-    print(sav[::-5])
-    print(sav[0])
-    array = sav.toarray()
-    print(array[:5]) 
-    print("*****************************")
-    array = sav.toarray("/tmp/test.dat")
-    print(array['id'])
-    print(array.shape) 
-    
-    df = pd.DataFrame(array) #, dtype=np.dtype("f4"))
-    df.bdate = df["bdate"].apply(sav.spss2numpyDate)
-    print(df.head())
-    """
 
