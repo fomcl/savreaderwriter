@@ -126,7 +126,7 @@ class SavReaderNp(SavReader):
         for row in xrange(self.nrows):
             self.wholeCaseIn(self.fh, byref(self.caseBuffer))
             record = self.unpack(self.caseBuffer)
-            if self.rawMode or not self.do_convert_datetimes:
+            if self.rawMode or not self.do_convert_datetimes or not datetimevars:
                 yield record
                 continue
             yield tuple([self.spss2numpyDate(value) if v in datetimevars else
@@ -258,7 +258,7 @@ if __name__ == "__main__":
 
     klass = globals()[sys.argv[1]]
     start = time.time() 
-    #filename = "./test_data/Employee data.sav"
+    filename = "./test_data/Employee data.sav"
     filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename, rawMode=False)) as sav:
