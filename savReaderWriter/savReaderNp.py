@@ -79,14 +79,13 @@ class SavReaderNp(SavReader):
             if len(args) == 1 and isinstance(args[0], slice):
                 start, stop, step = args[0].indices(self.nrows)
                 count = (stop - start) // step
-
             
             for varName in self.uvarNames:
                 if not varName in self.datetimevars:
                     continue
                 datetimes = (self.spss2numpyDate(dt) for dt in array[varName])
                 array = array.astype(self.datetime_dtype)
-                array[varName] = np.fromiter(datetimes, np.datetime64, count)  # TODO: this doesn't work in Python 3
+                array[varName] = np.fromiter(datetimes, "datetime64[ns]", count)  # TODO: this doesn't work in Python 3
             return array
         return _convert_datetimes
 
@@ -121,8 +120,8 @@ class SavReaderNp(SavReader):
         """x.__iter__() <==> iter(x). Yields records as a tuple.
         If rawMode=True, trailing spaces of strings are not removed
         and SPSS dates are not converted into numpy dates"""
-        varNames = self.varNames
-        varTypes = self.varTypes
+        varNames = self.uvarNames
+        varTypes = self.uvarTypes
         datetimevars = self.datetimevars
         
         for row in xrange(self.nrows):
@@ -292,9 +291,10 @@ if __name__ == "__main__":
     #filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename, rawMode=False)) as sav:
-        print(sav.all())
+        #print(sav.all())
         #print(sav.datetime_dtype
-        print(sav[0:3])
+        #print(sav[5])
+        print(next(iter(sav)))
         #for record in sav:
             #print(record)
             #print(type(record[2]))
