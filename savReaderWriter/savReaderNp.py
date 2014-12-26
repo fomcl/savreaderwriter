@@ -18,13 +18,17 @@ from savReaderWriter import *
 from error import *
 from helpers import *
 
-# TODO: now focuses entirely on recarrays (heterogeneous) , also for ndarrays (homogeneous)
-# TODO: get this working under Python 3
+# TODO: now focuses entirely on structured arrays (heterogeneous), also for ndarrays (homogeneous)
 
 try:
     xrange
 except NameError:
     xrange = range
+
+try:
+   from itertools import izip
+except ImportError:
+   izip = zip
 
 class SavReaderNp(SavReader):
 
@@ -131,7 +135,7 @@ class SavReaderNp(SavReader):
                 continue
             yield tuple([self.spss2numpyDate(value) if v in datetimevars else
                          value.rstrip() if varTypes[v] else value for value, v
-                         in zip(record, varNames)])
+                         in izip(record, varNames)])
       
     def init_funcs(self):
         """Helper to initialize C functions of the SPSS I/O module: set their
@@ -259,7 +263,7 @@ if __name__ == "__main__":
     klass = globals()[sys.argv[1]]
     start = time.time() 
     filename = "./test_data/Employee data.sav"
-    filename = '/home/antonia/Desktop/big.sav'
+    #filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename, rawMode=False)) as sav:
         #print(sav.all())
