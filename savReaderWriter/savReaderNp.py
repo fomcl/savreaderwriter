@@ -149,6 +149,13 @@ class SavReaderNp(SavReader):
         self.wholeCaseIn.argtypes = [c_int, POINTER(c_char * self.record_size)]
         self.wholeCaseIn.errcheck = self.errcheck
 
+        from numpy.ctypeslib import ndpointer
+        self.wholeCaseInNp = self.spssio.spssWholeCaseIn
+        dtype = [(name.encode(self.fileEncoding), fmt) for 
+                 (title, name), fmt in self.struct_dtype.descr]
+        #self.wholeCaseInNp.argtypes = [c_int, ndpointer(dtype, shape=self.shape.ncols)]  # flags="C"/"F"
+        self.wholeCaseInNp.errcheck = self.errcheck
+
     def errcheck(self, retcode, func, arguments):
         """Checks for return codes > 0 when calling C functions of the 
         SPSS I/O module"""
@@ -234,6 +241,17 @@ class SavReaderNp(SavReader):
             return datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0)
 
     @convert_datetimes
+    def toarray2(self):
+        dtype = [(name.encode(self.fileEncoding), fmt) for 
+                 (title, name), fmt in self.struct_dtype.descr]
+        array = np.empty(self.nrows, self.trunc_dtype) 
+        record = np.empty(self.ncols, dtype)
+        for row in xrange(self.nrows):
+            self.wholeCaseInNp(self.fh, record)
+            array[row] = record.astype(self.trunc_dtype)
+        return array
+
+    @convert_datetimes
     def toarray(self, filename=None, dtype="trunc_dtype"):
         """Return the data in <savFileName> as a structured array, optionally
         using <filename> as a memmapped file. Dtype can be eiter "trunc_dtype"
@@ -266,10 +284,12 @@ if __name__ == "__main__":
     #filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename, rawMode=False)) as sav:
+        #print(sav.struct_dtype.descr)
+        print(sav.toarray2())
         #print(sav.all())
-        for record in sav:
+        #for record in sav:
             #print(record)
-            pass  
+            #pass  
     print("%s version: %5.3f" % (sys.argv[1], (time.time() - start)))
 
 
