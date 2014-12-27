@@ -11,7 +11,7 @@ from ctypes import *
 from functools import wraps
 
 import numpy as np
-import pandas as pd
+import pandas as pds
 
 import sys; sys.path.insert(0, "/home/antonia/Desktop/savreaderwriter")
 from savReaderWriter import *
@@ -110,7 +110,7 @@ class SavReaderNp(SavReader):
                 raise IndexError("index out of bounds")
             key = self.nrows + key if key < 0 else key
             self.seekNextCase(self.fh, key)
-            self.wholeCaseIn(self.fh, byref(self.caseBuffer))
+            self.wholeCaseIn(self.fh, self.caseBuffer)
             record = np.fromstring(self.caseBuffer, self.struct_dtype)
         else:
             raise TypeError("slice or int required")
@@ -122,17 +122,19 @@ class SavReaderNp(SavReader):
     def __iter__(self):
         """x.__iter__() <==> iter(x). Yields records as a tuple.
         If rawMode=True, trailing spaces of strings are not removed
-        and SPSS dates are not converted into numpy dates"""
+        and SPSS dates are not converted into datetime dates"""
         varNames = self.uvarNames
         varTypes = self.uvarTypes
         datetimevars = self.datetimevars
-        
+        shortcut = self.rawMode or not self.do_convert_datetimes or \
+                   not datetimevars
         for row in xrange(self.nrows):
-            self.wholeCaseIn(self.fh, byref(self.caseBuffer))
+            self.wholeCaseIn(self.fh, self.caseBuffer)
             record = self.unpack(self.caseBuffer)
-            if self.rawMode or not self.do_convert_datetimes or not datetimevars:
+            if shortcut:
                 yield record
                 continue
+            # TODO: consider: http://docs.scipy.org/doc/numpy/reference/generated/numpy.core.defchararray.rstrip.html#numpy.core.defchararray.rstrip
             yield tuple([self.spss2numpyDate(value) if v in datetimevars else
                          value.rstrip() if varTypes[v] else value for value, v
                          in izip(record, varNames)])
@@ -148,13 +150,6 @@ class SavReaderNp(SavReader):
         self.wholeCaseIn = self.spssio.spssWholeCaseIn
         self.wholeCaseIn.argtypes = [c_int, POINTER(c_char * self.record_size)]
         self.wholeCaseIn.errcheck = self.errcheck
-
-        from numpy.ctypeslib import ndpointer
-        self.wholeCaseInNp = self.spssio.spssWholeCaseIn
-        dtype = [(name.encode(self.fileEncoding), fmt) for 
-                 (title, name), fmt in self.struct_dtype.descr]
-        #self.wholeCaseInNp.argtypes = [c_int, ndpointer(dtype, shape=self.shape.ncols)]  # flags="C"/"F"
-        self.wholeCaseInNp.errcheck = self.errcheck
 
     def errcheck(self, retcode, func, arguments):
         """Checks for return codes > 0 when calling C functions of the 
@@ -242,14 +237,21 @@ class SavReaderNp(SavReader):
 
     @convert_datetimes
     def toarray2(self):
+        # slower than toarray!
+        from numpy.ctypeslib import ndpointer
+
         dtype = [(name.encode(self.fileEncoding), fmt) for 
                  (title, name), fmt in self.struct_dtype.descr]
-        array = np.empty(self.nrows, self.trunc_dtype) 
-        record = np.empty(self.ncols, dtype)
+        ndptr = ndpointer(dtype, shape=self.nrows + 1)
+        self.wholeCaseIn.argtypes = [c_int, ndptr]
+
+        array = np.empty(self.nrows + 1, dtype)
         for row in xrange(self.nrows):
-            self.wholeCaseInNp(self.fh, record)
-            array[row] = record.astype(self.trunc_dtype)
-        return array
+            self.wholeCaseIn(self.fh, array)
+            array[row + 1] = array[0] 
+
+        self.wholeCaseIn.argtypes = [c_int, POINTER(c_char * self.record_size)]
+        return array[1:]
 
     @convert_datetimes
     def toarray(self, filename=None, dtype="trunc_dtype"):
@@ -281,11 +283,11 @@ if __name__ == "__main__":
     klass = globals()[sys.argv[1]]
     start = time.time() 
     filename = "./test_data/Employee data.sav"
-    #filename = '/home/antonia/Desktop/big.sav'
+    filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename, rawMode=False)) as sav:
         #print(sav.struct_dtype.descr)
-        print(sav.toarray2())
+        sav.toarray()
         #print(sav.all())
         #for record in sav:
             #print(record)
