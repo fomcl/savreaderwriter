@@ -287,9 +287,9 @@ class SavReaderNp(SavReader):
 
         return array
 
-    def all(self, filename=None, dtype="trunc_dtype"):
+    def all(self, filename=None):
         """Wrapper for toarray; overrides the SavReader version"""
-        return self.toarray(filename, dtype)
+        return self.toarray(filename)
 
 
 if __name__ == "__main__":
@@ -299,13 +299,13 @@ if __name__ == "__main__":
     klass = globals()[sys.argv[1]]
     start = time.time() 
     filename = "./test_data/Employee data.sav"
-    filename = "./test_data/greetings.sav"
+    #filename = "./test_data/greetings.sav"
     #filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename, rawMode=True, ioUtf8=False)) as sav:
         #print(sav.struct_dtype.descr)
-        array = sav.toarray(None)
-        #sav.all()
+        #array = sav.toarray(None)
+        sav.all()
         #for record in sav:
             #print(record)
             #pass  
