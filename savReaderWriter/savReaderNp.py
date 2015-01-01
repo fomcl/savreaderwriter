@@ -9,6 +9,7 @@ import datetime
 from math import ceil
 from ctypes import *
 from functools import wraps
+from itertools import chain
 from bisect import bisect
 
 import numpy as np
@@ -205,7 +206,7 @@ class SavReaderNp(SavReader):
         """Get the struct dtype of the binary record"""
         if self.is_homogeneous:
             byteorder = u"<" if self.byteorder == u"little" else u">"
-            return nd.dtype(byteorder + u"d")
+            return np.dtype(byteorder + u"d")
         fmt8 = lambda varType: int(ceil(varType / 8.) * 8)
         varTypes = [self.varTypes[varName] for varName in self.varNames]
         byteorder = u"<" if self.byteorder == "little" else u">"
@@ -234,6 +235,8 @@ class SavReaderNp(SavReader):
         other numerical (e.g. DOLLAR) or string (AHEX) are treated the same
         way, e.g. DOLLAR5.2 will become float64.
         """
+        if self.is_homogeneous and self.rawMode:
+            return self.struct_dtype
         dst_fmts = ["f2", "f5", "f8", "f8"]
         get_dtype = lambda src_fmt: dst_fmts[bisect([2, 5, 8], src_fmt)]
         widths = [int(re.search(u"\d+", self.uformats[v]).group(0)) 
@@ -315,22 +318,33 @@ class SavReaderNp(SavReader):
         else:
             array = np.fromiter(self, self.trunc_dtype, self.nrows)
         self.do_convert_datetimes = True
-
         return array
 
-    def all(self, filename=None, dtype="trunc_dtype"):
+    def to_ndarray(self):
+        values = chain.from_iterable(self)
+        dtype = np.dtype("float64") 
+        count = np.prod(self.shape) 
+        array = np.fromiter(values, dtype, count)
+        array.shape = self.shape 
+        return array 
+
+    def all(self, filename=None):
         """Wrapper for toarray; overrides the SavReader version"""
-        return self.toarray(filename, dtype)
+        return self.toarray(filename)
 
 
 if __name__ == "__main__":
     import time
     from contextlib import closing
     savFileName = "./test_data/all_numeric.sav"
-    with SavWriter(savFileName, ["v1", "v2"], {"v1": 0, "v2": 0}) as writer:
-        writer.writerow([0, 666])
-        writer.writerow([1, 666])
-        writer.writerow([2, 666])
+    kwargs = dict( \
+    savFileName = savFileName,
+    varNames = ["v1", "v2"],
+    varTyoes = {"v1": 0, "v2": 0} )
+    if not os.path.exists(savFileName):
+        with SavWriter(**kwargs) as writer:
+            for i in xrange(10 ** 6):
+                writer.writerow([i, 666])
 
     klass = globals()[sys.argv[1]]
     start = time.time() 
@@ -341,7 +355,8 @@ if __name__ == "__main__":
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename, rawMode=False, ioUtf8=False)) as sav:
         #print(sav.struct_dtype.descr)
-        array = sav.toarray(None)
+        #array = sav.tondarray()
+        array = sav.toarray() 
         print(sav.formats)
         #sav.all()
         #for record in sav:
