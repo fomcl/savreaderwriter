@@ -70,8 +70,8 @@ class Test_SavReaderNp(unittest.TestCase):
         actual = self.npreader.toarray()[:3]
 
         obj = \
-        {'formats': ['<f4', '|S1', 'datetime64[us]', '<f4', '<f4',
-                     '<f4', '<f4', '<f4', '<f4', '<f4'],
+        {'formats': ['<f4', 'S1', '<M8[us]', '<f4', '<f2',
+                     '<f8', '<f8', '<f4', '<f8', '<f2'],
          'names': [u'id', u'gender', u'bdate', u'educ', u'jobcat',
                    u'salary', u'salbegin', u'jobtime', u'prevexp', 
                    u'minority'],

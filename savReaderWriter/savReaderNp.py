@@ -9,6 +9,7 @@ import datetime
 from math import ceil
 from ctypes import *
 from functools import wraps
+from bisect import bisect
 
 import numpy as np
 
@@ -194,8 +195,17 @@ class SavReaderNp(SavReader):
         return [title.decode(self.fileEncoding) for title in titles]
 
     @memoized_property
+    def is_homogeneous(self):
+        """Returns boolean that indicates whether the dataset contains only 
+        numerical variables (datetimes excluded)"""
+        return not max(list(self.varTypes.values())) and not self.datetimevars
+
+    @memoized_property
     def struct_dtype(self):
         """Get the struct dtype of the binary record"""
+        if self.is_homogeneous:
+            byteorder = u"<" if self.byteorder == u"little" else u">"
+            return nd.dtype(byteorder + u"d")
         fmt8 = lambda varType: int(ceil(varType / 8.) * 8)
         varTypes = [self.varTypes[varName] for varName in self.varNames]
         byteorder = u"<" if self.byteorder == "little" else u">"
@@ -206,10 +216,31 @@ class SavReaderNp(SavReader):
 
     @memoized_property
     def trunc_dtype(self):
-        """Get the truncated (single-precision, no trailing spaces) dtype"""
-        formats = [u'a%s' % re.search(u"\d+", self.uformats[v]).group(0) if
-                   self.uvarTypes[v] else u"f8" if v in self.datetimevars else 
-                   u"f4" for v in self.uvarNames]
+        """Derive the numpy dtype from the SPSS _display_ formats.
+
+        The following conversions are made:
+        ---------+--------
+        spss     | numpy
+        ---------+--------
+        <= F2    | float16
+        F3-F5    | float32
+        >= F5    | float64
+        datetime | float64
+        A1 >=    | S1 >=
+        Note that all numerical values are stored in SPSS files as double
+        precision floats. The SPSS display formats are used to create a more
+        compact dtype. Datetime formats are never shrunk to a more compact 
+        format. In the table above, only F and A formats are displayed, but
+        other numerical (e.g. DOLLAR) or string (AHEX) are treated the same
+        way, e.g. DOLLAR5.2 will become float64.
+        """
+        dst_fmts = ["f2", "f5", "f8", "f8"]
+        get_dtype = lambda src_fmt: dst_fmts[bisect([2, 5, 8], src_fmt)]
+        widths = [int(re.search(u"\d+", self.uformats[v]).group(0)) 
+                  for v in self.uvarNames]
+        formats = [u'a%s' % widths[i] if self.uvarTypes[v] else u"f8" if 
+                   v in self.datetimevars else get_dtype(widths[i]) for 
+                   i, v in enumerate(self.uvarNames)]
         obj = dict(names=self.uvarNames, formats=formats, titles=self.titles)
         return np.dtype(obj)
 
@@ -295,16 +326,23 @@ class SavReaderNp(SavReader):
 if __name__ == "__main__":
     import time
     from contextlib import closing
+    savFileName = "./test_data/all_numeric.sav"
+    with SavWriter(savFileName, ["v1", "v2"], {"v1": 0, "v2": 0}) as writer:
+        writer.writerow([0, 666])
+        writer.writerow([1, 666])
+        writer.writerow([2, 666])
 
     klass = globals()[sys.argv[1]]
     start = time.time() 
     filename = "./test_data/Employee data.sav"
     filename = "./test_data/greetings.sav"
+    filename = "./test_data/all_numeric.sav"
     #filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
-    with closing(klass(filename, rawMode=True, ioUtf8=False)) as sav:
+    with closing(klass(filename, rawMode=False, ioUtf8=False)) as sav:
         #print(sav.struct_dtype.descr)
         array = sav.toarray(None)
+        print(sav.formats)
         #sav.all()
         #for record in sav:
             #print(record)
