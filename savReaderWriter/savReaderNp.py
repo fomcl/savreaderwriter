@@ -9,7 +9,7 @@ import datetime
 from math import ceil
 from ctypes import *
 from functools import wraps
-from itertools import chain
+from itertools import chain, islice
 from bisect import bisect
 
 import numpy as np
@@ -293,7 +293,7 @@ class SavReaderNp(SavReader):
         def _convert_missings(*args):
             if self.rawMode:
                 return array
-            cutoff = 10e-200
+            cutoff = -sys.float_info.max
             sysmis = self.recodeSysmisTo
             for v in self.uvarNames:
                 if v in self.datetimevars or self.uvarTypes[v]:
@@ -320,12 +320,40 @@ class SavReaderNp(SavReader):
         self.do_convert_datetimes = True
         return array
 
-    def to_ndarray(self):
+    def to_ndarray(self, filename=None):
         values = chain.from_iterable(self)
         dtype = np.dtype("float64") 
         count = np.prod(self.shape) 
-        array = np.fromiter(values, dtype, count)
-        array.shape = self.shape 
+
+        if filename:
+            array = np.memmap(filename, dtype, 'w+', shape=count)
+            step = 600000
+            for start in xrange(0, count, step):
+                stop = start + step 
+                print("chunk: %d-%d" % (start, stop))
+                values = chain.from_iterable(islice(self, start, stop))
+                array[start:stop] = np.fromiter(values, dtype, -1) #step)
+                try: 
+                    pass
+                    #array[start:stop] = np.fromiter(values, dtype, -1) #step)
+                except ValueError:
+                    pass
+                    # TODO 
+                    #remainder = int(ceil(divmod(count, step)[1]))
+                    #print((remainder, start, start+remainder)) 
+                    #print(array[stop:stop+remainder+1])
+                    #array[stop:stop+remainder+1] = np.fromiter(values, dtype, remainder)
+        else:
+            array = np.fromiter(values, dtype, count)
+
+        array.shape = self.shape
+
+        # convert missing values
+        cutoff =  -sys.float_info.max
+        array[:] = np.where(array < cutoff,  self.recodeSysmisTo, array)
+
+        if filename:
+            array.flush()
         return array 
 
     def all(self, filename=None):
@@ -340,7 +368,7 @@ if __name__ == "__main__":
     kwargs = dict( \
     savFileName = savFileName,
     varNames = ["v1", "v2"],
-    varTyoes = {"v1": 0, "v2": 0} )
+    varTypes = {"v1": 0, "v2": 0} )
     if not os.path.exists(savFileName):
         with SavWriter(**kwargs) as writer:
             for i in xrange(10 ** 6):
@@ -353,10 +381,10 @@ if __name__ == "__main__":
     filename = "./test_data/all_numeric.sav"
     #filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
-    with closing(klass(filename, rawMode=False, ioUtf8=False)) as sav:
+    with closing(klass(filename, rawMode=True, ioUtf8=False)) as sav:
         #print(sav.struct_dtype.descr)
-        #array = sav.tondarray()
-        array = sav.toarray() 
+        array = sav.to_ndarray("/tmp/test.dat")
+        #array = sav.toarray() 
         print(sav.formats)
         #sav.all()
         #for record in sav:
