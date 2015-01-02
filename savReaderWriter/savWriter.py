@@ -18,11 +18,14 @@ class SavWriter(Header):
 
     Parameters:
     * Formal
-    -savFileName: the file name of the spss data file. File names that end with
-      '.zsav' are compressed using the ZLIB (ZSAV) compression scheme
-      (requires v21 SPSS I/O files), while for file names that end with '.sav'
-      the 'old' compression scheme is used (it is not possible to generate
-      uncompressed files unless you modify the source code).
+    -savFileName: the file name of the spss data file. 
+       -File names that end with '.sav' are compressed using the 'old' 
+        compression scheme
+       -File names that end with '_uncompressed.sav' are, well, not 
+        compressed. This is useful when you intend to read the files with 
+        the faster UncompressedSavReader class
+       -File names that end with '.zsav' are compressed using the ZLIB (ZSAV)
+        compression scheme (requires v21 SPSS I/O files)
     -varNames: list of the variable names in the order in which they appear in
       in the spss data file.
     -varTypes: varTypes dictionary {varName: varType}, where varType == 0 means
@@ -171,9 +174,12 @@ class SavWriter(Header):
             raise IOError("No write access for file %r" % savFileName)
 
         if overwrite or not os.path.exists(savFileName):
-            # always compress files, either zsav or standard.
-            if savFileName.lower().endswith(".zsav"):
+            if savFileName.lower().endswith((b".zsav", 
+                                             u".zsav")):
                 self.fileCompression = b"zlib"  # only with v21 libraries!
+            elif savFileName.lower().endswith((b"_uncompressed.sav", 
+                                               u"_uncompressed.sav")):
+                self.fileCompression = b"uncompressed"
             else:
                 self.fileCompression = b"standard"
         elif not overwrite and os.path.exists(savFileName):
