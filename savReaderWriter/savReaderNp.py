@@ -104,12 +104,12 @@ class SavReaderNp(SavReader):
             if self.rawMode:
                 return array
             elif self.is_homogeneous:
-                array[:] = np.where(array < cutoff, sysmis, array)
+                array[:] = np.where(array <= cutoff, sysmis, array)
             else:
                 for v in self.uvarNames:
                     if v in self.datetimevars or self.uvarTypes[v]:
                         continue
-                    array[v] = np.where(array[v] < cutoff, sysmis, array[v])
+                    array[v] = np.where(array[v] <= cutoff, sysmis, array[v])
 
             if hasattr(array, "flush"):  # memmapped
                 array.flush()
@@ -339,8 +339,9 @@ if __name__ == "__main__":
     varTypes = {"v1": 0, "v2": 0} )
     if not os.path.exists(savFileName):
         with SavWriter(**kwargs) as writer:
-            for i in xrange(10 ** 6):
-                writer.writerow([i, 666])
+            for i in xrange(10 ** 2):
+                value = None if not i else i ** 2
+                writer.writerow([i, value])
 
     klass = globals()[sys.argv[1]]
     start = time.time() 
