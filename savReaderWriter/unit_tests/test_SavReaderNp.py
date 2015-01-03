@@ -65,9 +65,9 @@ class Test_SavReaderNp(unittest.TestCase):
 
     # ---------------
 
-    def test_toarray_inmemory(self):
+    def test_to_recarray_inmemory(self):
         self.npreader = SavReaderNp(self.filename)
-        actual = self.npreader.toarray()[:3]
+        actual = self.npreader.to_recarray()[:3]
 
         obj = \
         {'formats': ['<f4', 'S1', '<M8[us]', '<f4', '<f2',
@@ -92,9 +92,9 @@ class Test_SavReaderNp(unittest.TestCase):
         self.assertEqual(actual.tolist(), desired.tolist())
         self.assertEqual(actual.dtype, desired.dtype)
 
-    def test_toarray_inmemory_raw(self):
+    def test_to_recarray_inmemory_raw(self):
         self.npreader = SavReaderNp(self.filename, rawMode=True)
-        actual = self.npreader.toarray()[:3].tolist()
+        actual = self.npreader.to_recarray()[:3].tolist()
         desired = \
         [(1.0, b'm', 11654150400.0, 15.0, 3.0,
           57000.0, 27000.0, 98.0, 144.0, 0.0),
@@ -104,10 +104,10 @@ class Test_SavReaderNp(unittest.TestCase):
           21450.0, 12000.0, 98.0, 381.0, 0.0)]
         self.assertEqual(actual, desired)
   
-    def test_toarray_memmap(self):
+    def test_to_recarray_memmap(self):
         self.npreader = SavReaderNp(self.filename)
         mmapfile = tempfile.mkstemp()[1]
-        actual = self.npreader.toarray(mmapfile)[:3].tolist()
+        actual = self.npreader.to_recarray(mmapfile)[:3].tolist()
         desired = \
         [(1.0, b'm', datetime.datetime(1952, 2, 3, 0, 0), 15.0, 
           3.0, 57000.0, 27000.0, 98.0, 144.0, 0.0),
@@ -118,10 +118,10 @@ class Test_SavReaderNp(unittest.TestCase):
         self.assertEqual(actual, desired)
         os.remove(mmapfile)
 
-    def test_toarray_memmap_raw(self):
+    def test_to_recarray_memmap_raw(self):
         self.npreader = SavReaderNp(self.filename, rawMode=True)
         mmapfile = tempfile.mkstemp()[1]
-        actual = self.npreader.toarray(mmapfile)[:3].tolist()
+        actual = self.npreader.to_recarray(mmapfile)[:3].tolist()
         desired = \
         [(1.0, b'm', 11654150400.0, 15.0, 3.0,
           57000.0, 27000.0, 98.0, 144.0, 0.0),

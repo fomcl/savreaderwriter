@@ -38,7 +38,7 @@ class SavReaderNp(SavReader):
     Typical use:
     from contextlib import closing
     with closing(SavReaderNp("Employee data.sav")) as reader_np: 
-        array = reader_np.toarray("/tmp/test.dat") # memmapped array 
+        array = reader_np.to_recarray("/tmp/test.dat") # memmapped array 
     """
 
     def __init__(self, savFileName, recodeSysmisTo=np.nan, rawMode=False, 
@@ -294,7 +294,7 @@ class SavReaderNp(SavReader):
 
     @convert_datetimes
     @convert_missings
-    def toarray(self, filename=None):
+    def to_recarray(self, filename=None):
         """Return the data in <savFileName> as a structured array, optionally
         using <filename> as a memmapped file."""
         self.do_convert_datetimes = False  # no date conversion in __iter__ 
@@ -325,8 +325,8 @@ class SavReaderNp(SavReader):
         return array 
 
     def all(self, filename=None):
-        """Wrapper for toarray; overrides the SavReader version"""
-        return self.toarray(filename)
+        """Wrapper for to_recarray; overrides the SavReader version"""
+        return self.to_recarray(filename)
 
 
 if __name__ == "__main__":
@@ -352,7 +352,7 @@ if __name__ == "__main__":
     with closing(klass(filename, rawMode=False, ioUtf8=False)) as sav:
         #print(sav.struct_dtype.descr)
         array_ = sav.to_ndarray("/tmp/test.dat")
-        #array = sav.toarray() 
+        #array = sav.to_recarray() 
         print(sav.formats)
         #sav.all()
         #for record in sav:
