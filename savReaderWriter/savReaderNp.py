@@ -19,7 +19,6 @@ from savReaderWriter import *
 from error import *
 from helpers import *
 
-# TODO: now focuses entirely on structured arrays (heterogeneous), also for ndarrays (homogeneous)
 
 try:
     xrange
@@ -94,6 +93,29 @@ class SavReaderNp(SavReader):
                 dt_array[varName] = np.fromiter(datetimes, "datetime64[us]", count)
             return dt_array
         return _convert_datetimes
+
+    def convert_missings(func):
+        """Decorator to recode numerical missing values, unless they are 
+        datetimes"""
+        def _convert_missings(self, *args):
+            array = func(self, *args) 
+            cutoff = -sys.float_info.max
+            sysmis = self.recodeSysmisTo
+            if self.rawMode:
+                return array
+            elif self.is_homogeneous:
+                array[:] = np.where(array < cutoff, sysmis, array)
+            else:
+                for v in self.uvarNames:
+                    if v in self.datetimevars or self.uvarTypes[v]:
+                        continue
+                    array[v] = np.where(array[v] < cutoff, sysmis, array[v])
+
+            if hasattr(array, "flush"):  # memmapped
+                array.flush()
+
+            return array
+        return _convert_missings
 
     @convert_datetimes
     def __getitem__(self, key):
@@ -219,7 +241,7 @@ class SavReaderNp(SavReader):
     def trunc_dtype(self):
         """Derive the numpy dtype from the SPSS _display_ formats.
 
-        The following conversions are made:
+        The following spss-format to numpy-dtype conversions are made:
         ---------+--------
         spss     | numpy
         ---------+--------
@@ -235,7 +257,7 @@ class SavReaderNp(SavReader):
         other numerical (e.g. DOLLAR) or string (AHEX) are treated the same
         way, e.g. DOLLAR5.2 will become float64.
         """
-        if self.is_homogeneous and self.rawMode:
+        if self.is_homogeneous:
             return self.struct_dtype
         dst_fmts = ["f2", "f5", "f8", "f8"]
         get_dtype = lambda src_fmt: dst_fmts[bisect([2, 5, 8], src_fmt)]
@@ -271,40 +293,6 @@ class SavReaderNp(SavReader):
             return datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0)
 
     @convert_datetimes
-    def toarray2(self):
-        # slower than toarray!
-        from numpy.ctypeslib import ndpointer
-
-        dtype = [(name.encode(self.fileEncoding), fmt) for 
-                 (title, name), fmt in self.struct_dtype.descr]
-        self.wholeCaseIn.argtypes = [c_int, ndpointer(dtype)]
-
-        array = np.empty(self.nrows, dtype)
-        for row in xrange(self.nrows):
-            self.wholeCaseIn(self.fh, array[row:row + 1])
-
-        self.wholeCaseIn.argtypes = [c_int, POINTER(c_char * self.record_size)]
-        return array
-
-    def convert_missings(func):
-        """Decorator to recode numerical missing values, unless they are 
-        datetimes"""
-        @wraps
-        def _convert_missings(*args):
-            if self.rawMode:
-                return array
-            cutoff = -sys.float_info.max
-            sysmis = self.recodeSysmisTo
-            for v in self.uvarNames:
-                if v in self.datetimevars or self.uvarTypes[v]:
-                    continue
-                array[v] = np.where(array[v] < cutoff, sysmis, array[v])
-                if hasattr(array, "flush"):  # memmapped
-                    array.flush()
-            return array
-        return func
-
-    @convert_datetimes
     @convert_missings
     def toarray(self, filename=None):
         """Return the data in <savFileName> as a structured array, optionally
@@ -320,40 +308,20 @@ class SavReaderNp(SavReader):
         self.do_convert_datetimes = True
         return array
 
+    @convert_missings
     def to_ndarray(self, filename=None):
-        values = chain.from_iterable(self)
-        dtype = np.dtype("float64") 
-        count = np.prod(self.shape) 
-
-        if filename:
-            array = np.memmap(filename, dtype, 'w+', shape=count)
-            step = 600000
-            for start in xrange(0, count, step):
-                stop = start + step 
-                print("chunk: %d-%d" % (start, stop))
-                values = chain.from_iterable(islice(self, start, stop))
-                array[start:stop] = np.fromiter(values, dtype, -1) #step)
-                try: 
-                    pass
-                    #array[start:stop] = np.fromiter(values, dtype, -1) #step)
-                except ValueError:
-                    pass
-                    # TODO 
-                    #remainder = int(ceil(divmod(count, step)[1]))
-                    #print((remainder, start, start+remainder)) 
-                    #print(array[stop:stop+remainder+1])
-                    #array[stop:stop+remainder+1] = np.fromiter(values, dtype, remainder)
+        """Converts a homogeneous, all-numeric SPSS dataset into an ndarray,
+        unless the numerical variables are actually datetimes"""
+        if not self.is_homogeneous:
+            raise ValueError("Need only floats in dataset")
+        elif filename:
+            array = np.memmap(filename, float, 'w+', shape=self.shape)
+            for row, record in enumerate(self):
+                array[row,:] = record
         else:
-            array = np.fromiter(values, dtype, count)
-
-        array.shape = self.shape
-
-        # convert missing values
-        cutoff =  -sys.float_info.max
-        array[:] = np.where(array < cutoff,  self.recodeSysmisTo, array)
-
-        if filename:
-            array.flush()
+            values = chain.from_iterable(self)
+            count = np.prod(self.shape) 
+            array = np.fromiter(values, float, count).reshape(self.shape)
         return array 
 
     def all(self, filename=None):
@@ -381,9 +349,9 @@ if __name__ == "__main__":
     filename = "./test_data/all_numeric.sav"
     #filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
-    with closing(klass(filename, rawMode=True, ioUtf8=False)) as sav:
+    with closing(klass(filename, rawMode=False, ioUtf8=False)) as sav:
         #print(sav.struct_dtype.descr)
-        array = sav.to_ndarray("/tmp/test.dat")
+        array_ = sav.to_ndarray("/tmp/test.dat")
         #array = sav.toarray() 
         print(sav.formats)
         #sav.all()
