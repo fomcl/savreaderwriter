@@ -174,11 +174,9 @@ class SavWriter(Header):
             raise IOError("No write access for file %r" % savFileName)
 
         if overwrite or not os.path.exists(savFileName):
-            if savFileName.lower().endswith((b".zsav", 
-                                             u".zsav")):
+            if savFileName.lower().endswith(".zsav"):
                 self.fileCompression = b"zlib"  # only with v21 libraries!
-            elif savFileName.lower().endswith((b"_uncompressed.sav", 
-                                               u"_uncompressed.sav")):
+            elif savFileName.lower().endswith("_uncompressed.sav"):
                 self.fileCompression = b"uncompressed"
             else:
                 self.fileCompression = b"standard"
