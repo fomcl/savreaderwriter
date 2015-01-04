@@ -5,7 +5,6 @@ import unittest
 import datetime
 import tempfile
 import os
-from math import isnan
 import numpy as np
 import numpy.testing
 import sys; sys.path.insert(0, "/home/antonia/Desktop/savreaderwriter")
@@ -146,13 +145,11 @@ class Test_SavReaderNp(unittest.TestCase):
 
     def test_to_ndarray(self):
         self.npreader = SavReaderNp(self.nfilename)
-        actual = self.npreader.to_ndarray().tolist()[:5]
-        desired = [[0.0, np.nan], [1.0, 1.0], [2.0, 4.0], 
+        actual = self.npreader.to_ndarray()[:5, :]
+        records = [[0.0, np.nan], [1.0, 1.0], [2.0, 4.0], 
                    [3.0, 9.0], [4.0, 16.0]]
-        func = lambda a, d: isnan(a) and isnan(d) or a == d
-        items = [func(a, d) for arec, drec in zip(actual, desired) 
-                 for a, d in zip(arec, drec)]
-        self.assertTrue(all(items))
+        desired = np.array(records)
+        numpy.testing.assert_array_equal(actual, desired) 
       
     def tearDown(self):
         self.npreader.close()

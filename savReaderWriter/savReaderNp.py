@@ -6,6 +6,7 @@ from pprint import pprint as print
 import os
 import re
 import datetime
+import struct
 from math import ceil
 from ctypes import *
 from functools import wraps
@@ -18,6 +19,12 @@ import sys; sys.path.insert(0, "/home/antonia/Desktop/savreaderwriter")
 from savReaderWriter import *
 from error import *
 from helpers import *
+
+# TODO:
+# unittests for uncompressed .sav files
+# ioLocale, ioUtf8 (latter currently fails)
+# pytables integration
+# numba.jit
 
 
 try:
@@ -39,6 +46,11 @@ class SavReaderNp(SavReader):
     from contextlib import closing
     with closing(SavReaderNp("Employee data.sav")) as reader_np: 
         array = reader_np.to_recarray("/tmp/test.dat") # memmapped array 
+
+    Note. The sav-to-array conversion is MUCH faster when uncompressed .sav 
+    files are used. These are created with the SPSS command
+       SAVE OUTFILE = 'some_file.sav' /UNCOMPRESSED.
+    This is NOT the default in SPSS. See also SavReader documentation
     """
 
     def __init__(self, savFileName, recodeSysmisTo=np.nan, rawMode=False, 
@@ -58,6 +70,12 @@ class SavReaderNp(SavReader):
         self.gregorianEpoch = datetime.datetime(1582, 10, 14, 0, 0, 0)
         self.do_convert_datetimes = True
         self.nrows, self.ncols = self.shape
+
+        if self.is_uncompressed:
+            self.sav = open(self.savFileName, "rb")
+            self.__iter__ = self._uncompressed_iter
+            self.to_ndarray = self._uncompressed_to_ndarray
+            self.to_recarray = self._uncompressed_to_recarray  
 
     def _items(self, start, stop, step):
         """Helper function for __getitem__"""
@@ -157,7 +175,6 @@ class SavReaderNp(SavReader):
             if shortcut:
                 yield record
                 continue
-            # TODO: consider: http://docs.scipy.org/doc/numpy/reference/generated/numpy.core.defchararray.rstrip.html#numpy.core.defchararray.rstrip
             yield tuple([self.spss2numpyDate(value) if v in datetimevars else
                          value.rstrip() if varTypes[v] else value for value, v
                          in izip(record, varNames)])
@@ -242,14 +259,14 @@ class SavReaderNp(SavReader):
         """Derive the numpy dtype from the SPSS _display_ formats.
 
         The following spss-format to numpy-dtype conversions are made:
-        ---------+--------
+        ---------+-------------
         spss     | numpy
-        ---------+--------
-        <= F2    | float16
-        F3-F5    | float32
-        >= F5    | float64
-        datetime | float64
-        A1 >=    | S1 >=
+        ---------+-------------
+        <= F2    | float16 (f2)
+        F3-F5    | float32 (f4)
+        >= F5    | float64 (f8)
+        datetime | float64 (f8, datetime.datetime unless rawMode)
+        A1 >=    | S1 >=   (a1)
         Note that all numerical values are stored in SPSS files as double
         precision floats. The SPSS display formats are used to create a more
         compact dtype. Datetime formats are never shrunk to a more compact 
@@ -259,7 +276,7 @@ class SavReaderNp(SavReader):
         """
         if self.is_homogeneous:
             return self.struct_dtype
-        dst_fmts = ["f2", "f5", "f8", "f8"]
+        dst_fmts = [u"f2", u"f4", u"f8", u"f8"]
         get_dtype = lambda src_fmt: dst_fmts[bisect([2, 5, 8], src_fmt)]
         widths = [int(re.search(u"\d+", self.uformats[v]).group(0)) 
                   for v in self.uvarNames]
@@ -292,6 +309,71 @@ class SavReaderNp(SavReader):
         except (OverflowError, TypeError, ValueError):
             return datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0)
 
+
+    # ---- functions that deal with uncompressed .sav files ----
+    @memoized_property    
+    def is_uncompressed(self):
+        """Returns True if the .sav file was not compressed at all, False
+        otherwise (i.e., neither standard, nor zlib compression was used)."""
+        return self.fileCompression == b"uncompressed"
+
+    def _uncompressed_iter(self):
+        """Faster version of __iter__ that can only be used with 
+        uncompressed .sav files"""
+        self.sav.seek(self.offset)
+        for case in xrange(self.nrows):
+            yield self.unpack(self.sav.read(self.record_size))
+
+    @property
+    def offset(self):
+        """Returns the position of the type 999 record, which indicates the 
+        end of the metadata and the start of the case data"""
+        unpack_int = lambda value: struct.unpack("i", value)
+        i = 0
+        while True:
+            self.sav.seek(i)
+            try: 
+                code = unpack_int(self.sav.read(4))
+            except struct.error:
+                pass
+            i += 1
+            end_of_metadata = code == (999,)
+            if end_of_metadata:
+                self.sav.read(4)
+                return self.sav.tell()
+
+    @convert_datetimes
+    @convert_missings
+    def _uncompressed_to_recarray(self, filename=None):
+        """Read an uncompressed .sav file and return as a structured array"""
+        if not self.is_uncompressed:
+            raise(ValueError, "Only uncompressed files can be used")
+        self.sav.seek(self.offset)
+        nvalues = np.prod(self.shape)
+        if filename:
+            array = np.memmap(filename, self.trunc_dtype, 'w+', shape=self.nrows)
+            array[:] = np.fromfile(self.sav, self.struct_dtype, self.nrows)
+        else:
+            array = np.fromfile(self.sav, self.struct_dtype, self.nrows)
+        return array
+
+    @convert_missings
+    def _uncompressed_to_ndarray(self, filename=None):
+        """Read an uncompressed .sav file and return as an ndarray"""
+        if not self.is_uncompressed:
+            raise(ValueError, "Only uncompressed files can be used")
+        if not self.is_homogeneous:
+            raise ValueError("Need only floats and no datetimes in dataset")
+        self.sav.seek(self.offset)
+        count = np.prod(self.shape)
+        if filename:
+            array = np.memmap(filename, float, 'w+', shape=count)
+            array[:] = np.fromfile(self.sav, self.struct_dtype, count)
+        else:
+            array = np.fromfile(self.sav, self.struct_dtype, count)
+        return array.reshape(self.shape)
+    # ------------------------------------------------------------------------ 
+
     @convert_datetimes
     @convert_missings
     def to_recarray(self, filename=None):
@@ -304,16 +386,23 @@ class SavReaderNp(SavReader):
                 array[row] = record
             #array.flush()
         else:
-            array = np.fromiter(self, self.trunc_dtype, self.nrows)
+            if self.is_uncompressed:
+                array = self._uncompressed_to_array(as_ndarray=False)
+            else: 
+                array = np.fromiter(self, self.trunc_dtype, self.nrows)
         self.do_convert_datetimes = True
         return array
+
+    def all(self, filename=None):
+        """Wrapper for to_recarray; overrides the SavReader version"""
+        return self.to_recarray(filename)
 
     @convert_missings
     def to_ndarray(self, filename=None):
         """Converts a homogeneous, all-numeric SPSS dataset into an ndarray,
         unless the numerical variables are actually datetimes"""
         if not self.is_homogeneous:
-            raise ValueError("Need only floats in dataset")
+            raise ValueError("Need only floats and no datetimes in dataset")
         elif filename:
             array = np.memmap(filename, float, 'w+', shape=self.shape)
             for row, record in enumerate(self):
@@ -324,9 +413,15 @@ class SavReaderNp(SavReader):
             array = np.fromiter(values, float, count).reshape(self.shape)
         return array 
 
-    def all(self, filename=None):
-        """Wrapper for to_recarray; overrides the SavReader version"""
-        return self.to_recarray(filename)
+    def to_array(self, filename=None):
+        """Wrapper for to_ndarray and to_recarray. Returns an ndarray if the
+        dataset is all-numeric homogeneous (and no datetimes), a structured
+        array otherwise"""
+        if self.is_homogeneous:
+            return self.to_ndarray(filename)
+        else:
+            return self.to_recarray(filename)
+
 
 
 if __name__ == "__main__":
@@ -348,13 +443,14 @@ if __name__ == "__main__":
     filename = "./test_data/Employee data.sav"
     filename = "./test_data/greetings.sav"
     filename = "./test_data/all_numeric.sav"
+    filename = "/home/albertjan/nfs/Public/somefile_uncompressed.sav" 
     #filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename, rawMode=False, ioUtf8=False)) as sav:
         #print(sav.struct_dtype.descr)
-        array_ = sav.to_ndarray("/tmp/test.dat")
+        array = sav.to_ndarray() #"/tmp/test.dat")
         #array = sav.to_recarray() 
-        print(sav.formats)
+        #print(sav.formats)
         #sav.all()
         #for record in sav:
             #print(record)
