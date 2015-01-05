@@ -119,9 +119,10 @@ class SavReaderNp(SavReader):
             array = func(self, *args) 
             cutoff = -sys.float_info.max
             sysmis = self.recodeSysmisTo
+            is_to_recarray = func.__name__.endswith('to_recarray')
             if self.rawMode:
                 return array
-            elif self.is_homogeneous:
+            elif self.is_homogeneous and not is_to_recarray:
                 array[:] = np.where(array <= cutoff, sysmis, array)
             else:
                 for v in self.uvarNames:
@@ -274,8 +275,8 @@ class SavReaderNp(SavReader):
         other numerical (e.g. DOLLAR) or string (AHEX) are treated the same
         way, e.g. DOLLAR5.2 will become float64.
         """
-        if self.is_homogeneous:
-            return self.struct_dtype
+        #if self.is_homogeneous:
+        #    return self.struct_dtype
         dst_fmts = [u"f2", u"f4", u"f8", u"f8"]
         get_dtype = lambda src_fmt: dst_fmts[bisect([2, 5, 8], src_fmt)]
         widths = [int(re.search(u"\d+", self.uformats[v]).group(0)) 
@@ -347,30 +348,29 @@ class SavReaderNp(SavReader):
     def _uncompressed_to_recarray(self, filename=None):
         """Read an uncompressed .sav file and return as a structured array"""
         if not self.is_uncompressed:
-            raise(ValueError, "Only uncompressed files can be used")
+            raise ValueError("Only uncompressed files can be used")
         self.sav.seek(self.offset)
-        nvalues = np.prod(self.shape)
         if filename:
             array = np.memmap(filename, self.trunc_dtype, 'w+', shape=self.nrows)
-            array[:] = np.fromfile(self.sav, self.struct_dtype, self.nrows)
+            array[:] = np.fromfile(self.sav, self.trunc_dtype, self.nrows)
         else:
-            array = np.fromfile(self.sav, self.struct_dtype, self.nrows)
+            array = np.fromfile(self.sav, self.trunc_dtype, self.nrows)
         return array
 
     @convert_missings
     def _uncompressed_to_ndarray(self, filename=None):
         """Read an uncompressed .sav file and return as an ndarray"""
         if not self.is_uncompressed:
-            raise(ValueError, "Only uncompressed files can be used")
+            raise ValueError("Only uncompressed files can be used")
         if not self.is_homogeneous:
             raise ValueError("Need only floats and no datetimes in dataset")
         self.sav.seek(self.offset)
         count = np.prod(self.shape)
         if filename:
             array = np.memmap(filename, float, 'w+', shape=count)
-            array[:] = np.fromfile(self.sav, self.struct_dtype, count)
+            array[:] = np.fromfile(self.sav, float, count)
         else:
-            array = np.fromfile(self.sav, self.struct_dtype, count)
+            array = np.fromfile(self.sav, float, count)
         return array.reshape(self.shape)
     # ------------------------------------------------------------------------ 
 
