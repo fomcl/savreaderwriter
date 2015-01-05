@@ -6,6 +6,8 @@
 .. toctree::
    :maxdepth: 2
 
+   generated_api_documentation.rst
+
 Welcome to savReaderWriter's documentation!
 =================================================================================
 
@@ -387,8 +389,6 @@ Date formats
         writer.writerow([spssDateValue])
 
 The display format of the date (i.e., the way it looks in the SPSS data editor after opening the .sav file) may be set by specifying the ``formats`` dictionary (see also **Table 1**). This is one of the optional arguments of the ``SavWriter`` initializer. Without such a specification, the date will look like a large integer (the number of seconds since the beginning of the Gregorian calendar).
-
-
 
 Indices and tables
 ==================
