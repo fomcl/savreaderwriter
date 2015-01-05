@@ -210,6 +210,32 @@ class Test_SavReaderNp(unittest.TestCase):
                           else actual["v2"][0]
         desired = [(0.0, np.nan), (1.0, 11654150400)]
         numpy.testing.assert_array_equal(actual.tolist(), desired)
+
+    def test_ioUtf8_structured_array(self):
+        self.npreader = SavReaderNp("./test_data/greetings.sav", ioUtf8=True)
+        actual = self.npreader.to_structured_array()[u"greeting"].tolist()
+        actual = [item.rstrip() for item in actual]  # oddity in the test data
+        actual = actual[1:-1]
+        desired = \
+        [(b'\xe0\xa6\xa8\xe0\xa6\xae\xe0\xa6\xb8\xe0\xa7\x8d'
+          b'\xe0\xa6\x95\xe0\xa6\xbe\xe0\xa7\xb0'),
+         (b'\xe0\xa6\x86\xe0\xa6\xb8\xe0\xa6\xb8\xe0\xa6\xbe'
+          b'\xe0\xa6\xb2\xe0\xa6\xbe\xe0\xa6\xae\xe0\xa7\x81'
+          b'\xe0\xa6\x86\xe0\xa6\xb2\xe0\xa6\xbe\xe0\xa6\x87'
+          b'\xe0\xa6\x95\xe0\xa7\x81\xe0\xa6\xae'),
+         b'Greetings and salutations',
+         (b'\xe1\x83\x92\xe1\x83\x90\xe1\x83\x9b\xe1\x83\x90\xe1' 
+          b'\x83\xa0\xe1\x83\xaf\xe1\x83\x9d\xe1\x83\x91\xe1\x83\x90'),
+         (b'\xd0\xa1\xd3\x99\xd0\xbb\xd0\xb5\xd0\xbc\xd0\xb5\xd1'
+          b'\x82\xd1\x81\xd1\x96\xd0\xb7 \xd0\xb1\xd0\xb5'),
+         (b'\xd0\x97\xd0\xb4\xd1\x80\xd0\xb0\xd0\xb2\xd1\x81'
+          b'\xd1\x82\xd0\xb2\xd1\x83\xd0\xb9\xd1\x82\xd0\xb5'),
+         b'\xc2\xa1Hola!',
+         b'Gr\xc3\xbcezi',
+         (b'\xe0\xb8\xaa\xe0\xb8\xa7\xe0\xb8\xb1\xe0\xb8\xaa'
+         b'\xe0\xb8\x94\xe0\xb8\xb5'),
+         b'Bondjo\xc3\xbb']
+        self.assertEqual(actual, desired)
       
     def tearDown(self):
         self.npreader.close()
