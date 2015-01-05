@@ -19,6 +19,7 @@ import sys; sys.path.insert(0, "/home/antonia/Desktop/savreaderwriter")
 from savReaderWriter import *
 from error import *
 from helpers import *
+from py3k import *
 
 # TODO:
 # unittests for uncompressed .sav files
@@ -26,22 +27,6 @@ from helpers import *
 # pytables integration
 # numba.jit
 # function to easily read mmapped array back in
-
-from py3k import *
-try:
-    xrange
-except NameError:
-    xrange = range
-
-try:
-   from itertools import izip
-except ImportError:
-   izip = zip
-
-if sys.version_info.major == 2:
-   bytez = bytes
-else:
-   bytez = partial(bytes, encoding="utf-8")
 
 
 class SavReaderNp(SavReader):
@@ -458,17 +443,17 @@ if __name__ == "__main__":
     klass = globals()[sys.argv[1]]
     start = time.time() 
     filename = "./test_data/Employee data.sav"
-    filename = "./test_data/greetings.sav"
+    #filename = "./test_data/greetings.sav"
     #filename = "./test_data/all_numeric_datetime_uncompressed.sav"
     #filename = "/home/albertjan/nfs/Public/somefile_uncompressed.sav" 
     #filename = '/home/antonia/Desktop/big.sav'
-    #filename = '/home/albertjan/nfs/Public/bigger.sav'
-    with closing(klass(filename, rawMode=False, ioUtf8=True)) as sav:
+    filename = '/home/albertjan/nfs/Public/bigger.sav'
+    with closing(klass(filename, rawMode=False, ioUtf8=False)) as sav:
         #print(sav.struct_dtype.descr)
         #array = sav.to_ndarray() #"/tmp/test.dat")
-        array = sav.to_structured_array() 
+        #array = sav.to_structured_array() 
         #print(sav.formats)
-        #sav.all()
+        array = sav.all("/tmp/test.dat")
         #for record in sav:
             #print(record)
             #pass  

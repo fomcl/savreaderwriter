@@ -21,6 +21,11 @@ try:
 except AttributeError:
     isCPython = sys.implementation.name == "cpython"
 
+try:
+   from itertools import izip
+except ImportError:
+   izip = zip
+
 # bytes keyword has a second argument in Python 3
 if isPy3k:
     bytez = functools.partial(bytes, encoding="utf-8")
