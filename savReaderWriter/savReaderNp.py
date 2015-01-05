@@ -27,7 +27,7 @@ from helpers import *
 # numba.jit
 # function to easily read mmapped array back in
 
-
+from py3k import *
 try:
     xrange
 except NameError:
@@ -211,12 +211,14 @@ class SavReaderNp(SavReader):
     @memoized_property
     def uvarNames(self):
         """Returns a list of variable names, as unicode strings"""
+        if self.ioUtf8: return self.varNames
         return [v.decode(self.fileEncoding) for v in self.varNames]
 
     @memoized_property
     def uvarTypes(self): 
         """Returns a dictionary of variable names, as unicode strings (keys)
         and variable types (values, int)"""
+        if self.ioUtf8: return self.varTypes
         return {v.decode(self.fileEncoding): t for 
                 v, t in self.varTypes.items()}
 
@@ -224,6 +226,7 @@ class SavReaderNp(SavReader):
     def uformats(self):
         """Returns a dictionary of variable names (keys) and SPSS formats 
         (values), both as unicode strings"""
+        if self.ioUtf8: return self.formats
         encoding = self.fileEncoding
         return {v.decode(encoding): fmt.decode(encoding) for 
                 v, fmt in self.formats.items()}
@@ -239,8 +242,10 @@ class SavReaderNp(SavReader):
         """Helper function that uses varLabels to get the titles for a dtype.
         If no varLabels are available, varNames are used instead"""
         titles =  [self.varLabels[v] if self.varLabels[v] else 
-                   bytez("col_%03d" % col) for col, v in enumerate(self.varNames)]
-        return [title.decode(self.fileEncoding) for title in titles]
+                   bytez("col_%03d" % col) for col, v in 
+                   enumerate(self.varNames)]
+        return [title.decode(self.fileEncoding) if not 
+                isinstance(title, unicode) else title for title in titles]
 
     @memoized_property
     def is_homogeneous(self):
@@ -453,12 +458,12 @@ if __name__ == "__main__":
     klass = globals()[sys.argv[1]]
     start = time.time() 
     filename = "./test_data/Employee data.sav"
-    #filename = "./test_data/greetings.sav"
-    filename = "./test_data/all_numeric_datetime_uncompressed.sav"
+    filename = "./test_data/greetings.sav"
+    #filename = "./test_data/all_numeric_datetime_uncompressed.sav"
     #filename = "/home/albertjan/nfs/Public/somefile_uncompressed.sav" 
     #filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
-    with closing(klass(filename, rawMode=True, ioUtf8=False)) as sav:
+    with closing(klass(filename, rawMode=False, ioUtf8=True)) as sav:
         #print(sav.struct_dtype.descr)
         #array = sav.to_ndarray() #"/tmp/test.dat")
         array = sav.to_structured_array() 
