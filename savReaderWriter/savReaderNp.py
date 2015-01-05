@@ -45,7 +45,7 @@ class SavReaderNp(SavReader):
     Typical use:
     from contextlib import closing
     with closing(SavReaderNp("Employee data.sav")) as reader_np: 
-        array = reader_np.to_recarray("/tmp/test.dat") # memmapped array 
+        array = reader_np.to_structured_array("/tmp/test.dat") # memmapped array 
 
     Note. The sav-to-array conversion is MUCH faster when uncompressed .sav 
     files are used. These are created with the SPSS command
@@ -75,7 +75,7 @@ class SavReaderNp(SavReader):
             self.sav = open(self.savFileName, "rb")
             self.__iter__ = self._uncompressed_iter
             self.to_ndarray = self._uncompressed_to_ndarray
-            self.to_recarray = self._uncompressed_to_recarray  
+            self.to_structured_array = self._uncompressed_to_structured_array  
 
     def _items(self, start, stop, step):
         """Helper function for __getitem__"""
@@ -119,10 +119,10 @@ class SavReaderNp(SavReader):
             array = func(self, *args) 
             cutoff = -sys.float_info.max
             sysmis = self.recodeSysmisTo
-            is_to_recarray = func.__name__.endswith('to_recarray')
+            is_to_structured_array = func.__name__.endswith('to_structured_array')
             if self.rawMode:
                 return array
-            elif self.is_homogeneous and not is_to_recarray:
+            elif self.is_homogeneous and not is_to_structured_array:
                 array[:] = np.where(array <= cutoff, sysmis, array)
             else:
                 for v in self.uvarNames:
@@ -345,7 +345,7 @@ class SavReaderNp(SavReader):
 
     @convert_datetimes
     @convert_missings
-    def _uncompressed_to_recarray(self, filename=None):
+    def _uncompressed_to_structured_array(self, filename=None):
         """Read an uncompressed .sav file and return as a structured array"""
         if not self.is_uncompressed:
             raise ValueError("Only uncompressed files can be used")
@@ -376,7 +376,7 @@ class SavReaderNp(SavReader):
 
     @convert_datetimes
     @convert_missings
-    def to_recarray(self, filename=None):
+    def to_structured_array(self, filename=None):
         """Return the data in <savFileName> as a structured array, optionally
         using <filename> as a memmapped file."""
         self.do_convert_datetimes = False  # no date conversion in __iter__ 
@@ -394,8 +394,8 @@ class SavReaderNp(SavReader):
         return array
 
     def all(self, filename=None):
-        """Wrapper for to_recarray; overrides the SavReader version"""
-        return self.to_recarray(filename)
+        """Wrapper for to_structured_array; overrides the SavReader version"""
+        return self.to_structured_array(filename)
 
     @convert_missings
     def to_ndarray(self, filename=None):
@@ -414,13 +414,13 @@ class SavReaderNp(SavReader):
         return array 
 
     def to_array(self, filename=None):
-        """Wrapper for to_ndarray and to_recarray. Returns an ndarray if the
+        """Wrapper for to_ndarray and to_structured_array. Returns an ndarray if the
         dataset is all-numeric homogeneous (and no datetimes), a structured
         array otherwise"""
         if self.is_homogeneous:
             return self.to_ndarray(filename)
         else:
-            return self.to_recarray(filename)
+            return self.to_structured_array(filename)
 
 
 
@@ -441,15 +441,15 @@ if __name__ == "__main__":
     klass = globals()[sys.argv[1]]
     start = time.time() 
     filename = "./test_data/Employee data.sav"
-    filename = "./test_data/greetings.sav"
-    filename = "./test_data/all_numeric.sav"
-    filename = "/home/albertjan/nfs/Public/somefile_uncompressed.sav" 
+    #filename = "./test_data/greetings.sav"
+    #filename = "./test_data/all_numeric.sav"
+    #filename = "/home/albertjan/nfs/Public/somefile_uncompressed.sav" 
     #filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename, rawMode=False, ioUtf8=False)) as sav:
         #print(sav.struct_dtype.descr)
-        array = sav.to_ndarray() #"/tmp/test.dat")
-        #array = sav.to_recarray() 
+        #array = sav.to_ndarray() #"/tmp/test.dat")
+        array = sav.to_structured_array() 
         #print(sav.formats)
         #sav.all()
         #for record in sav:
