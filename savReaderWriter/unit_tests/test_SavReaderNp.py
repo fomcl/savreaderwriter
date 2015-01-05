@@ -5,18 +5,28 @@ import unittest
 import datetime
 import tempfile
 import os
-import numpy as np
-import numpy.testing
+
+try:
+    import numpy as np
+    import numpy.testing
+    numpyOK = True
+except ImportError:
+    numpyOK = False
+
 import sys; sys.path.insert(0, "/home/antonia/Desktop/savreaderwriter")
 from savReaderWriter import *
 from savReaderNp import *
+from py3k import *
 
+@unittest.skipUnless(numpyOK and isCPython, "Requires numpy, not numpypy")
 class Test_SavReaderNp(unittest.TestCase):
 
     def setUp(self):
         self.filename = "./test_data/Employee data.sav"
         self.nfilename = "./test_data/all_numeric.sav"
-
+        self.uncompressedfn = "./test_data/all_numeric_uncompressed.sav"
+        self.uncompresseddt = ("./test_data/all_numeric_datetime_" + 
+                               "uncompressed.sav")
     def test_getitem_indexing(self):
         self.npreader = SavReaderNp(self.filename)
         actual = self.npreader[0].tolist()
@@ -92,6 +102,7 @@ class Test_SavReaderNp(unittest.TestCase):
         #numpy.testing.assert_allclose(actual, desired, rtol=1e-5)
         self.assertEqual(actual.tolist(), desired.tolist())
         self.assertEqual(actual.dtype, desired.dtype)
+        self.assertEqual(actual.dtype.fields["salary"][2], u"Current Salary")
 
     def test_to_structured_array_inmemory_raw(self):
         self.npreader = SavReaderNp(self.filename, rawMode=True)
@@ -149,7 +160,56 @@ class Test_SavReaderNp(unittest.TestCase):
         records = [[0.0, np.nan], [1.0, 1.0], [2.0, 4.0], 
                    [3.0, 9.0], [4.0, 16.0]]
         desired = np.array(records)
-        numpy.testing.assert_array_equal(actual, desired) 
+        numpy.testing.assert_array_equal(actual, desired)
+
+    def test_uncompressed_to_ndarray(self):
+        self.npreader = SavReaderNp(self.uncompressedfn)
+        actual = self.npreader.to_ndarray()[:5, :]
+        records = [[0.0, np.nan], [1.0, 1.0], [2.0, 4.0], 
+                   [3.0, 9.0], [4.0, 16.0]]
+        desired = np.array(records)
+        numpy.testing.assert_array_equal(actual, desired)
+
+    def test_uncompressed_to_structured_array(self):
+        self.npreader = SavReaderNp(self.uncompressedfn)
+        actual = self.npreader.to_structured_array()[:5]
+        records = [[0.0, np.nan], [1.0, 1.0], [2.0, 4.0], 
+                   [3.0, 9.0], [4.0, 16.0]]
+        desired = np.array(records)
+        desired.shape = (10,)
+        obj = dict(names=[u'v1', u'v2'], 
+                   formats=[u'<f8', u'<f8'],
+                   titles=[u'col_000', u'col_001'])
+        desired.dtype = np.dtype(obj)
+        self.assertEqual(actual.shape, desired.shape)
+        self.assertEqual(actual.dtype, desired.dtype)
+        numpy.testing.assert_array_equal(actual.tolist(), desired.tolist())
+
+    def test_uncompressed_dt_to_ndarray(self):
+        self.npreader = SavReaderNp(self.uncompresseddt)
+        self.assertRaises(ValueError,  self.npreader.to_ndarray, ())
+
+    def test_uncompressed_dt_to_ndarray_raw(self):
+        self.npreader = SavReaderNp(self.uncompresseddt, rawMode=True)
+        actual = self.npreader.to_ndarray()[:2]
+        actual[:] = np.where(actual < 10 ** -200, np.nan, actual).tolist()
+        desired = [[np.nan, np.nan], [1, 11654150400]]
+        numpy.testing.assert_array_equal(actual, desired)
+
+    def test_uncompressed_dt_to_structured_array(self):
+        self.npreader = SavReaderNp(self.uncompresseddt)
+        actual = self.npreader.to_structured_array()[:2].tolist()
+        desired = [(0.0, datetime.datetime(1, 1, 1, 0, 0)),
+                   (1.0, datetime.datetime(1952, 2, 3, 0, 0))]
+        numpy.testing.assert_array_equal(actual, desired)
+
+    def test_uncompressed_dt_to_structured_array_raw(self):
+        self.npreader = SavReaderNp(self.uncompresseddt, rawMode=True)
+        actual = self.npreader.to_structured_array()[:2]
+        actual["v2"][0] = np.nan if actual["v2"][0] < 10 ** -200 \
+                          else actual["v2"][0]
+        desired = [(0.0, np.nan), (1.0, 11654150400)]
+        numpy.testing.assert_array_equal(actual.tolist(), desired)
       
     def tearDown(self):
         self.npreader.close()

@@ -9,7 +9,7 @@ import datetime
 import struct
 from math import ceil
 from ctypes import *
-from functools import wraps
+from functools import wraps, partial
 from itertools import chain, islice
 from bisect import bisect
 
@@ -25,6 +25,7 @@ from helpers import *
 # ioLocale, ioUtf8 (latter currently fails)
 # pytables integration
 # numba.jit
+# function to easily read mmapped array back in
 
 
 try:
@@ -36,6 +37,12 @@ try:
    from itertools import izip
 except ImportError:
    izip = zip
+
+if sys.version_info.major == 2:
+   bytez = bytes
+else:
+   bytez = partial(bytes, encoding="utf-8")
+
 
 class SavReaderNp(SavReader):
 
@@ -232,14 +239,18 @@ class SavReaderNp(SavReader):
         """Helper function that uses varLabels to get the titles for a dtype.
         If no varLabels are available, varNames are used instead"""
         titles =  [self.varLabels[v] if self.varLabels[v] else 
-                   "col_%03d" % col for col, v in enumerate(self.varNames)]
+                   bytez("col_%03d" % col) for col, v in enumerate(self.varNames)]
         return [title.decode(self.fileEncoding) for title in titles]
 
     @memoized_property
     def is_homogeneous(self):
         """Returns boolean that indicates whether the dataset contains only 
-        numerical variables (datetimes excluded)"""
-        return not max(list(self.varTypes.values())) and not self.datetimevars
+        numerical variables (datetimes excluded). If rawMode=True, datetimes
+        are also considered numeric"""
+        is_all_numeric = bool( not max(list(self.varTypes.values())) )
+        if self.rawMode:
+            return is_all_numeric 
+        return is_all_numeric and not self.datetimevars
 
     @memoized_property
     def struct_dtype(self):
@@ -427,26 +438,27 @@ class SavReaderNp(SavReader):
 if __name__ == "__main__":
     import time
     from contextlib import closing
-    savFileName = "./test_data/all_numeric.sav"
+    savFileName = "./test_data/all_numeric_datetime_uncompressed.sav"
     kwargs = dict( \
     savFileName = savFileName,
     varNames = ["v1", "v2"],
-    varTypes = {"v1": 0, "v2": 0} )
+    varTypes = {"v1": 0, "v2": 0},
+    formats = {"v1": "DOLLAR15.2", "v2": "EDATE40"} )
     if not os.path.exists(savFileName):
         with SavWriter(**kwargs) as writer:
             for i in xrange(10 ** 2):
-                value = None if not i else i ** 2
+                value = None if not i else 11654150400.
                 writer.writerow([i, value])
 
     klass = globals()[sys.argv[1]]
     start = time.time() 
     filename = "./test_data/Employee data.sav"
     #filename = "./test_data/greetings.sav"
-    #filename = "./test_data/all_numeric.sav"
+    filename = "./test_data/all_numeric_datetime_uncompressed.sav"
     #filename = "/home/albertjan/nfs/Public/somefile_uncompressed.sav" 
     #filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
-    with closing(klass(filename, rawMode=False, ioUtf8=False)) as sav:
+    with closing(klass(filename, rawMode=True, ioUtf8=False)) as sav:
         #print(sav.struct_dtype.descr)
         #array = sav.to_ndarray() #"/tmp/test.dat")
         array = sav.to_structured_array() 
