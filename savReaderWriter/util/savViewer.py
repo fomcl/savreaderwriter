@@ -17,6 +17,7 @@ from ctypes import c_int, c_long
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+# TODO: status bar sometimes does not update (small csv, then big csv)
 
 """
 savViewer - SPSS Data file viewer
@@ -34,12 +35,11 @@ Suitable for use with Python 2.7 and 3.3
 
 __author__ = "Albert-Jan Roskam"
 __email__ = "@".join(["fomcl", "yahoo." + "com"])
-__version__ = "1.0.3"
-__date__ = "2014-11-18"
+__version__ = "1.0.4"
+__date__ = "2014-06-06"
 
 
 # Python 3
-
 py3k = sys.version_info.major >= 3
 
 try:
@@ -68,10 +68,6 @@ class ExtIterBase(object):
     """ 
 
     __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def __iter__(self):
-        raise NotImplementedError("need __iter__ method")
 
     @abc.abstractmethod
     def __getitem__(self, key):
@@ -131,10 +127,6 @@ class CsvIter(ExtIterBase):
                                        args=(open(self.csvFileName, "rb"),),
                                        name="lookup maker thread")
         self.thread.start()
-
-    def __iter__(self):
-        args = (self.csvfile, self.dialect, self.fileEncoding)
-        return self.unicode_csv_reader(*args)
 
     def __getitem__(self, key):
         """return an item from a memory-mapped csv file"""
@@ -260,16 +252,6 @@ class XlsIter(ExtIterBase):
         self.varNames_ = self._get_header(self.shape.ncols)
         self.lookup = self._get_row_lookup()
 
-    def __iter__(self):
-        sheet_names = self.xlsfile.sheet_names()
-        for sheet_name, sheet in zip(sheet_names, self.xlsfile.sheets()):
-            for row in range(sheet.nrows):
-                record = [sheet_name]
-                for col in range(sheet.ncols):
-                    value = sheet.cell(row, col).value
-                    record.append(value)
-                yield record 
-
     @property
     def fileEncoding(self):
         return "utf-8"
@@ -327,12 +309,6 @@ class SavIter(ExtIterBase):
         self.records = self.data(self.savFileName)
         self.init_seekNextCase()
         self.formatValues = self.records.formatValues
-
-    def __iter__(self):
-        # this is not even used here, or anywhere else (csv, xls)
-        for key in xrange(self.shape.nrows):
-            self.seekNextCase(self.fh, key)
-            yield self.formatValues(self.records.record) 
 
     def __getitem__(self, key):
         # much faster than SavReader.__getitem__
