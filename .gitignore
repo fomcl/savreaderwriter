@@ -1,8 +1,12 @@
 *.py[co]
-*.~
+*~
 main.py
 dist/
 build/
 .idea/
 __pycache__
 .tox
+junit-py*.xml
+cWriterow.cpython-*m.so
+SHA1VERSION
+
