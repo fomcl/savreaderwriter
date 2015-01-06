@@ -34,14 +34,39 @@ class SavReaderNp(SavReader):
     """
     Read SPSS .sav file data into a numpy array (either in-memory or mmap)
 
-    Typical use:
-    from contextlib import closing
-    with closing(SavReaderNp("Employee data.sav")) as reader_np: 
-        array = reader_np.to_structured_array("/tmp/test.dat") # memmapped array 
+    Parameters
+    ----------
+    savFileName : str
+        The file name of the spss data file
+    recodeSysmisTo : (value)
+        Indicates to which value missing values should be recoded
+    rawMode : bool
+        Indicates: 
+        (1) whether trailing blanks should be stripped off of string values, 
+        (2) whether date variables (if present) should be converted into
+        `datetime.datetime` objects, 
+        (3) whether SPSS `$sysmis` values should be converted into 
+        `recodeSysmisTo`. Set to `True` to get faster processing speeds.
+    ioUtf8 : bool
+        Indicates the mode in which text communicated to or from 
+        the I/O Module will be. Valid values are True (UTF-8 mode aka 
+        Unicode mode) and False (Codepage mode). Cf. `SET UNICODE=ON/OFF`
+    ioLocale : locale str
+        indicates the locale of the I/O module. Cf. `SET LOCALE`. 
+        (default = None, which corresponds to `".".join(locale.getlocale()`)
+
+
+    Examples
+    --------
+    Typical use::
+ 
+        from contextlib import closing
+        with closing(SavReaderNp("Employee data.sav")) as reader_np: 
+            array = reader_np.to_structured_array("/tmp/test.dat") # memmapped array 
 
     Note. The sav-to-array conversion is MUCH faster when uncompressed .sav 
-    files are used. These are created with the SPSS command
-       SAVE OUTFILE = 'some_file.sav' /UNCOMPRESSED.
+    files are used. These are created with the SPSS command::
+        SAVE OUTFILE = 'some_file.sav' /UNCOMPRESSED.
     This is NOT the default in SPSS. See also SavReader documentation
     """
 
@@ -58,12 +83,12 @@ class SavReaderNp(SavReader):
 
         self.caseBuffer = self.getCaseBuffer()
         self.unpack = self.getStruct(self.varTypes, self.varNames).unpack_from 
-        self.init_funcs()
+        self._init_funcs()
         self.gregorianEpoch = datetime.datetime(1582, 10, 14, 0, 0, 0)
         self.do_convert_datetimes = True
         self.nrows, self.ncols = self.shape
 
-        if self.is_uncompressed:
+        if self._is_uncompressed:
             self.sav = open(self.savFileName, "rb")
             self.__iter__ = self._uncompressed_iter
             self.to_ndarray = self._uncompressed_to_ndarray
@@ -80,7 +105,8 @@ class SavReaderNp(SavReader):
     def convert_datetimes(func):
         """Decorator to convert all the SPSS datetimes into datetime.datetime
         values. Missing datetimes are converted into the value 
-        datetime.datetime(1, 1, 1, 0, 0)"""
+        `datetime.datetime(1, 1, 1, 0, 0)`"""
+        @wraps(func)
         def _convert_datetimes(self, *args):
             #print("@convert_datetimes called by: %s" % func.__name__)
             array = func(self, *args)
@@ -99,14 +125,15 @@ class SavReaderNp(SavReader):
             for varName in self.uvarNames:
                 if not varName in self.datetimevars:
                     continue
-                datetimes = (self.spss2numpyDate(dt) for dt in array[varName])
+                datetimes = (self.spss2datetimeDate(dt) for dt in array[varName])
                 dt_array[varName] = np.fromiter(datetimes, "datetime64[us]", count)
             return dt_array
         return _convert_datetimes
 
     def convert_missings(func):
-        """Decorator to recode numerical missing values, unless they are 
-        datetimes"""
+        """Decorator to recode numerical missing values into `recodeSysmisTo` 
+        (default: `np.nan`), unless they are datetimes"""
+        @wraps(func) 
         def _convert_missings(self, *args):
             array = func(self, *args) 
             cutoff = -sys.float_info.max
@@ -130,7 +157,20 @@ class SavReaderNp(SavReader):
 
     @convert_datetimes
     def __getitem__(self, key):
-        """x.__getitem__(y) <==> x[y], where y may be int or slice"""
+        """x.__getitem__(y) <==> x[y], where y may be int or slice
+
+        Parameters
+        ----------
+        key : int, slice
+
+        Returns
+        -------
+        record : numpy.array 
+
+        Raises
+        -------
+        IndexError, TypeError
+        """
         is_slice = isinstance(key, slice)
         is_index = isinstance(key, int)
         
@@ -155,8 +195,17 @@ class SavReaderNp(SavReader):
 
     def __iter__(self):
         """x.__iter__() <==> iter(x). Yields records as a tuple.
-        If rawMode=True, trailing spaces of strings are not removed
-        and SPSS dates are not converted into datetime dates"""
+        If `rawMode=True`, trailing spaces of strings are not removed
+        and SPSS dates are not converted into `datetime` dates
+
+        Returns
+        -------
+        record : tuple 
+
+        Raises
+        -------
+        SPSSIOError
+        """
         varNames = self.uvarNames
         varTypes = self.uvarTypes
         datetimevars = self.datetimevars
@@ -168,23 +217,23 @@ class SavReaderNp(SavReader):
             if shortcut:
                 yield record
                 continue
-            yield tuple([self.spss2numpyDate(value) if v in datetimevars else
+            yield tuple([self.spss2datetimeDate(value) if v in datetimevars else
                          value.rstrip() if varTypes[v] else value for value, v
                          in izip(record, varNames)])
       
-    def init_funcs(self):
+    def _init_funcs(self):
         """Helper to initialize C functions of the SPSS I/O module: set their
-        argtypes and errcheck attributes""" 
+        argtypes and _errcheck attributes""" 
         self.seekNextCase = self.spssio.spssSeekNextCase
         self.seekNextCase.argtypes = [c_int, c_long]
-        self.seekNextCase.errcheck = self.errcheck
+        self.seekNextCase._errcheck = self._errcheck
 
         self.record_size = sizeof(self.caseBuffer)
         self.wholeCaseIn = self.spssio.spssWholeCaseIn
         self.wholeCaseIn.argtypes = [c_int, POINTER(c_char * self.record_size)]
-        self.wholeCaseIn.errcheck = self.errcheck
+        self.wholeCaseIn._errcheck = self._errcheck
 
-    def errcheck(self, retcode, func, arguments):
+    def _errcheck(self, retcode, func, arguments):
         """Checks for return codes > 0 when calling C functions of the 
         SPSS I/O module"""
         if retcode > 0:
@@ -202,7 +251,8 @@ class SavReaderNp(SavReader):
     @memoized_property
     def uvarTypes(self): 
         """Returns a dictionary of variable names, as unicode strings (keys)
-        and variable types (values, int)"""
+        and variable types (values, int). Variable type == 0 indicates 
+        numerical values, other values indicate the string length in bytes"""
         if self.ioUtf8: return self.varTypes
         return {v.decode(self.fileEncoding): t for 
                 v, t in self.varTypes.items()}
@@ -218,12 +268,13 @@ class SavReaderNp(SavReader):
 
     @memoized_property
     def datetimevars(self):
-        """Returns a list of the date/time variables in the dataset, if any"""
+        """Returns a list of the datetime variable nanes (as unicode strings)
+        in the dataset, if any"""
         return [varName for varName in self.uvarNames if 
                 re.search("date|time", self.uformats[varName], re.I)]
 
     @memoized_property
-    def titles(self):
+    def _titles(self):
         """Helper function that uses varLabels to get the titles for a dtype.
         If no varLabels are available, varNames are used instead"""
         titles =  [self.varLabels[v] if self.varLabels[v] else 
@@ -235,7 +286,7 @@ class SavReaderNp(SavReader):
     @memoized_property
     def is_homogeneous(self):
         """Returns boolean that indicates whether the dataset contains only 
-        numerical variables (datetimes excluded). If rawMode=True, datetimes
+        numerical variables (datetimes excluded). If `rawMode=True`, datetimes
         are also considered numeric"""
         is_all_numeric = bool( not max(list(self.varTypes.values())) )
         if self.rawMode:
@@ -244,7 +295,13 @@ class SavReaderNp(SavReader):
 
     @memoized_property
     def struct_dtype(self):
-        """Get the struct dtype of the binary record"""
+        """Get the struct dtype of the binary record
+
+        Returns
+        -------
+        struc dtype : numpy.dtype (complex dtype)
+        dtype that is used to unpack the binary record 
+        """
         if self.is_homogeneous:
             byteorder = u"<" if self.byteorder == u"little" else u">"
             return np.dtype(byteorder + u"d")
@@ -253,28 +310,42 @@ class SavReaderNp(SavReader):
         byteorder = u"<" if self.byteorder == "little" else u">"
         formats = [u"a%d" % fmt8(t) if t else u"%sd" % 
                    byteorder for t in varTypes]
-        obj = dict(names=self.uvarNames, formats=formats, titles=self.titles)
+        obj = dict(names=self.uvarNames, formats=formats, titles=self._titles)
         return np.dtype(obj)
 
     @memoized_property
     def trunc_dtype(self):
-        """Derive the numpy dtype from the SPSS _display_ formats.
+        """Returns the numpy dtype using the SPSS display formats
 
         The following spss-format to numpy-dtype conversions are made:
-        ---------+-------------
-        spss     | numpy
-        ---------+-------------
-        <= F2    | float16 (f2)
-        F3-F5    | float32 (f4)
-        >= F5    | float64 (f8)
-        datetime | float64 (f8, datetime.datetime unless rawMode)
-        A1 >=    | S1 >=   (a1)
+
+        +------------+------------------+
+        | spss       | numpy            |
+        +============+==================+
+        | <= `F2`    | `float16` (`f2`) |
+        +------------+------------------+
+        | `F3`-`F5`  | `float32` (`f4`) |
+        +------------+------------------+
+        | >= `F5`    | `float64` (`f8`) |
+        +------------+------------------+
+        | (datetime) | `float64` (`f8`)*|
+        +------------+------------------+
+        | A1 >=      | `S1` >=   (`a1`) |
+        +------------+------------------+ 
+        *) Subsequently converted to `datetime.datetime` unless 
+        `rawMode=True`. Examples of SPSS datetime display formats are `SDATE`,
+        `EDATE`, `ADATE`, `JDATE` and `TIME`. 
+
         Note that all numerical values are stored in SPSS files as double
         precision floats. The SPSS display formats are used to create a more
         compact dtype. Datetime formats are never shrunk to a more compact 
         format. In the table above, only F and A formats are displayed, but
-        other numerical (e.g. DOLLAR) or string (AHEX) are treated the same
-        way, e.g. DOLLAR5.2 will become float64.
+        other numerical (e.g. `DOLLAR`) or string (`AHEX`) are treated the 
+        same way, e.g. `DOLLAR5.2` will become `float64`.
+
+        Returns
+        -------
+        truncated dtype : numpy.dtype (complex dtype) 
         """
         #if self.is_homogeneous:
         #    return self.struct_dtype
@@ -285,27 +356,46 @@ class SavReaderNp(SavReader):
         formats = [u'a%s' % widths[i] if self.uvarTypes[v] else u"f8" if 
                    v in self.datetimevars else get_dtype(widths[i]) for 
                    i, v in enumerate(self.uvarNames)]
-        obj = dict(names=self.uvarNames, formats=formats, titles=self.titles)
+        obj = dict(names=self.uvarNames, formats=formats, titles=self._titles)
         return np.dtype(obj)
 
     @memoized_property
     def datetime_dtype(self):
-        """Return the modified dtype in order to accomodate datetime.datetime
+        """Return the modified dtype in order to accomodate `datetime.datetime`
         values that were originally datetimes, stored as floats, in the SPSS
-        file"""
+        file
+
+        Returns
+        -------
+        datetime dtype :  numpy.dtype (complex dtype) 
+        """
         if not self.datetimevars:
             return self.trunc_dtype
         formats = ["datetime64[us]" if name in self.datetimevars else 
                    fmt for (title, name), fmt in self.trunc_dtype.descr]
-        obj = dict(names=self.uvarNames, formats=formats, titles=self.titles)
+        obj = dict(names=self.uvarNames, formats=formats, titles=self._titles)
         return np.dtype(obj)
 
     @memoize
-    def spss2numpyDate(self, spssDateValue):
-        """Convert an SPSS date into a numpy datetime64 date. Errors are
-        returned as datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0)"""
+    def spss2datetimeDate(self, spssDateValue):
+        """Convert an SPSS datetime into a `datetime.datetime` object
+
+        Parameters
+        ----------
+        spssDateValue : float, int
+
+        Returns
+        -------
+        datetime : datetime.datetime; errors are returned as 
+        `datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0)`
+
+        See also
+        --------
+        spss2strDate
+        """
         try:
-            theDate = self.gregorianEpoch + datetime.timedelta(seconds=spssDateValue)
+            theDate = self.gregorianEpoch + \
+                      datetime.timedelta(seconds=spssDateValue)
             #theDate = np.datetime64(theDate)
             return theDate
         except (OverflowError, TypeError, ValueError):
@@ -314,7 +404,7 @@ class SavReaderNp(SavReader):
 
     # ---- functions that deal with uncompressed .sav files ----
     @memoized_property    
-    def is_uncompressed(self):
+    def _is_uncompressed(self):
         """Returns True if the .sav file was not compressed at all, False
         otherwise (i.e., neither standard, nor zlib compression was used)."""
         return self.fileCompression == b"uncompressed"
@@ -322,12 +412,12 @@ class SavReaderNp(SavReader):
     def _uncompressed_iter(self):
         """Faster version of __iter__ that can only be used with 
         uncompressed .sav files"""
-        self.sav.seek(self.offset)
+        self.sav.seek(self._offset)
         for case in xrange(self.nrows):
             yield self.unpack(self.sav.read(self.record_size))
 
     @property
-    def offset(self):
+    def _offset(self):
         """Returns the position of the type 999 record, which indicates the 
         end of the metadata and the start of the case data"""
         unpack_int = lambda value: struct.unpack("i", value)
@@ -348,9 +438,9 @@ class SavReaderNp(SavReader):
     @convert_missings
     def _uncompressed_to_structured_array(self, filename=None):
         """Read an uncompressed .sav file and return as a structured array"""
-        if not self.is_uncompressed:
+        if not self._is_uncompressed:
             raise ValueError("Only uncompressed files can be used")
-        self.sav.seek(self.offset)
+        self.sav.seek(self._offset)
         if filename:
             array = np.memmap(filename, self.trunc_dtype, 'w+', shape=self.nrows)
             array[:] = np.fromfile(self.sav, self.trunc_dtype, self.nrows)
@@ -361,11 +451,11 @@ class SavReaderNp(SavReader):
     @convert_missings
     def _uncompressed_to_ndarray(self, filename=None):
         """Read an uncompressed .sav file and return as an ndarray"""
-        if not self.is_uncompressed:
+        if not self._is_uncompressed:
             raise ValueError("Only uncompressed files can be used")
         if not self.is_homogeneous:
             raise ValueError("Need only floats and no datetimes in dataset")
-        self.sav.seek(self.offset)
+        self.sav.seek(self._offset)
         count = np.prod(self.shape)
         if filename:
             array = np.memmap(filename, float, 'w+', shape=count)
@@ -379,7 +469,19 @@ class SavReaderNp(SavReader):
     @convert_missings
     def to_structured_array(self, filename=None):
         """Return the data in <savFileName> as a structured array, optionally
-        using <filename> as a memmapped file."""
+        using <filename> as a memmapped file.
+
+        Parameters
+        ----------
+        filename : str, optional 
+                   The filename for the memory mapped array. If omitted, 
+                   the array will be in-memory
+
+        Returns
+        -------
+        array : numpy.ndarray (if `filename=None`) or numpy.core.memmap.memmap
+                The array has a complex dtype, i.e. is a structured array
+        """
         self.do_convert_datetimes = False  # no date conversion in __iter__ 
         if filename:
             array = np.memmap(filename, self.trunc_dtype, 'w+', shape=self.nrows)
@@ -387,7 +489,7 @@ class SavReaderNp(SavReader):
                 array[row] = record
             #array.flush()
         else:
-            if self.is_uncompressed:
+            if self._is_uncompressed:
                 array = self._uncompressed_to_array(as_ndarray=False)
             else: 
                 array = np.fromiter(self, self.trunc_dtype, self.nrows)
@@ -395,13 +497,28 @@ class SavReaderNp(SavReader):
         return array
 
     def all(self, filename=None):
-        """Wrapper for to_structured_array; overrides the SavReader version"""
+        """Wrapper for to_structured_array; overrides the SavReader version
+
+        See also
+        --------        
+        to_structured_array"""
         return self.to_structured_array(filename)
 
     @convert_missings
     def to_ndarray(self, filename=None):
         """Converts a homogeneous, all-numeric SPSS dataset into an ndarray,
-        unless the numerical variables are actually datetimes"""
+        unless the numerical variables are actually datetimes
+
+        Parameters
+        ----------
+        filename : str, optional 
+                   The filename for the memory mapped array. If omitted, 
+                   the array will be in-memory
+
+        Returns
+        -------
+        array : numpy.ndarray (if `filename=None`) or numpy.core.memmap.memmap
+                The array has a simple dtype, i.e. is a regular ndarray"""
         if not self.is_homogeneous:
             raise ValueError("Need only floats and no datetimes in dataset")
         elif filename:
@@ -417,7 +534,12 @@ class SavReaderNp(SavReader):
     def to_array(self, filename=None):
         """Wrapper for to_ndarray and to_structured_array. Returns an ndarray if the
         dataset is all-numeric homogeneous (and no datetimes), a structured
-        array otherwise"""
+        array otherwise
+
+        See also
+        --------
+        to_ndarray
+        to_structured_array"""
         if self.is_homogeneous:
             return self.to_ndarray(filename)
         else:
@@ -444,16 +566,16 @@ if __name__ == "__main__":
     start = time.time() 
     filename = "./test_data/Employee data.sav"
     #filename = "./test_data/greetings.sav"
-    #filename = "./test_data/all_numeric_datetime_uncompressed.sav"
+    filename = "./test_data/all_numeric_datetime_uncompressed.sav"
     #filename = "/home/albertjan/nfs/Public/somefile_uncompressed.sav" 
     #filename = '/home/antonia/Desktop/big.sav'
-    filename = '/home/albertjan/nfs/Public/bigger.sav'
+    #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename, rawMode=False, ioUtf8=False)) as sav:
         #print(sav.struct_dtype.descr)
         #array = sav.to_ndarray() #"/tmp/test.dat")
         #array = sav.to_structured_array() 
         #print(sav.formats)
-        array = sav.all("/tmp/test.dat")
+        array = sav.all() #"/tmp/test.dat")
         #for record in sav:
             #print(record)
             #pass  

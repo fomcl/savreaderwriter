@@ -24,13 +24,13 @@ def memoize(f):
     # see also issue # 22 
     cache = {}
     MAXCACHE = 10 ** 7
-
-    def memf(*x):
-        if x in cache:
-            return cache[x]
+    @wraps(f)
+    def memf(*datetime):
+        if datetime in cache:
+            return cache[datetime]
         elif len(cache) < MAXCACHE:
-            result = f(*x)
-            cache[x] = result
+            result = f(*datetime)
+            cache[datetime] = result
             return result
-        return f(*x)
+        return f(*datetime)
     return memf 
