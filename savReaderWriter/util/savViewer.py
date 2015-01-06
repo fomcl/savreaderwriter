@@ -389,7 +389,7 @@ ZsavIter = SavIter
 ##################
 class Menu(QMainWindow):
 
-    def __init__(self, app):
+    def __init__(self, app, filename=None):
         super(Menu, self).__init__()
         self.app = app
 
@@ -410,7 +410,7 @@ class Menu(QMainWindow):
         self.create_menu_bar()
         self.main_widget.setLayout(self.main_layout)
         self.show()
-        self.set_filename()
+        self.set_filename(filename)
 
         self.start_thread()
         self.update_screen()
@@ -422,9 +422,9 @@ class Menu(QMainWindow):
         fileMenu.addAction(self.exitAct)  
         aboutMenu = menubar.addAction(self.aboutAct)
 
-    def set_filename(self):
-        if len(sys.argv) == 2:  # commandline use
-            self.table.savFileName = os.path.abspath(os.path.expanduser(sys.argv[1]))
+    def set_filename(self, filename):
+        if filename:  # commandline use
+            self.table.savFileName = os.path.abspath(os.path.expanduser(filename))
         else:
             self.showDialog()
         self.read_file()
@@ -679,5 +679,6 @@ class Table(QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    menu = Menu(app)
+    filename = None if len(sys.argv) == 1 else sys.argv[1]
+    menu = Menu(app, filename)
     sys.exit(app.exec_())
