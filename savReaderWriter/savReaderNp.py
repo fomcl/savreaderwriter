@@ -33,43 +33,51 @@ class SavReaderNp(SavReader):
 
     """
     Read SPSS .sav file data into a numpy array (either in-memory or mmap)
-
+    
     Parameters
     ----------
     savFileName : str
         The file name of the spss data file
-    recodeSysmisTo : (value)
+    recodeSysmisTo : value
         Indicates to which value missing values should be recoded
     rawMode : bool
-        Indicates: 
-        (1) whether trailing blanks should be stripped off of string values, 
-        (2) whether date variables (if present) should be converted into
-        `datetime.datetime` objects, 
-        (3) whether SPSS `$sysmis` values should be converted into 
-        `recodeSysmisTo`. Set to `True` to get faster processing speeds.
+        Set to ``True`` to get faster processing speeds. ``rawMode=False``
+        indicates:
+ 
+        * that trailing blanks will stripped off of string values 
+        * that datetime variables (if present) will be converted into
+          ``datetime.datetime`` objects, 
+        * that SPSS `$sysmis` values will be converted into 
+          `recodeSysmisTo` (default ``np.nan``, except for datetimes). 
+
     ioUtf8 : bool
         Indicates the mode in which text communicated to or from 
         the I/O Module will be. Valid values are True (UTF-8 mode aka 
         Unicode mode) and False (Codepage mode). Cf. `SET UNICODE=ON/OFF`
     ioLocale : locale str
         indicates the locale of the I/O module. Cf. `SET LOCALE`. 
-        (default = None, which corresponds to `".".join(locale.getlocale()`)
-
+        (default = None, which corresponds to `".".join(locale.getlocale()`).
+        For example, `en_US.UTF-8`.
 
     Examples
     --------
     Typical use::
- 
-        from contextlib import closing
-        with closing(SavReaderNp("Employee data.sav")) as reader_np: 
-            array = reader_np.to_structured_array("/tmp/test.dat") # memmapped array 
+
+        # memmapped array, omit filename to use in-memory array 
+        reader_np = SavReaderNp("Employee data.sav")
+        array = reader_np.to_structured_array("/tmp/test.dat") 
+        reader_np.close()
 
     Note. The sav-to-array conversion is MUCH faster when uncompressed .sav 
     files are used. These are created with the SPSS command::
 
         SAVE OUTFILE = 'some_file.sav' /UNCOMPRESSED.
-    This is NOT the default in SPSS. See also SavReader documentation
-    """
+    This is NOT the default in SPSS. 
+
+    See also
+    --------
+    savReaderWriter.SavWriter : use `_uncompressed.sav` savFileName 
+        suffix to write uncompressed files"""
 
     def __init__(self, savFileName, recodeSysmisTo=np.nan, rawMode=False, 
                  ioUtf8=False, ioLocale=None):
@@ -106,7 +114,7 @@ class SavReaderNp(SavReader):
     def convert_datetimes(func):
         """Decorator to convert all the SPSS datetimes into datetime.datetime
         values. Missing datetimes are converted into the value 
-        `datetime.datetime(1, 1, 1, 0, 0)`"""
+        `datetime.datetime(1, 1, 1, 0, 0, 0)`"""
         @wraps(func)
         def _convert_datetimes(self, *args):
             #print("@convert_datetimes called by: %s" % func.__name__)
@@ -166,7 +174,7 @@ class SavReaderNp(SavReader):
 
         Returns
         -------
-        record : numpy.array 
+        record : numpy.ndarray 
 
         Raises
         -------
@@ -288,7 +296,8 @@ class SavReaderNp(SavReader):
     def is_homogeneous(self):
         """Returns boolean that indicates whether the dataset contains only 
         numerical variables (datetimes excluded). If `rawMode=True`, datetimes
-        are also considered numeric"""
+        are also considered numeric. A dataset with string variables of equal
+        length is not considered to be homogeneous"""
         is_all_numeric = bool( not max(list(self.varTypes.values())) )
         if self.rawMode:
             return is_all_numeric 
@@ -296,13 +305,13 @@ class SavReaderNp(SavReader):
 
     @memoized_property
     def struct_dtype(self):
-        """Get the struct dtype of the binary record
+        """Get the dtype that is used to unpack the binary record
 
         Returns
         -------
-        struc dtype : numpy.dtype (complex dtype)
-        dtype that is used to unpack the binary record 
-        """
+        struct dtype : numpy.dtype (complex dtype if heterogeneous data, 
+            simple dtype otherwise). A complex dtype uses `varNames` as 
+            names and `varLabels` (if any) as titles (fields)."""
         if self.is_homogeneous:
             byteorder = u"<" if self.byteorder == u"little" else u">"
             return np.dtype(byteorder + u"d")
@@ -346,7 +355,12 @@ class SavReaderNp(SavReader):
 
         Returns
         -------
-        truncated dtype : numpy.dtype (complex dtype) 
+        truncated dtype : numpy.dtype (complex dtype)
+
+        See also
+        --------
+        :ref:`formats` : overview of SPSS display formats 
+        :ref:`dateformats` : overview of SPSS datetime formats 
         """
         #if self.is_homogeneous:
         #    return self.struct_dtype
@@ -379,7 +393,7 @@ class SavReaderNp(SavReader):
 
     @memoize
     def spss2datetimeDate(self, spssDateValue):
-        """Convert an SPSS datetime into a `datetime.datetime` object
+        """Convert an SPSS datetime into a ``datetime.datetime`` object
 
         Parameters
         ----------
@@ -387,12 +401,15 @@ class SavReaderNp(SavReader):
 
         Returns
         -------
-        datetime : datetime.datetime; errors are returned as 
-        `datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0)`
+        datetime : datetime.datetime; errors and missings are returned as
+        ``datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0)``
 
         See also
         --------
-        spss2strDate
+        savReaderWriter.SavReader.spss2strDate : convert SPSS datetime into
+            a datetime string
+        :ref:`dateformats` : overview of SPSS datetime formats 
+
         """
         try:
             theDate = self.gregorianEpoch + \
@@ -481,7 +498,24 @@ class SavReaderNp(SavReader):
         Returns
         -------
         array : numpy.ndarray (if `filename=None`) or numpy.core.memmap.memmap
-                The array has a complex dtype, i.e. is a structured array
+                The array has a complex dtype, i.e. is a structured array. If
+                defined, `varLabels` may also be used to retrieve columns
+
+        Examples
+        --------
+        For example::
+
+            reader_np = SavReaderNp("./test_data/Employee data.sav")
+            array = reader_np.to_structured_array()
+            mean_salary = array["salary"].mean().round(2)
+            mean_salary == array["Current Salary"].mean().round(2)  # True
+            first_record = array[0]
+            reader_np.close()
+               
+        See also
+        --------        
+        savReaderWriter.SavReaderNp.to_ndarray
+
         """
         self.do_convert_datetimes = False  # no date conversion in __iter__ 
         if filename:
@@ -502,7 +536,7 @@ class SavReaderNp(SavReader):
 
         See also
         --------        
-        to_structured_array"""
+        savReaderWriter.SavReaderNp.to_structured_array"""
         return self.to_structured_array(filename)
 
     @convert_missings
@@ -516,10 +550,33 @@ class SavReaderNp(SavReader):
                    The filename for the memory mapped array. If omitted, 
                    the array will be in-memory
 
+        Raises
+        ------
+        ValueError : if the data are not homogeneous. If `rawMode=False` 
+            (default) SPSS datetimes are not considered to be numerical, 
+            even though they are stored as such in the .sav file
+
         Returns
         -------
         array : numpy.ndarray (if `filename=None`) or numpy.core.memmap.memmap
-                The array has a simple dtype, i.e. is a regular ndarray"""
+                The array has a simple dtype, i.e. is a regular ndarray
+
+        Examples
+        --------
+        For example::
+
+            import numpy.ma 
+            reader_np = SavReaderNp("./test_data/all_numeric.sav")
+            array = reader_np.to_ndarray()
+            average = numpy.ma.masked_invalid(array).mean()
+            reader_np.close()
+
+        See also
+        --------
+        savReaderWriter.SavReaderNp.is_homogeneous : determines whether a 
+            dataset is considered to be all-numeric
+        savReaderWriter.SavReaderNp.to_structured_array
+        """
         if not self.is_homogeneous:
             raise ValueError("Need only floats and no datetimes in dataset")
         elif filename:
@@ -539,8 +596,8 @@ class SavReaderNp(SavReader):
 
         See also
         --------
-        to_ndarray
-        to_structured_array"""
+        savReaderWriter.SavReaderNp.to_ndarray
+        savReaderWriter.SavReaderNp.to_structured_array"""
         if self.is_homogeneous:
             return self.to_ndarray(filename)
         else:
@@ -567,16 +624,16 @@ if __name__ == "__main__":
     start = time.time() 
     filename = "./test_data/Employee data.sav"
     #filename = "./test_data/greetings.sav"
-    filename = "./test_data/all_numeric_datetime_uncompressed.sav"
+    filename = "./test_data/all_numeric.sav"
     #filename = "/home/albertjan/nfs/Public/somefile_uncompressed.sav" 
     #filename = '/home/antonia/Desktop/big.sav'
     #filename = '/home/albertjan/nfs/Public/bigger.sav'
     with closing(klass(filename, rawMode=False, ioUtf8=False)) as sav:
         #print(sav.struct_dtype.descr)
-        #array = sav.to_ndarray() #"/tmp/test.dat")
+        array = sav.to_ndarray() #"/tmp/test.dat")
         #array = sav.to_structured_array() 
         #print(sav.formats)
-        array = sav.all() #"/tmp/test.dat")
+        #array = sav.all() #"/tmp/test.dat")
         #for record in sav:
             #print(record)
             #pass  

@@ -3,11 +3,6 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. toctree::
-   :maxdepth: 2
-
-   generated_api_documentation.rst
-
 Welcome to savReaderWriter's documentation!
 =================================================================================
 
@@ -116,6 +111,12 @@ To get the 'bleeding edge' version straight from the repository do::
       [4.0, 'f', '1947-04-15', 8.0, 1.0, 21900.0, 13200.0, 98.0, 190.0, 0.0]
       # etc. etc.
 
+.. versionchanged:: 3.4
+
+* Added ``SavReaderNp``, a class to convert .sav files to numpy arrays
+* Added ``savViewer``, a PyQt4-based script to view .sav, .xls, .xlsx, .csv, .tab files
+* Removed several bugs, notably one related to memoization of SPSS datetimes
+
 .. versionchanged:: 3.3
 
 * The ``savReaderWriter`` program now runs on Python 2 and 3. It is tested with Python 2.7, 3.3 and PyPy under Debian Linux 3.2.0-4-AMD64.
@@ -138,13 +139,9 @@ The ``cWriterow`` package is a faster Cython implementation of the pyWriterow me
     easy_install cython
     python setup.py build_ext --inplace
 
-TODO: Note that ``cWriterow`` is *not* yet ready for use under Python 3 (in fact, the code may need to be fixed for Python 2, too).
-
-**psyco.**
-The ``psyco`` package may be installed to speed up reading (66 % faster). Note that psyco is no longer maintained and that this will therefore be removed from the program at some point.
-
 **numpy.**
-The ``numpy`` package should be installed if you intend to use array slicing (e.g ``data[:2,2:4]``).
+* The ``numpy`` package should be installed if you intend to use array slicing (e.g ``data[:2,2:4]``).
+* ``Numpy`` is also needed to use the ``SavReaderNp`` sav-to-numpy class
 
 Enviroment variables
 ---------------------
@@ -154,88 +151,19 @@ Enviroment variables
 
 **DYLD_LIBRARY_PATH.** Users of Mac OSX need to set this variable, see elsewhere in this documentation.
 
-:mod:`SavWriter` -- Write SPSS system files
-============================================================================
-.. function:: SavWriter(savFileName, varNames, varTypes, [valueLabels=None, varLabels=None, formats=None, missingValues=None, measureLevels=None, columnWidths=None, alignments=None, varSets=None, varRoles=None, varAttributes=None, fileAttributes=None, fileLabel=None, multRespDefs=None, caseWeightVar=None, overwrite=True, ioUtf8=False, ioLocale=None, mode="wb", refSavFileName=None])
-   
-   **Write SPSS system files (.sav, .zsav)**
+Typical use (the TLDR version)
+------------------------------
 
-   :param savFileName: the file name of the spss data file. File names that end with '.zsav' are   compressed using the ZLIB (ZSAV) compression scheme (requires v21 SPSS I/O files), while for file    names that end with '.sav' the 'old' compression scheme is used (it is not possible to generate uncompressed files unless you modify the source code).
-
-   :param varNames: list of the variable names in the order in which they appear in the spss data file.
-
-   :param varTypes: varTypes dictionary ``{varName: varType}``, where varType == 0 means 'numeric', and varType > 0 means 'character' of that length (in bytes)
-
-   :param valueLabels: value label dictionary ``{varName: {value: label}}``. Cf. ``VALUE LABELS`` (default: ``None``).
-
-   :param varLabels: variable label dictionary ``{varName: varLabel}``. Cf. ``VARIABLE LABEL`` (default: ``None``).
-
-   :param formats: print/write format dictionary ``{varName: spssFmt}``. Commonly used formats include F  (numeric, e.g. ``F5.4``), N (numeric with leading zeroes, e.g. ``N8``), A (string, e.g. ``A8``) and ``EDATE``/``ADATE`` (European/American date, e.g. ``ADATE30``). Cf. ``FORMATS`` (default: ``None``). See also under `Formats`_.
-
-   :param missingValues: missing values dictionary ``{varName: {missing_value_spec}}``. Cf. ``MISSING VALUES`` (default: ``None``). For example: 
-
-      .. code:: python
-
-         missingValues = { \
-
-           # discrete values
-           b"someNumvar1": {"values": [999, -1, -2]},
-
-           # range, cf. MISSING VALUES x (-9 THRU -1)
-           # note also that 'lower', 'upper', 'value(s)' are without b' prefix
-           b"someNumvar2": {"lower": -9, "upper": -1},
-           b"someNumvar3": {"lower": -9, "upper": -1, "value": 999},
-
-           # string variables can have up to three missing values  
-           b"someStrvar1": {"values": [b"foo", b"bar", b"baz"]},
-           b"someStrvar2": {"values': b"bletch"}
-         }
-     
-      .. warning:: *measureLevels, columnWidths, alignments must all three be set, if used*
-
-   :param measureLevels: measurement level dictionary ``{varName: <level>}``. Valid levels are: "unknown",  "nominal", "ordinal", "scale", "ratio", "flag", "typeless". Cf. ``VARIABLE LEVEL`` (default: ``None``). 
-
-   :param columnWidths: column display width dictionary ``{varName: <int>}``. Cf. ``VARIABLE WIDTH``.   (default: ``None`` --> >= 10 [stringVars] or automatic [numVars]). 
-
-   :param alignments: alignment dictionary ``{varName: <left/center/right>}`` Cf. ``VARIABLE ALIGNMENT``  (default: ``None`` --> numerical: right, string: left). 
-
-   :param varSets: sets dictionary ``{setName: [list_of_valid_varNames]}``. Cf. ``SETSMACRO`` extension  command. (default: ``None``). 
-
-   :param varRoles: variable roles dictionary ``{varName: varRole}``. VarRoles may be any of the following:  'both', 'frequency', 'input', 'none', 'partition', 'record ID', 'split', 'target'. Cf. ``VARIABLE ROLE``  (default: ``None``). 
-
-   :param varAttributes: variable attributes dictionary ``{varName: {attribName: attribValue}`` Cf. ``VARIABLE  ATTRIBUTES``. (default: ``None``). For example:
-
-      .. code:: python
-
-         varAttributes = {b'gender': {b'Binary': b'Yes'}, 
-                          b'educ': {b'DemographicVars': b'1'}}
-
-   :param fileAttributes: file attributes dictionary ``{attribName: attribValue}``. Square brackets indicate  attribute arrays, which must  start with 1. Cf. ``FILE ATTRIBUTES``. (default: ``None``). For example:
-
-      .. code:: python
-
-         fileAttributes = {b'RevisionDate[1]': b'10/29/2004', 
-                           b'RevisionDate[2]': b'10/21/2005'} 
-
-   :param fileLabel: file label string, which defaults to "File created by user <username> at <datetime>" if file label is ``None``. Cf. ``FILE LABEL`` (default: ``None``). 
-
-   :param multRespDefs: Multiple response sets definitions (dichotomy groups or category groups) dictionary ``{setName: <set definition>}``. In SPSS syntax, 'setName' has a dollar prefix ('$someSet'). See also  docstring of multRespDefs method. Cf. ``MRSETS``. (default: ``None``). 
-
-   :param caseWeightVar: valid varName that is set as case weight. Cf. ``WEIGHT BY`` command. 
-
-   :param overwrite: Boolean that indicates whether an existing SPSS file should be overwritten (default: ``True``). 
-
-   :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will  be. Valid values are ``True`` (UTF-8/unicode mode, cf. ``SET UNICODE=ON``) or ``False`` (Codepage mode, ``SET  UNICODE=OFF``) (default: ``False``). 
-
-   :param ioLocale: indicates the locale of the I/O module, cf. ``SET LOCALE`` (default: ``None``, which is the  same as ``".".join(locale.getlocale())``. Locale specification is OS-dependent. See also under ``SavHeaderReader``.
-
-   :param mode: indicates the mode in which <savFileName> should be opened. Possible values are "wb" (write),  "ab" (append), "cp" (copy: initialize header using <refSavFileName> as a reference file, cf. ``APPLY DICTIONARY``). (default: "wb"). 
-
-   :param refSavFileName: reference file that should be used to initialize the header (aka the SPSS data  dictionary) containing variable label, value label, missing value, etc, etc definitions. Only relevant  in conjunction with mode="cp". (default: ``None``). 
-
-
-Typical use::
+The full documentation can be found in the :ref:`generated-api-documentation`.
+Here are the most important parts::
     
+    # ---- reading files    
+    with SavReader('someFile.sav', returnHeader=True) as reader:
+        header = next(reader)
+        for line in reader:
+            process(line)
+
+    # ---- writing files    
     savFileName = 'someFile.sav'
     records = [[b'Test1', 1, 1], [b'Test2', 2, 1]]
     varNames = ['var1', 'v2', 'v3']
@@ -244,107 +172,52 @@ Typical use::
         for record in records:
             writer.writerow(record)
 
-:mod:`SavReader` -- Read SPSS system files
-============================================================================
-.. function:: SavReader(savFileName, [returnHeader=False, recodeSysmisTo=None, verbose=False, selectVars=None, idVar=None, rawMode=False, ioUtf8=False, ioLocale=None])
+    # ---- reading file metadata
+    with SavHeaderReader(savFileName) as header:
+        metadata = header.dataDictionary(True)
+        report = str(header)
+        print(report)
 
-   **Read SPSS system files (.sav, .zsav)**
+    # ---- reading into numpy arrays
+    reader_np = SavReaderNp('Employee data.sav")
+    array = reader_np.to_structured_array()
+    mean_salary = array["salary"].mean()
+    reader_np.close()
 
-   :param savFileName: the file name of the spss data file
+    # ---- reading a file in unicode mode (default in SPSS v22 and up)
+    >>> with SavReader('greetings.sav', ioUtf8=True) as reader:
+    ...    for record in reader:
+    ...        print(record[-1])
+         নমস্কাৰ
+         আসসালামুআলাইকুম     
+    Greetings and salutations                         
+    გამარჯობა                       
+    Сәлеметсіз бе                         
+    Здравствуйте                          
+    ¡Hola!                                           
+    Grüezi                                           
+    สวัสดี                                
+    Bondjoû  
 
-   :param returnHeader: Boolean that indicates whether the first record should be a list of variable names (default = ``False``)
+    # ---- reading a file in codepage mode
+    # wrong: variables with accented characters are returned as v1, v2, v3
+    >>> with SavHeaderReader('german.sav') as header:
+    ...     print(header.varNames)
+    [b'python', b'programmieren', b'macht', b'v1', b'v2', b'v3']
 
-   :param recodeSysmisTo: indicates to which value missing values should be recoded (default = ``None``, i.e. no recoding is done)
-
-   :param selectVars: indicates which variables in the file should be selected. The variables should be  specified as a list or a tuple of valid variable names. If None is specified, all variables in the file are used (default = ``None``)
-
-   :param idVar: indicates which variable in the file should be used for use as id variable for the 'get'  method (default = ``None``)
-
-   :param verbose: Boolean that indicates whether information about the spss data file (e.g., number of cases,  variable names, file size) should be printed on the screen (default = ``False``).
-
-   :param rawMode: Boolean that indicates whether values should get SPSS-style formatting, and whether date variables (if present) should be converted to ISO-dates. If True, the program does not format any values, which increases processing speed. (default = ``False``)
-
-   :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will be. Valid values are True (UTF-8 mode aka Unicode mode) and False (Codepage mode). Cf. ``SET UNICODE=ON/OFF`` (default = ``False``)
-
-   :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = ``None``, which corresponds to ``".".join(locale.getlocale())``). See also under ``SavHeaderReader``.
-
-.. warning::
-
-   Once a file is open, ``ioUtf8`` and ``ioLocale`` can not be changed. The same applies after a file could not be successfully closed. Always ensure a file is closed by calling ``__exit__()`` (i.e., using a context manager) or ``close()`` (in a ``try - finally`` suite)
-
-Typical use::
-    
-    with SavReader("someFile.sav", returnHeader=True) as reader:
-        header = next(reader)
-        for line in reader:
-            process(line)
-
-Use of ``__getitem__`` and other methods::
-
-    data = SavReader("someFile.sav")
-    with data:
-
-        # fetch all the data, if it fits into memory 
-	allData = data.all()
-        
-        # fetch subsets of the data
-        print("The first six records look like this\n"), data[:6]
-        print("The first record looks like this\n"), data[0]
-        print("The last four records look like this\n"), data.tail(4)
-        print("The first five records look like this\n"), data.head()
-        print("First column:\n"), data[..., 0]  # requires numpy
-        print("Row 4 & 5, first three cols\n"), data[4:6, :3]  # requires numpy
-
-        # check the number of records 
-        print("The file contains %d records" % len(data))
-
-        # print a file report
-        print(str(data))
-
-    # Do a binary search for records --> idVar
-    # Assumes there is a variable named 'id' in someFile.sav.
-    data = SavReader("someFile.sav", idVar="id")
-    with data:
-        print(data.get(4, "not found"))  # gets 1st record where id==4
-
-
-:mod:`SavHeaderReader` -- Read SPSS file meta data
-============================================================================
-.. function:: SavHeaderReader(savFileName[, ioUtf8=False, ioLocale=None])
-	
-   **Read SPSS file meta data. Yields the same information as the SPSS command ``DISPLAY DICTIONARY``**
-
-
-   :param savFileName: the file name of the spss data file
-
-   :param ioUtf8: Boolean that indicates the mode in which text communicated to or from the I/O Module will be. Valid values are ``True`` (UTF-8 mode aka Unicode mode) and ``False`` (Codepage mode). Cf. ``SET UNICODE=ON/OFF`` (default = ``False``)
-
-   :param ioLocale: indicates the locale of the I/O module. Cf. ``SET LOCALE`` (default = ``None``, which corresponds to ``".".join(locale.getlocale())``). Example where this may be needed:
-
-      .. code:: python
-
-         # wrong: variables with accented characters are returned as v1, v2, v3
-         >>> with SavHeaderReader('german.sav') as header:
-         ...     print(header.varNames)
-         [b'python', b'programmieren', b'macht', b'v1', b'v2', b'v3']
-
-         # correct: variable names contain non-ascii characters
-         # locale definition and presence is OS-specific
-         # Linux: sudo localedef -f CP1252 -i de_DE /usr/lib/locale/de_DE.cp1252
-         >>> with SavHeaderReader('german.sav', ioLocale='de_DE.cp1252') as header:
-         ...     print(header.varNames)
-         [b'python', b'programmieren', b'macht', b'\xfcberhaupt', b'v\xf6llig', b'spa\xdf']
+    # correct: variable names contain non-ascii characters
+    # locale definition and presence is OS-specific
+    # Linux: sudo localedef -f CP1252 -i de_DE /usr/lib/locale/de_DE.cp1252
+    >>> with SavHeaderReader('german.sav', ioLocale='de_DE.cp1252') as header:
+    ...     print(header.varNames)
+    [b'python', b'programmieren', b'macht', b'\xfcberhaupt', b'v\xf6llig', b'spa\xdf']
 
 .. warning::
 
    The program calls ``spssFree*`` C functions to free memory allocated to dynamic arrays. This previously sometimes caused segmentation faults. This problem now appears to be solved. However, if you do experience segmentation faults you can set ``segfaults=True`` in ``__init__.py``. This will prevent the spssFree* functions from being called (and introduce a memory leak).
 
-Typical use::
 
-    with SavHeaderReader(savFileName) as header:
-        metadata = header.dataDictionary(True)
-        report = str(header)
-        print(report)
+.. _formats:
 
 Formats
 ----------
@@ -361,6 +234,8 @@ SPSS knows just two different data types: string and numerical data. These data 
    :selection: A1:D19
 
 *Note.* The User Programmable currency formats (CCA, CCB, CCC and CCD) cannot be defined or written by ``SavWriter`` and existing definitions cannot be read by ``SavReader``.
+
+.. _dateformats:
 
 Date formats
 -------------
@@ -392,6 +267,10 @@ The display format of the date (i.e., the way it looks in the SPSS data editor a
 
 Indices and tables
 ==================
+
+.. toctree::
+   generated_api_documentation.rst
+   :maxdepth: 2
 
 * :ref:`genindex`
 * :ref:`modindex`

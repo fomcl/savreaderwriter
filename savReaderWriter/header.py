@@ -26,7 +26,7 @@ class Header(Generic):
     called directly. Use `SavHeaderReader` to retrieve metadata.
     """
 
-    def __init__(self, savFileName, mode, refSavFileName, ioUtf8, ioLocale=None):
+    def __init__(self, savFileName, mode, refSavFileName, ioUtf8=False, ioLocale=None):
         """Constructor"""
         super(Header, self).__init__(savFileName, ioUtf8, ioLocale)
         self.spssio = self.loadLibrary()
@@ -95,7 +95,14 @@ class Header(Generic):
         """This function reports the number of cases present in a data file.
         Prehistoric files (< SPSS v6.0) don't contain nCases info, therefore
         a guesstimate of the number of cases is given for those files 
-        (cf. `SHOW N`)"""
+        (cf. `SHOW N`)
+
+        See also
+        --------
+        savReaderWriter.SavReader.__len__ : use `len(reader)` to get the 
+            number of cases
+        savReaderWriter.SavReader.shape : use `reader.shape` to get a 
+            (nrows, ncols) ntuple"""
         nCases = c_long()
         func = self.spssio.spssGetNumberofCases
         retcode = func(c_int(self.fh), byref(nCases))
@@ -109,7 +116,12 @@ class Header(Generic):
     @property
     def numberofVariables(self):
         """This function returns the number of variables (columns) in the
-        spss dataset"""
+        spss dataset
+
+        See also
+        --------
+        savReaderWriter.SavReader.shape : use `reader.shape` to get a 
+            (nrows, ncols) ntuple"""
         numVars = c_int()
         func = self.spssio.spssGetNumberofVariables
         func.argtypes = [c_int, POINTER(c_int)]
@@ -503,7 +515,7 @@ class Header(Generic):
 
         * to specify a RANGE: 'lower', 'upper', optionally with 'value'
         * to specify DISCRETE VALUES: 'values', specified as a list no longer
-        than three items, or as None, or as a float/int/str
+          than three items, or as None, or as a float/int/str
         """
         if kwargs == {}:
             return 0
@@ -832,8 +844,8 @@ class Header(Generic):
     def varRoles(self, varRoles):
         if not varRoles:
             return
-        roles = {"input": 0, "target": 1, "both": 2, "none": 3, "partition": 4,
-                 "split": 5,  "frequency": 6, "record ID": 7}
+        roles = {b"input": 0, b"target": 1, b"both": 2, b"none": 3, b"partition": 4,
+                 b"split": 5,  b"frequency": 6, b"record ID": 7}
 
         func = self.spssio.spssSetVarRole
         func.argtypes = [c_int, c_char_p, c_int] 
@@ -943,13 +955,16 @@ class Header(Generic):
             b'attrName[1]': b'attrValue1', 
             b'revision[1]': b'2010-10-09',
             b'revision[2]': b'2010-10-22', 
-            b'revision[3]': b'2010-11-19'}"""
+            b'revision[3]': b'2010-11-19'}
+
+        Square brackets indicate attribute arrays, which must
+        start with 1"""
         # abbreviation for readability
         DEFAULT_ARRAY_SIZE = 0
         func = self.spssio.spssGetFileAttributes
         func.argtypes = [c_int, 
-                         POINTER(POINTER(c_char_p * 0)),
-                         POINTER(POINTER(c_char_p * 0)),
+                         POINTER(POINTER(c_char_p * DEFAULT_ARRAY_SIZE)),
+                         POINTER(POINTER(c_char_p * DEFAULT_ARRAY_SIZE)),
                          POINTER(c_int)]
 
         # step 1: get array size (zero requests size)

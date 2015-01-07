@@ -33,6 +33,11 @@ class test_SavWriter_elaborate(unittest.TestCase):
                    b'educ': b'F3', b'id': b'N9'}
         varSets = {b'SALARY': [b'salbegin', b'salary'],
                    b'DEMOGR': [b'gender', b'minority', b'educ']}
+        varRoles = {b'prevexp': b'input', b'gender': b'input',
+                    b'jobtime': b'input', b'salbegin': b'input',
+                    b'salary': b'input', b'id': b'input',
+                    b'bdate': b'input', b'minority': b'input',
+                    b'jobcat': b'input', b'educ': b'input'}
         varAttributes = {b'salary': {b'DemographicVars': b'1'},
                          b'jobcat': {b'DemographicVars': b'1'},
                          b'gender': {b'Binary': b'Yes'},
@@ -49,6 +54,7 @@ class test_SavWriter_elaborate(unittest.TestCase):
                       varLabels = varLabels,
                       valueLabels = valueLabels,
                       varSets = varSets,
+                      varRoles = varRoles,
                       missingValues = missingValues,
                       varAttributes = varAttributes,
                       fileAttributes = fileAttributes)

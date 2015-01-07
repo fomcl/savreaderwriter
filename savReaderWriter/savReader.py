@@ -16,39 +16,51 @@ from helpers import *
 @rich_comparison
 @implements_to_string
 class SavReader(Header):
-    """ Read Spss system files (.sav, .zsav)
+    """ Read SPSS system files (.sav, .zsav)
 
-    Parameters:
-    -savFileName: the file name of the spss data file
-    -returnHeader: Boolean that indicates whether the first record should
-        be a list of variable names (default = False)
-    -recodeSysmisTo: indicates to which value missing values should
-        be recoded (default = None),
-    -selectVars: indicates which variables in the file should be selected.
-        The variables should be specified as a list or a tuple of
-        valid variable names. If None is specified, all variables
-        in the file are used (default = None)
-    -idVar: indicates which variable in the file should be used for use as id
-        variable for the 'get' method (default = None)
-    -verbose: Boolean that indicates whether information about the spss data
-        file (e.g., number of cases, variable names, file size) should be
-        printed on the screen (default = False).
-    -rawMode: Boolean that indicates whether values should get SPSS-style
-        formatting, and whether date variables (if present) should be converted
-        to ISO-dates. If True, the program does not format any values, which
-        increases processing speed. (default = False)
-    -ioUtf8: indicates the mode in which text communicated to or from the
-        I/O Module will be. Valid values are True (UTF-8 mode aka Unicode mode)
-        and False (Codepage mode). Cf. SET UNICODE=ON/OFF (default = False)
-    -ioLocale: indicates the locale of the I/O module. Cf. SET LOCALE (default
-        = None, which corresponds to ".".join(locale.getlocale())
+    Parameters
+    ---------- 
+    savFileName : str
+        the file name of the spss data file
+    returnHeader : bool
+        indicates whether the first record should be a list of variable names
+    recodeSysmisTo: (value)
+        indicates to which value missing values should be recoded
+    selectVars : list
+        indicates which variables in the file should be selected.
+        The variables should be specified as a list of valid variable names.
+        If None is specified, all the variables in the file are used
+    idVar : str
+        indicates which variable in the file should be used for use as id
+        variable for the 'get' method
+    verbose : bool
+        indicates whether information about the spss data file (e.g., number
+        of cases, variable names, file size) should be printed on the screen.
+    rawMode : bool
+        indicates whether values should get SPSS-style formatting, and whether
+        date variables (if present) should be converted into ISO-dates. If set
+        to True, the program does not format any values, which increases 
+        processing speed. See also :ref:`formats` and :ref:`dateformats`
+    ioUtf8 : bool
+        indicates the mode in which text communicated to or from the I/O 
+        Module will be. Valid values are True (UTF-8 mode aka Unicode mode)
+        and False (Codepage mode). Cf. `SET UNICODE=ON/OFF`.
+    ioLocale : locale str
+        indicates the locale of the I/O module. Cf. `SET LOCALE` (default
+        = None, which corresponds to ``".".join(locale.getlocale())``), for
+        example: `en_US.UTF-8`.
 
+
+    Examples
+    --------
     Typical use:
-    savFileName = "d:/someFile.sav"
-    with SavReader(savFileName, returnHeader=True) as reader:
-        header = reader.next()
-        for line in reader:
-            process(line)
+
+    .. code-block:: python
+
+        with SavReader('somefile.sav', returnHeader=True) as reader:
+            header = next(reader)
+            for line in reader:
+                process(line)
     """
 
     def __init__(self, savFileName, returnHeader=False, recodeSysmisTo=None,
@@ -91,7 +103,13 @@ class SavReader(Header):
         return iter(self)
 
     def __exit__(self, type, value, tb):
-        """ This function closes the spss data file and does some cleaning."""
+        """ This function closes the spss data file and does some cleaning.
+
+        .. warning::
+
+            Always ensure the the .sav file is properly closed, either by
+            using a context manager (``with`` statement) or by using 
+            ``close()``"""
         if type is not None:
             pass  # Exception occurred
         self.close()
@@ -129,18 +147,27 @@ class SavReader(Header):
 
     def __str__(self):
         """This function returns a conscise file report of the spss data file
-        For example str(SavReader(savFileName))"""
+        For example::
+            data = SavReader(savFileName)
+            print(str(data))  # Python 3: bytes(data)
+            data.close()"""
         return self.__unicode__().encode(self.fileEncoding)
 
     def __unicode__(self):
-        """This function returns a conscise file report of the spss data file,
-        For example unicode(SavReader(savFileName))"""
+        """This function returns a conscise file report of the spss data file.
+        For example::
+            data = SavReader(savFileName)
+            print(unicode(data))  # Python 3: str(data)
+            data.close()"""
         return self.getFileReport()
 
     @memoized_property
     def shape(self):
         """This function returns the number of rows (nrows) and columns
-        (ncols) as a namedtuple"""
+        (ncols) as a namedtuple. For example::
+            data = SavReader(savFileName)
+            data.shape.nrows == len(data) # True
+            data.close()"""
         shape = (self.nCases, self.numVars)
         return collections.namedtuple("Shape", "nrows ncols")(*shape)
 
@@ -153,6 +180,7 @@ class SavReader(Header):
         items = [hasDates, hasNfmt, hasRecodeSysmis, self.ioUtf8_]
         return False if any(items) else True
 
+    # TODO: turn this into a decorator
     def formatValues(self, record):
         """This function formats date fields to ISO dates (yyyy-mm-dd), plus
         some other date/time formats. The SPSS N format is formatted to a
@@ -227,16 +255,25 @@ class SavReader(Header):
             yield self.formatValues(record)
 
     def __iter__(self):
-        """This function allows the object to be used as an iterator"""
+        """x.__iter__() <==> iter(x). Yields records as a list. 
+        For example::
+        
+            with SavReader("someFile.sav") as reader:
+                for line in reader:
+                    process(line)"""
         return self._items(0, None, 1, self.returnHeader)
 
     def __getitem__(self, key):
-        """ This function reports the record of case number <key>.
-        For example: firstRecord = SavReader(savFileName)[0].
-        The <key> argument may also be a slice, for example:
-        firstfiveRecords = SavReader(savFileName)[:5].
-        You can also do stuff like (numpy required!):
-        savReader(savFileName)[1:5, 1]"""
+        """x.__getitem__(y) <==> x[y], where y may be int or slice.
+        This function reports the record of case number <key>.
+        The <key> argument may also be a slice, for example::
+            
+            data = SavReader("someFile.sav") 
+            print("The first six records look like this: %s" % data[:6])
+            print("The first record looks like this: %s" % data[0])
+            print("First column: %s" % data[..., 0]) # requires numpy
+            print("Row 4 & 5, first three cols: %s" % data[4:6, :3])
+            data.close()"""
 
         is_slice = isinstance(key, slice)
         is_array_slice = key is Ellipsis or isinstance(key, tuple)
@@ -359,22 +396,41 @@ class SavReader(Header):
         return result
 
     def head(self, n=5):
-        """ This convenience function returns the first <n> records. """
+        """ This convenience function returns the first <n> records.
+        Example::
+
+            data = SavReader("someFile.sav") 
+            print("The first five records look like this: %s" % data.head())
+            data.close()"""
         return self[:abs(n)]
 
     def tail(self, n=5):
-        """ This convenience function returns the last <n> records. """
+        """ This convenience function returns the last <n> records.
+        Example::
+
+            data = SavReader("someFile.sav") 
+            print("The last four records look like this: %s" % data.tail(4))
+            data.close()"""
         return self[-abs(n):]
 
     def all(self):
-        """ This convenience function returns all the records. """        
+        """ This convenience function returns all the records.
+        Example::
+
+            data = SavReader("someFile.sav") 
+            list_of_lists = data.all()
+            data.close()"""
         return [record for record in iter(self)]
 
     def __contains__(self, item):
         """ This function implements membership testing and returns True if
         <idVar> contains <item>. Thus, it requires the 'idVar' parameter to
-        be set. For example: reader = SavReader(savFileName, idVar="ssn")
-        "987654321" in reader """
+        be set.
+        Example::
+
+            reader = SavReader(savFileName, idVar="ssn")
+            "987654321" in reader # returns True or False
+        """
         return bool(self.get(item))
 
     def get(self, key, default=None, full=False):
@@ -384,14 +440,23 @@ class SavReader(Header):
         this uses a binary search, this is not very fast on large data (esp.
         the first call, and with full=True)
 
-        Parameters:
-        -key: key for which the corresponding record should be returned
-        -default: value that should be returned if <key> is not found
-          (default: None)
-        -full: value that indicates whether *all* records for which
-          <idVar> == <key> should be returned (default: False)
-        For example: reader = SavReader(savFileName, idVar="ssn")
-        reader.get("987654321", "social security number not found!")"""
+        Parameters
+        ----------
+        key : str, int, float
+            key for which the corresponding record should be returned
+        default : (value)
+            value that should be returned if <key> is not found
+        full : bool
+            value that indicates whether *all* records for which
+            <idVar> == <key> should be returned
+
+        Examples
+        --------
+        For example::
+
+            data = SavReader(savFileName, idVar="ssn")
+            data.get("987654321", "social security number not found!")
+            data.close()"""
 
         if not self.idVar in self.varNames:
             msg = ("SavReader object must be instantiated with an existing " +
@@ -458,7 +523,31 @@ class SavReader(Header):
     def spss2strDate(self, spssDateValue, fmt, recodeSysmisTo):
         """This function converts internal SPSS dates (number of seconds
         since midnight, Oct 14, 1582 (the beginning of the Gregorian calendar))
-        to a human-readable format"""
+        to a human-readable format (ISO-8601 where possible)
+
+        Parameters
+        ----------
+        spssDateValue : int, float
+        fmt : strptime format
+        recodeSysmisTo : what SPSS $sysmis values will be replaced with
+
+        Examples
+        --------
+        For example::
+
+            data = SavReader(savFileName)
+            iso_date = data.spss2strDate(11654150400.0, "%Y-%m-%d", None)
+            data.close()
+
+        See also
+        --------
+        savReaderWriter.SavReaderNp.spss2datetimeDate : returns 
+            ``datetime.datetime`` object
+        strptime-formats-settings
+            :download:`__init__.py <../__init__.py>` to change the 
+            strptime formats from ISO into something else
+ 
+        :ref:`dateformats` : overview of SPSS datetime formats"""
         try:
             if not hasattr(self, "gregorianEpoch"):
                 self.gregorianEpoch = datetime.datetime(1582, 10, 14, 0, 0, 0)

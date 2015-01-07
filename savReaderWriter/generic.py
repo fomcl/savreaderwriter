@@ -353,7 +353,7 @@ class Generic(object):
     @property
     def sysmis(self):
         """This function returns the IBM SPSS Statistics system-missing
-        value ($SYSMIS) for the host system (also called 'NA' in other
+        value (`$SYSMIS`) for the host system (also called 'NA' in other
         systems)."""
         if hasattr(self, "_sysmis"):
             return self._sysmis
@@ -369,7 +369,7 @@ class Generic(object):
         """This function returns the 'lowest' and 'highest' values used for
         numeric missing value ranges on the host system. This can be used in
         a similar way as the LO and HI keywords in missing values
-        specifications (cf. MISSING VALUES foo (LO THRU 0). It may be called
+        specifications (cf. `MISSING VALUES foo (LO THRU 0)`. It may be called
         at any time."""
         lowest, highest = c_double(), c_double()
         func = self.spssio.spssLowHighVal
@@ -382,18 +382,23 @@ class Generic(object):
     @property
     def ioLocale(self):
         """This function gets/sets the I/O Module's locale.
-        This corresponds with the SPSS command SET LOCALE. The I/O Module's
+        This corresponds with the SPSS command `SET LOCALE`. The I/O Module's
         locale is separate from that of the client application. The
         <localeName> parameter and the return value are identical to those
         for the C run-time function setlocale. The exact locale name
         specification depends on the OS of the host sytem, but has the
-        following form:
-                   <lang>_<territory>.<codeset>[@<modifiers>]
+        following form::
+
+            <lang>_<territory>.<codeset>[@<modifiers>]
+
         The 'codeset' and 'modifier' components are optional and in Windows,
         aliases (e.g. 'english') may be used. When the I/O Module is first
-        loaded, its locale is set to the system default. See also:
-        --https://wiki.archlinux.org/index.php/Locale
-        --http://msdn.microsoft.com/en-us/library/39cwe7zf(v=vs.80).aspx"""
+        loaded, its locale is set to the system default. 
+        
+        See also
+        --------
+        linux : `<https://wiki.archlinux.org/index.php/Locale>`_ 
+        windows : `<http://msdn.microsoft.com/en-us/library/39cwe7zf(v=vs.80).aspx>`_"""
         if hasattr(self, "setLocale"):
             return self.setLocale
         else:
@@ -449,11 +454,12 @@ class Generic(object):
 
     @property
     def ioUtf8(self):
-        """This function returns/sets the current interface encoding.
-        ioUtf8 = False --> CODEPAGE mode,
-        ioUtf8 = True --> UTF-8 mode, aka. Unicode mode
-        This corresponds with the SPSS command SHOW UNICODE (getter)
-        and SET UNICODE=ON/OFF (setter)."""
+        """This function returns/sets the current interface encoding
+
+        * ``ioUtf8 = False`` --> `CODEPAGE` mode,
+        * ``ioUtf8 = True`` --> UTF-8 mode, aka. `UNICODE` mode
+        This corresponds with the SPSS command `SHOW UNICODE` (getter)
+        and `SET UNICODE=ON/OFF` (setter)."""
         if hasattr(self, "ioUtf8_"):
             return self.ioUtf8_
         self.ioUtf8_ = self.spssio.spssGetInterfaceEncoding()

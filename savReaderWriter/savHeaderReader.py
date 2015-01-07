@@ -11,15 +11,37 @@ from header import *
 class SavHeaderReader(Header):
     """
     This class contains methods that read the data dictionary of an SPSS
-    data file. This yields the same information as the Spss command 'DISPLAY
-    DICTIONARY' NB: do not confuse an Spss dictionary with a Python
+    data file. This yields the same information as the Spss command `DISPLAY
+    DICTIONARY`. NB: do not confuse an Spss dictionary with a Python
     dictionary!
 
-    Typical use:
-    with SavHeaderReader(savFileName) as header:
-        metadata = header.dataDictionary(True)
-        print(str(header))
-    """
+    Parameters
+    ----------
+    savFileName : str
+        The file name of the spss data file
+    ioUtf8 : bool, optional
+        Indicates the mode in which text communicated to or from 
+        the I/O Module will be. Valid values are True (UTF-8 mode aka 
+        Unicode mode) and False (Codepage mode). Cf. `SET UNICODE=ON/OFF`
+    ioLocale : locale str, optional
+        indicates the locale of the I/O module. Cf. `SET LOCALE`. 
+        (default = None, which corresponds to `".".join(locale.getlocale()`)
+
+    Examples
+    --------
+
+    Typical use::
+
+        with SavHeaderReader(savFileName) as header:
+            metadata = header.dataDictionary(True)
+            print(metadata.varLabels)
+            print(str(header))
+            report = header.reportSpssDataDictionary(header.dataDictionary())
+
+   See also
+   --------
+   savReaderWriter.Header : for more options to retrieve individual 
+       metadata items"""
 
     def __init__(self, savFileName, ioUtf8=False, ioLocale=None):
         """ Constructor. Initializes all vars that can be recycled """
@@ -47,7 +69,13 @@ class SavHeaderReader(Header):
     def __enter__(self):
         """ This function returns the DictionaryReader object itself so
         its methods become available for use with context managers
-        ('with' statements)."""
+        ('with' statements).
+
+        .. warning::
+
+            Always ensure the the .sav file is properly closed, either by 
+            using a context manager (``with`` statement) or by using 
+            ``close()``"""
         return self
 
     def __exit__(self, type, value, tb):

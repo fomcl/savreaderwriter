@@ -14,94 +14,140 @@ if cWriterowOK:
 
 class SavWriter(Header):
 
-    """ Write Spss system files (.sav, .zsav)
+    """ Write SPSS system files (.sav, .zsav)
 
-    Parameters:
-    * Formal
-    -savFileName: the file name of the spss data file. 
-       -File names that end with '.sav' are compressed using the 'old' 
-        compression scheme
-       -File names that end with '_uncompressed.sav' are, well, not 
-        compressed. This is useful when you intend to read the files with 
-        the faster UncompressedSavReader class
-       -File names that end with '.zsav' are compressed using the ZLIB (ZSAV)
-        compression scheme (requires v21 SPSS I/O files)
-    -varNames: list of the variable names in the order in which they appear in
-      in the spss data file.
-    -varTypes: varTypes dictionary {varName: varType}, where varType == 0 means
-      'numeric', and varType > 0 means 'character' of that length (in bytes)
+    Below, the associated SPSS commands are given in `CAPS`.
 
-    * Optional (the associated SPSS commands are given in CAPS)
-    -valueLabels: value label dictionary {varName: {value: label}} Cf. VALUE
-      LABELS (default: None)
-    -varLabels: variable label dictionary {varName: varLabel}. Cf. VARIABLE
-      LABEL (default: None)
-    -formats: format_ dictionary {varName: printFmt} Cf. FORMATS
-      (default: None)
-    -missingValues: missing values dictionary {varName: {missing value spec}}
-      (default: None). Cf. MISSING VALUES. For example:
-          {'someNumvar1': {'values': [999, -1, -2]}, # discrete values
-           'someNumvar2': {'lower': -9, 'upper':-1}, # range, cf. -9 THRU -1
-           'someNumvar3': {'lower': -9, 'upper':-1, 'value': 999},
-           'someStrvar1': {'values': [b'foo', b'bar', b'baz']},
-           'someStrvar2': {'values': b'bletch'}}
-    ---The following three parameters must all three be set, if used---
-    -measureLevels: measurement level dictionary {varName: <level>}
-     Valid levels are: "unknown", "nominal", "ordinal", "scale",
-     "ratio", "flag", "typeless". Cf. VARIABLE LEVEL (default: None)
-    -columnWidths: column display width dictionary {varName: <int>}.
-      Cf. VARIABLE WIDTH. (default: None --> >= 10 [stringVars] or automatic
-      [numVars])
-    -alignments: alignment dictionary {varName: <left/center/right>}
-      Cf. VARIABLE ALIGNMENT (default: None --> left)
-    ---
-    -varSets: sets dictionary {setName: list_of_valid_varNames}.
-      Cf. SETSMR command. (default: None)
-    -varRoles: variable roles dictionary {varName: varRole}, where varRole
-      may be any of the following: 'both', 'frequency', 'input', 'none',
-      'partition', 'record ID', 'split', 'target'. Cf. VARIABLE ROLE
-      (default: None)
-    -varAttributes: variable attributes dictionary {varName: {attribName:
-      attribValue} (default: None). For example: varAttributes = {'gender':
-      {'Binary': 'Yes'}, 'educ': {'DemographicVars': '1'}}. Cf. VARIABLE
-      ATTRIBUTES. (default: None)
-    -fileAttributes: file attributes dictionary {attribName: attribValue}
-      For example: {b'RevisionDate[1]': b'10/29/2004', b'RevisionDate[2]':
-      b'10/21/2005'}. Square brackets indicate attribute arrays, which must
-      start with 1. Cf. FILE ATTRIBUTES. (default: None)
-    -fileLabel: file label string, which defaults to "File created by user
-      <username> at <datetime>" is file label is None. Cf. FILE LABEL
-      (default: None)
-    -multRespDefs: Multiple response sets definitions (dichotomy groups or
-      category groups) dictionary {setName: <set definition>}. In SPSS syntax,
-      'setName' has a dollar prefix ('$someSet'). See also docstring of
-      multRespDefs method. Cf. MRSETS. (default: None)
+    Parameters
+    ----------
 
-    -caseWeightVar: valid varName that is set as case weight (cf. WEIGHT BY)
-    -overwrite: Boolean that indicates whether an existing Spss file should be
-      overwritten (default: True)
-    -ioUtf8: indicates the mode in which text communicated to or from the
-      I/O Module will be. Valid values are True (UTF-8/unicode mode, cf. SET
-      UNICODE=ON) or False (Codepage mode, SET UNICODE=OFF) (default: False)
-    -ioLocale: indicates the locale of the I/O module, cf. SET LOCALE (default:
-      None, which is the same as ".".join(locale.getlocale())
-    -mode: indicates the mode in which <savFileName> should be opened. Possible
-      values are "wb" (write), "ab" (append), "cp" (copy: initialize header
-      using <refSavFileName> as a reference file, cf. APPLY DICTIONARY).
-      (default: "wb")
-    -refSavFileName: reference file that should be used to initialize the
-      header (aka the SPSS data dictionary) containing variable label, value
-      label, missing value, etc etc definitions. Only relevant in conjunction
-      with mode="cp". (default: None)
+    savFileName : str
+        The file name of the spss data file. 
+            * File names that end with '.sav' are compressed using the 'old' 
+              compression scheme
+            * File names that end with '_uncompressed.sav' are, well, not 
+              compressed. This is useful when you intend to read the files with 
+              the faster :py:class:`savReaderWriter.SavReaderNp` class
+            * File names that end with '.zsav' are compressed using the ZLIB 
+              (ZSAV) compression scheme (requires v21 SPSS I/O files)
+    varNames : list
+        list of of strings of the variable names in the order in which they
+        should appear in the spss data file. See also under 
+        :py:meth:`savReaderWriter.Header.varNamesTypes`
+    varTypes : dict
+        varTypes dictionary `{varName: varType}`
 
-    Typical use:
-    records = [[b'Test1', 1, 1], [b'Test2', 2, 1]]
-    varNames = ['var1', 'v2', 'v3']
-    varTypes = {'var1': 5, 'v2': 0, 'v3': 0}
-    savFileName = "test.sav"
-    with SavWriter(savFileName, varNames, varTypes) as writer:
-        for record in records:
-            writer.writerow(record)
+        * varType == 0 --> numeric
+        * varType > 0 --> character' of that length (in bytes!)
+        See also under :py:meth:`savReaderWriter.Header.varNamesTypes`
+
+    valueLabels : dict, optional
+        value label dictionary `{varName: {value: label}}` Cf. `VALUE LABELS`
+    varLabels : dict, optional
+        variable label dictionary `{varName: varLabel}`. Cf. `VARIABLE LABEL`.
+        See also under :py:meth:`savReaderWriter.Header.varLabels`
+    formats : dict, optional
+        format dictionary `{varName: printFmt}` Cf. `FORMATS`.
+        See also under :py:meth:`savReaderWriter.Header.formats`, under
+        :ref:`formats` and under :ref:`dateformats`
+    missingValues : dict, optional
+        missing values dictionary `{varName: {missing value spec}}`.
+        Cf. `MISSING VALUES`. See also under 
+        :py:meth:`savReaderWriter.Header.missingValues`
+
+    measureLevels : dict, optional
+        measurement level dictionary `{varName: <level>}`
+        Valid levels are: "unknown", "nominal", "ordinal", "scale",
+        "ratio", "flag", "typeless". Cf. `VARIABLE LEVEL`
+        See also under :py:meth:`savReaderWriter.Header.measureLevels`
+
+        .. warning::
+            `measureLevels`, `columnWidths` and `alignments` must all three
+            be set, if used
+    columnWidths : dict, optional
+        column display width dictionary `{varName: <int>}`.
+        Cf. `VARIABLE WIDTH`. (default: None --> >= 10 [stringVars] or 
+        automatic [numVars])
+        See also under :py:meth:`savReaderWriter.Header.columnWidths`
+    alignments : dict, optional
+        variable alignment dictionary `{varName: <left/center/right>}`
+        Cf. `VARIABLE ALIGNMENT` (default: None --> left)
+        See also under :py:meth:`savReaderWriter.Header.alignments`
+
+    varSets : dict, optional
+        sets dictionary `{setName: list_of_valid_varNames}`. 
+        Cf. `SETSMR` command.
+        See also under :py:meth:`savReaderWriter.Header.varSets`
+    varRoles : dict, optional
+        variable roles dictionary `{varName: varRole}`, where varRole
+        may be any of the following: 'both', 'frequency', 'input', 'none',
+        'partition', 'record ID', 'split', 'target'. Cf. `VARIABLE ROLE`
+        See also under :py:meth:`savReaderWriter.Header.varRoles`
+    varAttributes : dict, optional
+        variable attributes dictionary `{varName: {attribName:
+        attribValue}`. Cf. `VARIABLE ATTRIBUTES`.
+        See also under :py:meth:`savReaderWriter.Header.varAttributes`
+    fileAttributes : dict, optional
+        file attributes dictionary `{attribName: attribValue}`.
+        Cf. FILE ATTRIBUTES. See also under 
+        :py:meth:`savReaderWriter.Header.fileAttributes`
+    fileLabel : dict, optional 
+        file label string, which defaults to "File created by user
+        <username> at <datetime>" is file label is None. Cf. `FILE LABEL`
+        See also under :py:meth:`savReaderWriter.Header.fileLabel`
+    multRespDefs : dict, optional
+        multiple response sets definitions (dichotomy groups or
+        category groups) dictionary `{setName: <set definition>}`. In SPSS 
+        syntax, 'setName' has a dollar prefix ('$someSet'). Cf. `MRSETS`.
+        See also under :py:meth:`savReaderWriter.Header.multRespDefs`
+
+    caseWeightVar : str, optional
+        valid varName that is set as case weight (cf. `WEIGHT BY`)
+        See also under :py:meth:`savReaderWriter.Header.caseWeightVar`
+    overwrite : bool, optional
+        indicates whether an existing SPSS file should be overwritten
+    ioUtf8 : bool, optional
+        indicates the mode in which text communicated to or from the
+        I/O Module will be. Valid values are True (UTF-8/unicode mode, cf. 
+        `SET UNICODE=ON`) or False (Codepage mode, `SET UNICODE=OFF`).
+        See also under :py:meth:`savReaderWriter.Generic.ioUtf8`
+
+    ioLocale : bool, optional
+        indicates the locale of the I/O module, cf. `SET LOCALE` (default:
+        None, which is the same as ``".".join(locale.getlocale())``.
+        See also under :py:meth:`savReaderWriter.Generic.ioLocale`
+    mode : str, optional
+      indicates the mode in which <savFileName> should be opened. Possible
+      values are:
+
+      * "wb" --> write
+      * "ab" --> append
+      * "cp" --> copy: initialize header using ``refSavFileName`` as a reference
+        file, cf. `APPLY DICTIONARY`.
+    refSavFileName : str, optional
+      reference file that should be used to initialize the header (aka the 
+      SPSS data dictionary) containing variable label, value label, missing
+      value, etc. etc. definitions. Only relevant in conjunction with 
+      ``mode="cp"``.
+   
+    See also
+    --------
+
+    savReaderWriter.Header : for details about how to define individual 
+        metadata items
+
+    Examples
+    --------
+
+    Typical use::
+
+        records = [[b'Test1', 1, 1], [b'Test2', 2, 1]]
+        varNames = [b'var1', b'v2', b'v3']
+        varTypes = {b'var1': 5, b'v2': 0, b'v3': 0}
+        savFileName = 'someFile.sav'
+        with SavWriter(savFileName, varNames, varTypes) as writer:
+            for record in records:
+                writer.writerow(record)
     """
     def __init__(self, savFileName, varNames, varTypes, valueLabels=None,
                  varLabels=None, formats=None, missingValues=None,
@@ -162,7 +208,13 @@ class SavWriter(Header):
         return self
 
     def __exit__(self, type, value, tb):
-        """ This function closes the spss data file."""
+        """ This function closes the spss data file.
+
+        .. warning::
+
+            Always ensure the the .sav file is properly closed, either by 
+            using a context manager (``with`` statement) or by using 
+            ``close()``"""
         if type is not None:
             pass  # Exception occurred
         self.closeSavFile(self.fh, self.mode)
@@ -209,7 +261,7 @@ class SavWriter(Header):
 
     def spssDateTime(self, datetimeStr=b"2001-12-08", strptimeFmt="%Y-%m-%d"):
         """ This function converts a date/time string into an SPSS date,
-        using a strptime format."""
+        using a strptime format. See also :ref:`dateformats`"""
         try:
             datetimeStr = datetimeStr.decode("utf-8")
             dt = time.strptime(datetimeStr, strptimeFmt)
