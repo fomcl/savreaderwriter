@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from ctypes import *
-import ctypes.util
 import struct
 import sys
 import os
@@ -23,14 +22,14 @@ class Header(Generic):
     This class contains methods responsible for getting and setting meta data
     that is embedded in the IBM SPSS Statistics data file. In SPSS speak, this
     header information is known as the SPSS Data Dictionary (which has diddly
-    squat to do with a Python dictionary!).
+    squat to do with a Python dictionary!). NOTE: this class should not be 
+    called directly. Use `SavHeaderReader` to retrieve metadata.
     """
 
     def __init__(self, savFileName, mode, refSavFileName, ioUtf8, ioLocale=None):
         """Constructor"""
         super(Header, self).__init__(savFileName, ioUtf8, ioLocale)
         self.spssio = self.loadLibrary()
-        self.libc = cdll.LoadLibrary(ctypes.util.find_library("c"))
         self.fh = super(Header, self).openSavFile(savFileName, mode,
                                                   refSavFileName)
         self.varNames, self.varTypes = self.varNamesTypes
@@ -95,7 +94,8 @@ class Header(Generic):
     def numberofCases(self):
         """This function reports the number of cases present in a data file.
         Prehistoric files (< SPSS v6.0) don't contain nCases info, therefore
-        a guesstimate of the number of cases is given for those files"""
+        a guesstimate of the number of cases is given for those files 
+        (cf. `SHOW N`)"""
         nCases = c_long()
         func = self.spssio.spssGetNumberofCases
         retcode = func(c_int(self.fh), byref(nCases))
@@ -120,11 +120,13 @@ class Header(Generic):
 
     @property
     def varNamesTypes(self):
-        """Get/Set variable names and types.
-        --Variable names is a list of the form ['var1', var2', 'etc']
-        --Variable types is a dictionary of the form {varName: varType}
+        """Get/Set a tuple of variable names and types
+
+        * Variable names is a list of the form `[b'var1', b'var2', b'etc']`
+        * Variable types is a dictionary of the form `{varName: varType}`
+
         The variable type code is an integer in the range 0-32767, 0
-        indicating a numeric variable (F8.2) and a positive value
+        indicating a numeric variable (e.g., `F8.2`) and a positive value
         indicating a string variable of that size (in bytes)."""
         if hasattr(self, "varNames"):
             return self.varNames, self.varTypes
@@ -188,10 +190,16 @@ class Header(Generic):
     @property
     @decode
     def valueLabels(self):
-        """Get/Set VALUE LABELS.
-        Takes a dictionary of the form {varName: {value: valueLabel}}:
-        --{'numGender': {1: 'female', {2: 'male'}}
-        --{'strGender': {'f': 'female', 'm': 'male'}}"""
+        """Get/Set `VALUE LABELS`. Takes a dictionary of the form 
+        `{varName: {value: valueLabel}}`:
+
+        .. code-block:: python
+
+            {b'numGender': {1: b'female', 
+                           {2: b'male'},
+             b'strGender': {b'f': b'female', 
+                            b'm': b'male'}}
+        """
         def initArrays(isNumeric=True, size=0):
             """default size=0 is used to request array size"""
             labelsArr = (POINTER(c_char_p * size))()
@@ -292,10 +300,15 @@ class Header(Generic):
     @property
     @decode
     def varLabels(self):
-        """Get/set VARIABLE LABELS.
-        Returns/takes a dictionary of the form {varName: varLabel}.
-        For example: varLabels = {'salary': 'Salary (dollars)',
-                                  'educ': 'Educational level (years)'}"""
+        """Get/set `VARIABLE LABELS`.
+        Returns/takes a dictionary of the form `{varName: varLabel}`. 
+        For example:
+
+        .. code-block:: python
+
+            {b'salary': b'Salary (dollars)',
+             b'educ': b'Educational level (years)'}
+        """
         lenBuff = MAXLENGTHS['SPSS_MAX_VARLABEL'][0]
         varLabel = create_string_buffer(lenBuff)
 
@@ -334,10 +347,15 @@ class Header(Generic):
     @property
     @decode
     def formats(self):
-        """Get the PRINT FORMATS, set PRINT and WRITE FORMATS.
-        Returns/takes a dictionary of the form {varName: <format_>.
-        For example: formats = {'salary': 'DOLLAR8', 'gender': 'A1',
-                                'educ': 'F8.2'}"""
+        """Get the `PRINT FORMATS`, set `PRINT FORMATS` and `WRITE FORMATS`.
+        Returns/takes a dictionary of the form `{varName: <spss-format>}`.
+        For example:
+
+        .. code-block:: python
+
+            {b'salary': b'DOLLAR8', 
+             b'gender': b'A1',
+             b'educ': b'F8.2'}"""
         if hasattr(self, "formats_"):
             return self.formats_
 
@@ -368,7 +386,7 @@ class Header(Generic):
 
     def _splitformats(self):
         """This function returns the 'bare' formats + variable widths,
-        e.g. format F5.3 is returned as 'F' and '5'"""
+        e.g. format `F5.3` is returned as 'F' and '5'"""
         pattern = b"(?P<bareFmt>[a-z]+)(?P<varWid>\d+)[.]?\d*"
         if self.ioUtf8_:
             pattern = pattern.decode("utf-8")
@@ -482,6 +500,7 @@ class Header(Generic):
         """This is a helper function for the missingValues setter
         method. The function sets missing values for variable <varName>.
         Valid keyword arguments are:
+
         * to specify a RANGE: 'lower', 'upper', optionally with 'value'
         * to specify DISCRETE VALUES: 'values', specified as a list no longer
         than three items, or as None, or as a float/int/str
@@ -565,11 +584,23 @@ class Header(Generic):
         'age' has values 5, 15, 999, the average age is 10). This is
         different from 'system missing values', which are blank/null values.
         Takes a dictionary of the following form:
-          {'someNumvar1': {'values': [999, -1, -2]}, # discrete values
-           'someNumvar2': {'lower': -9, 'upper':-1}, # range "-9 THRU -1"
-           'someNumvar3': {'lower': -9, 'upper':-1, 'value': 999},
-           'someStrvar1': {'values': ['foo', 'bar', 'baz']},
-           'someStrvar2': {'values': 'bletch'}}      # shorthand """
+
+        .. code-block:: python
+
+            # note that 'lower', 'upper', 'value(s)' are without b' prefix
+            missingValues = { 
+
+            # discrete values
+            b"someNumvar1": {"values": [999, -1, -2]},
+
+            # range, cf. MISSING VALUES x (-9 THRU -1)
+            b"someNumvar2": {"lower": -9, "upper": -1},
+            b"someNumvar3": {"lower": -9, "upper": -1, "value": 999},
+
+            # string variables can have up to three missing values
+            b"someStrvar1": {"values": [b"foo", b"bar", b"baz"]},
+            b"someStrvar2": {"values': b"bletch"}
+            }"""
         missingValues = {}
         for varName in self.varNames:
             missingValues[varName] = self._getMissingValue(varName)
@@ -585,11 +616,11 @@ class Header(Generic):
     @property
     @decode
     def measureLevels(self):
-        """Get/Set VARIABLE LEVEL (measurement level).
-        Returns/Takes a dictionary of the form {varName: varMeasureLevel}.
+        """Get/Set `VARIABLE LEVEL` (measurement level).
+        Returns/Takes a dictionary of the form `{varName: varMeasureLevel}`.
         Valid measurement levels are: "unknown", "nominal", "ordinal", "scale",
-        "ratio", "flag", "typeless". This is used in Spss procedures such as
-        CTABLES."""
+        "ratio", "flag", "typeless". This is used in SPSS procedures such as
+        `CTABLES`."""
         func = self.spssio.spssGetVarMeasureLevel
         func.argtypes = [c_int, c_char_p, POINTER(c_int)]
 
@@ -629,8 +660,8 @@ class Header(Generic):
     @property
     @decode
     def columnWidths(self):
-        """Get/Set VARIABLE WIDTH (display width).
-        Returns/Takes a dictionary of the form {varName: <int>}. A value of
+        """Get/Set `VARIABLE WIDTH` (display width).
+        Returns/Takes a dictionary of the form `{varName: <int>}`. A value of
         zero is special and means that the IBM SPSS Statistics Data Editor
         is to set an appropriate width using its own algorithm. If used,
         variable alignment, measurement level and column width all needs to
@@ -680,11 +711,12 @@ class Header(Generic):
     @property
     @decode
     def alignments(self):
-        """Get/Set VARIABLE ALIGNMENT.
-        Returns/Takes a dictionary of the form {varName: alignment}
-        Valid alignment values are: left, right, center. If used, variable
-        alignment, measurement level and column width all need to be set.
-        """
+        """Get/Set `VARIABLE ALIGNMENT`. Returns/Takes a dictionary of the
+        form `{varName: alignment}`. Valid alignment values are: "left",
+        "right", "center".
+
+       .. warning:: *measureLevels, columnWidths, alignments must all three 
+           be set, if used*"""
         func = self.spssio.spssGetVarAlignment
         func.argtypes = [c_int, c_char_p, POINTER(c_int)]
  
@@ -722,10 +754,15 @@ class Header(Generic):
     @property
     @decode
     def varSets(self):
-        """Get/Set VARIABLE SET information.
-        Returns/Takes a dictionary with SETNAME as keys and a list of SPSS
-        variables as values. For example: {'SALARY': ['salbegin',
-        'salary'], 'DEMOGR': ['gender', 'minority', 'educ']}"""
+        """Get/Set `VARIABLE SET` information.
+        Returns/Takes a dictionary with setname as keys and a list of SPSS
+        variables as values. For example:
+
+        .. code-block:: python
+
+            {b'SALARY': [b'salbegin', b'salary'], 
+             b'DEMOGR': [b'gender', b'minority', b'educ']}
+        """
         func = self.spssio.spssGetVariableSets
         func.argtypes = [c_int, POINTER(c_char_p)]
 
@@ -770,8 +807,8 @@ class Header(Generic):
     @property
     @decode
     def varRoles(self):
-        """Get/Set VARIABLE ROLES.
-        Returns/Takes a dictionary of the form {varName: varRole}, where
+        """Get/Set `VARIABLE ROLES`.
+        Returns/Takes a dictionary of the form `{varName: varRole}`, where
         varRoles may be any of the following: 'both', 'frequency', 'input',
         'none', 'partition', 'record ID', 'split', 'target'"""
         func = self.spssio.spssGetVarRole
@@ -811,10 +848,15 @@ class Header(Generic):
     @property
     @decode
     def varAttributes(self):
-        """Get/Set VARIABLE ATTRIBUTES.
+        """Get/Set `VARIABLE ATTRIBUTES`.
         Returns/Takes dictionary of the form:
-        {'var1': {'attr name x': 'attr value x','attr name y': 'attr value y'},
-         'var2': {'attr name a': 'attr value a','attr name b': 'attr value b'}}
+
+        .. code-block:: python
+
+            {b'var1': {b'attr name x': b'attr value x',
+                       b'attr name y': b'attr value y'},
+             b'var2': {b'attr name a': b'attr value a',
+                       b'attr name b': b'attr value b'}}
         """
         # specify default array + argtypes (zero requests size)
         DEFAULT_ARRAY_SIZE = 0
@@ -893,11 +935,15 @@ class Header(Generic):
     @property
     @decode
     def fileAttributes(self):
-        """Get/Set DATAFILE ATTRIBUTES.
+        """Get/Set `DATAFILE ATTRIBUTES`.
         Returns/Takes a dictionary of the form:
-        {'attrName[1]': 'attrValue1', 'revision[1]': '2010-10-09',
-        'revision[2]': '2010-10-22', 'revision[3]': '2010-11-19'}
-         """
+
+        .. code-block:: python
+
+            b'attrName[1]': b'attrValue1', 
+            b'revision[1]': b'2010-10-09',
+            b'revision[2]': b'2010-10-22', 
+            b'revision[3]': b'2010-11-19'}"""
         # abbreviation for readability
         DEFAULT_ARRAY_SIZE = 0
         func = self.spssio.spssGetFileAttributes
@@ -1034,36 +1080,49 @@ class Header(Generic):
     @property
     @decode
     def multRespDefs(self):
-        """Get/Set MRSETS (multiple response) sets.
+        """Get/Set `MRSETS` (multiple response) sets.
         Returns/takes a dictionary of the form:
-        --multiple category sets: {setName: {"setType": "C", "label": lbl,
-          "varNames": [<list_of_varNames>]}}
-        --multiple dichotomy sets: {setName: {"setType": "D", "label": lbl,
-          "varNames": [<list_of_varNames>], "countedValue": countedValue}}
-        --extended multiple dichotomy sets: {setName: {"setType": "E",
+
+        * multiple category sets: `{setName: {"setType": "C", "label": lbl,
+          "varNames": [<list_of_varNames>]}}`
+        * multiple dichotomy sets: `{setName: {"setType": "D", "label": lbl,
+          "varNames": [<list_of_varNames>], "countedValue": countedValue}}`
+        * extended multiple dichotomy sets: `{setName: {"setType": "E",
           "label": lbl, "varNames": [<list_of_varNames>], "countedValue":
-           countedValue, 'firstVarIsLabel': <bool>}}
+          countedValue, 'firstVarIsLabel': <bool>}}`
 	Note. You can get values of extended multiple dichotomy sets with 
         getMultRespSetsDefEx, but you cannot write extended multiple dichotomy
         sets.
 
         For example:
-        categorical  = {"setType": "C", "label": "labelC",
-                       "varNames": ["salary", "educ"]}
-        dichotomous1 = {"setType": "D", "label": "labelD",
-                        "varNames": ["salary", "educ"], "countedValue": "Yes"}
-        dichotomous2 = {"setType": "D", "label": "", "varNames":
-                        ["salary", "educ", "jobcat"], "countedValue": "No"}
-        extended1    = {"setType": "E", "label": "", "varNames": ["mevar1",
-                        "mevar2", "mevar3"], "countedValue": "1",
-                        "firstVarIsLabel": True}
-        extended2    = {"setType": "E", "label":
-                        "Enhanced set with user specified label", "varNames":
-                        ["mevar4", "mevar5", "mevar6"], "countedValue":
-                        "Yes", "firstVarIsLabel": False}
-        multRespDefs = {"testSetC": categorical, "testSetD1": dichotomous1,
-                        "testSetD2": dichotomous2, "testSetEx1": extended1,
-                        "testSetEx2": extended2}
+
+        .. code-block:: python
+
+            categorical =  {b"setType": b"C", 
+                            b"label": b"labelC",
+                            b"varNames": [b"salary", b"educ"]}
+            dichotomous1 = {b"setType": b"D", b"label": b"labelD",
+                            b"varNames": [b"salary", b"educ"], 
+                            b"countedValue": b"Yes"}
+            dichotomous2 = {b"setType": b"D", 
+                            b"label": b"", 
+                            b"varNames": [b"salary", b"educ", b"jobcat"], 
+                            b"countedValue": b"No"}
+            extended1 =    {b"setType": b"E", 
+                            b"label": b"", 
+                            b"varNames": [b"mevar1", b"mevar2", b"mevar3"], 
+                            b"countedValue": b"1",
+                            b"firstVarIsLabel": True}
+            extended2 =    {b"setType": b"E", 
+                            b"label": b"Enhanced set with user specified label", 
+                            b"varNames": [b"mevar4", b"mevar5", b"mevar6"], 
+                            b"countedValue": b"Yes", 
+                            b"firstVarIsLabel": False}
+            multRespDefs = {b"testSetC": categorical, 
+                            b"testSetD1": dichotomous1,
+                            b"testSetD2": dichotomous2, 
+                            b"testSetEx1": extended1,
+                            b"testSetEx2": extended2}
         """
         #####
         # I am not sure whether 'extended' MR definitions complement
@@ -1152,7 +1211,7 @@ class Header(Generic):
     @property
     @decode
     def dateVariables(self):  # seems to be okay
-        """Get/Set DATE information. This function reports the Forecasting
+        """Get/Set `DATE` information. This function reports the Forecasting
         (Trends) date variable information, if any, in IBM SPSS Statistics
         data files. Entirely untested and not implemented in reader/writer"""
         # step 1: get array size
@@ -1215,7 +1274,7 @@ class Header(Generic):
         """Get/Set text information.
         Takes a savFileName and returns a string of the form: "File %r built
         using SavReaderWriter.py version %s (%s)". This is akin to, but
-        *not* equivalent to the SPSS syntax command DISPLAY DOCUMENTS"""
+        *not* equivalent to the SPSS syntax command `DISPLAY DOCUMENTS`"""
         lenBuff = 256
         func = self.spssio.spssGetTextInfo 
         func.argtypes = [c_int, POINTER(c_char * lenBuff)]
@@ -1244,9 +1303,9 @@ class Header(Generic):
     @property
     @decode
     def fileLabel(self):
-        """Get/Set FILE LABEL (id string)
-        Takes a file label (basestring), and returns file label, if any, as
-        a string."""
+        """Get/Set `FILE LABEL` (id string)
+        Takes a file label, and returns file label, if any, as
+        a byte string."""
         lenBuff = 65
         func = self.spssio.spssGetIdString  
         func.argtypes = [c_int, POINTER(c_char * lenBuff)]
@@ -1276,7 +1335,7 @@ class Header(Generic):
     def queryType7(self):
         """This function can be used to determine whether a file opened for reading
         or append contains a specific "type 7" record. Returns a dictionary of the
-        form: {subtype_number: (subtype_label, present_or_not)}, where
+        form: `{subtype_number: (subtype_label, present_or_not)}`, where
         present_or_not is a bool"""
         subtypes = \
                  {3: "Release information",

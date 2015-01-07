@@ -66,6 +66,7 @@ class SavReaderNp(SavReader):
 
     Note. The sav-to-array conversion is MUCH faster when uncompressed .sav 
     files are used. These are created with the SPSS command::
+
         SAVE OUTFILE = 'some_file.sav' /UNCOMPRESSED.
     This is NOT the default in SPSS. See also SavReader documentation
     """
