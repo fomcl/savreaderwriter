@@ -120,7 +120,7 @@ To get the 'bleeding edge' version straight from the repository do::
 .. versionchanged:: 3.3
 
 * The ``savReaderWriter`` program now runs on Python 2 and 3. It is tested with Python 2.7, 3.3 and PyPy under Debian Linux 3.2.0-4-AMD64.
-* Under Python 3.3, the data are in ``bytes``! Use the b' prefix when writing string data, or write data in unicode mode (``ioUtf=True``).
+* Under Python 3.3, the data are in ``bytes``! Use the b' prefix when writing string data, or write data in unicode mode (``ioUtf8=True``).
 * Several bugs were removed, notably two that prevented the I/O modules from loading in 64-bit Linux and 64-bit Windows systems (NB: these bugs were entirely unrelated). I re-downloaded the SPSS I/O v21 FP1 modules because the Win 64 libs were incorrectly compiled. In addition, long variable labels were truncated to 120 characters, which is now fixed.
 * This has not yet been tested for performance.
 
@@ -140,8 +140,9 @@ The ``cWriterow`` package is a faster Cython implementation of the pyWriterow me
     python setup.py build_ext --inplace
 
 **numpy.**
+
 * The ``numpy`` package should be installed if you intend to use array slicing (e.g ``data[:2,2:4]``).
-* ``Numpy`` is also needed to use the ``SavReaderNp`` sav-to-numpy class
+* ``numpy`` is also needed to use the ``SavReaderNp`` sav-to-numpy class
 
 Enviroment variables
 ---------------------
@@ -184,7 +185,7 @@ Here are the most important parts::
     mean_salary = array["salary"].mean()
     reader_np.close()
 
-    # ---- reading a file in unicode mode (default in SPSS v22 and up)
+    # ---- reading a file in unicode mode (default in SPSS v21 and up)
     >>> with SavReader('greetings.sav', ioUtf8=True) as reader:
     ...    for record in reader:
     ...        print(record[-1])

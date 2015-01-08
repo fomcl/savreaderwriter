@@ -723,7 +723,7 @@ class Header(Generic):
     @property
     @decode
     def alignments(self):
-        """Get/Set `VARIABLE ALIGNMENT`. Returns/Takes a dictionary of the
+        """Get/Set `VARIABLE ALIGNMENT`. Returns/Takes a dictionary of the 
         form `{varName: alignment}`. Valid alignment values are: "left",
         "right", "center".
 

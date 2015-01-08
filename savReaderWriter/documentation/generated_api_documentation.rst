@@ -16,6 +16,9 @@ SavReader
 
 SavReaderNp
 -----------
+
+.. versionadded:: 3.4.0
+
 .. autoclass:: savReaderWriter.SavReaderNp
    :member-order: bysource
    :members:
@@ -32,14 +35,22 @@ SavHeaderReader
 
 SavWriter
 ---------
+
+The most commonly used metadata aspects include `VARIABLE LABELS`, `VALUE LABELS`, `FORMATS` and `MISSING VALUES`.
+ 
 .. autoclass:: savReaderWriter.SavWriter
    :member-order: bysource
    :members:
    :special-members:
    :show-inheritance:
 
+
 Header
 ------
+
+.. note::
+   This class should not be used directly. Use ``SavHeaderReader`` or ``SavReader`` to retrieve metadata.
+
 .. autoclass:: savReaderWriter.Header
    :member-order: bysource
    :members: numberofCases, numberofVariables, varNamesTypes, valueLabels, varLabels, formats, missingValues, measureLevels, columnWidths, alignments, varSets, varRoles, varAttributes, fileAttributes, multRespDefs, textInfo, fileLabel
@@ -47,9 +58,13 @@ Header
 
 Generic
 -------
+
+.. note::
+   This class should not be used directly
+
 .. autoclass:: savReaderWriter.Generic
    :member-order: bysource
-   :members: byteorder, spssVersion, spssioVersion, fileCompression, systemString, sysmis, ioLocale, missingValuesLowHigh, fileCodePage, isCompatibleEncoding, ioUtf8, fileEncoding, record
+   :members: byteorder, spssVersion, spssioVersion, fileCompression, systemString, sysmis, ioLocale, missingValuesLowHigh, fileCodePage, isCompatibleEncoding, ioUtf8, fileEncoding
    :special-members:
    :show-inheritance:
 
