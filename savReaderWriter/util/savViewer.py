@@ -35,8 +35,8 @@ Suitable for use with Python 2.7 and 3.3
 
 __author__ = "Albert-Jan Roskam"
 __email__ = "@".join(["fomcl", "yahoo." + "com"])
-__version__ = "1.0.4"
-__date__ = "2014-06-06"
+__version__ = "1.0.5"
+__date__ = "2014-01-14"
 
 
 # Python 3
@@ -515,6 +515,8 @@ class Menu(QMainWindow):
 
     def update_screen(self):
         previous_nrows = -1
+        if not hasattr(self.table, "records"):
+            return
         while True:
             nrows, ncols = self.table.records.shape
             title = "{} ({:,} rows, {:,} columns)"

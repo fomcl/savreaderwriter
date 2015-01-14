@@ -114,7 +114,14 @@ To get the 'bleeding edge' version straight from the repository do::
 .. versionchanged:: 3.4
 
 * Added ``SavReaderNp``, a class to convert .sav files to numpy arrays
-* Added ``savViewer``, a PyQt4-based script to view .sav, .xls, .xlsx, .csv, .tab files
+* Added ``savViewer``, a simple PyQt4-based script to view .sav, .zsav, .xls, .xlsx, .csv, .tab files
+  Usage examples:
+ 
+  .. code:: sh
+
+      python -m savReaderWriter.util.savViewer
+      python -m savReaderWriter.util.savViewer '/path/to/some/file.sav'
+
 * Removed several bugs, notably one related to memoization of SPSS datetimes
 
 .. versionchanged:: 3.3
