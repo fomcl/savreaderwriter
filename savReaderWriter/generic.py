@@ -24,7 +24,7 @@ class Generic(object):
     def __init__(self, savFileName, ioUtf8=False, ioLocale=None):
         """Constructor. Note that interface locale and encoding can only
         be set once"""
-        locale.setlocale(locale.LC_ALL, "")
+        locale.setlocale(locale.LC_ALL, "" if ioLocale is None else ioLocale)
         self.savFileName = savFileName
         self.spssio = self.loadLibrary()
 
@@ -410,14 +410,13 @@ class Generic(object):
     @ioLocale.setter
     def ioLocale(self, localeName=""):
         if not localeName:
-            localeName = ".".join(locale.getlocale())
+            localeName = locale.setlocale(locale.LC_ALL)
         func = self.spssio.spssSetLocale
         func.argtypes = [c_int, c_char_p]
         func.restype = c_char_p
         self.setLocale = func(locale.LC_ALL, c_char_py3k(localeName))
         if self.setLocale is None:
             raise ValueError("Invalid ioLocale: %r" % localeName)
-        return self.setLocale
 
     @property
     def fileCodePage(self):
