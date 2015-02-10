@@ -84,9 +84,9 @@ class Generic(object):
         if libs and debug:
             print(os.path.basename(path).upper().center(79, "-"))
             print("\n".join(libs))
-
+        # PermissionError: are the DLLs on a network share (e.g NAS)?
         return [load(os.path.join(path, lib)) for lib in libs][-1]
-
+             
     def loadLibrary(self):
         """This function loads and returns the SPSSIO libraries,
         depending on the platform."""
@@ -174,11 +174,11 @@ class Generic(object):
         the file. If <savFileName> is opened in mode "cp", meta data
         information aka the spss dictionary is copied from <refSavFileName>"""
         # determine which spssOpen* function should be used
-        mode = mode.encode("utf-8") if hasattr(mode, "encode") else mode
-        spssOpen = {b"rb": self.spssio.spssOpenRead,
-                    b"wb": self.spssio.spssOpenWrite,
-                    b"cp": self.spssio.spssOpenWriteCopy,
-                    b"ab": self.spssio.spssOpenAppend}.get(mode)
+        mode = mode.decode("utf-8") if hasattr(mode, "decode") else mode
+        spssOpen = {"rb": self.spssio.spssOpenRead,
+                    "wb": self.spssio.spssOpenWrite,
+                    "cp": self.spssio.spssOpenWriteCopy,
+                    "ab": self.spssio.spssOpenAppend}.get(mode)
         if not spssOpen:
             raise ValueError("Invalid mode argument: %r")
 
@@ -186,7 +186,8 @@ class Generic(object):
         expanduser, abspath = os.path.expanduser, os.path.abspath
         expandfn = lambda fn: self._encodeFileName(expanduser(abspath(fn)))
         savFileName = expandfn(savFileName)
-        fd = os.open(savFileName, os.O_RDWR | os.O_CREAT)
+        with open(savFileName, mode) as f:
+            fd = f.fileno()
 
         # open the .sav file
         savFileName = c_char_py3k(savFileName)
@@ -200,7 +201,8 @@ class Generic(object):
         else:
             spssOpen.argtypes = [c_char_p, POINTER(c_int)]
             retcode = spssOpen(savFileName, byref(fh))
-        msg = "Problem opening file %r in mode %r" % (savFileName, mode)
+
+        msg = "Problem opening file %r in mode %r" % (savFileName.value, mode)
         checkErrsWarns(msg, retcode)
         return fh.value
 
@@ -410,7 +412,7 @@ class Generic(object):
     @ioLocale.setter
     def ioLocale(self, localeName=""):
         if not localeName:
-            localeName = locale.setlocale(locale.LC_ALL)
+            localeName = locale.setlocale(locale.LC_ALL)  # see also issue #26
         func = self.spssio.spssSetLocale
         func.argtypes = [c_int, c_char_p]
         func.restype = c_char_p

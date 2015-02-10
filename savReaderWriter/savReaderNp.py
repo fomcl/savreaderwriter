@@ -13,17 +13,18 @@ from functools import wraps, partial
 from itertools import chain, islice
 from bisect import bisect
 
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    print("WARNING: numpy not found, cannot use savReaderNp")
+    class np: nan = float("nan")
 
-import sys; sys.path.insert(0, "/home/antonia/Desktop/savreaderwriter")
 from savReaderWriter import *
 from error import *
 from helpers import *
 from py3k import *
 
 # TODO:
-# unittests for uncompressed .sav files
-# ioLocale, ioUtf8 (latter currently fails)
 # pytables integration
 # numba.jit
 # function to easily read mmapped array back in
