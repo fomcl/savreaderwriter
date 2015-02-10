@@ -937,7 +937,7 @@ class Header(Generic):
             attrValues = (c_char_p * nAttr)(*list(attributes.values()))
 
             func.argtypes = [c_int, c_char_p, POINTER(c_char_p * nAttr), 
-                             POINTER(c_char_p * nAttr)]
+                             POINTER(c_char_p * nAttr), c_int]
             retcode = func(self.fh, c_char_py3k(varName),
                            attrNames, attrValues, nAttr)
             if retcode:
