@@ -39,7 +39,7 @@ class Header(Generic):
         """This function returns the file handle that was opened in the
         super class"""
         return self.fh
-
+ 
     def decode(func):
         """Decorator to Utf-8 decode all str items contained in a dictionary
         If ioUtf8=True, the dictionary's keys and values are decoded, but only
@@ -752,7 +752,8 @@ class Header(Generic):
         func = self.spssio.spssSetVarAlignment
         func.argtypes = [c_int, c_char_p, c_int]
 
-        alignments = {b"left": 0, b"right": 1, b"center": 2}
+        alignments = {b"left": 0, b"right": 1, b"center": 2,
+                       "left": 0,  "right": 1,  "center": 2}
         for varName, varAlignment in varAlignments.items():
             if varAlignment.lower() not in alignments:
                 ukeys = b", ".join(alignments.keys()).decode()
@@ -844,8 +845,11 @@ class Header(Generic):
     def varRoles(self, varRoles):
         if not varRoles:
             return
-        roles = {b"input": 0, b"target": 1, b"both": 2, b"none": 3, b"partition": 4,
-                 b"split": 5,  b"frequency": 6, b"record ID": 7}
+        roles = {b"input": 0, b"target": 1, b"both": 2, b"none": 3, 
+                 b"partition": 4, b"split": 5,  b"frequency": 6, 
+                 b"record ID": 7}
+        uroles = {role.decode("utf-8"): code for role, code in roles.items()}
+        roles.update(uroles)
 
         func = self.spssio.spssSetVarRole
         func.argtypes = [c_int, c_char_p, c_int] 
