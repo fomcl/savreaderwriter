@@ -1060,25 +1060,26 @@ class Header(Generic):
         mrespDefs = []
         for setName, rest in multRespDefs.items():
             rest = self.encode(rest)
-            if rest["setType"] not in (b"C", b"D"):
+            if rest[b"setType"] not in (b"C", b"D"):
                 continue
             rest["setName"] = self.encode(setName)
-            mrespDef = b"$%(setName)s=%(setType)s" % rest
-            lblLen = len(rest["label"])
+            mrespDef = "$%s=%s" % (rest["setName"].decode(), rest[b"setType"].decode())
+            mrespDef = mrespDef.encode()
+            lblLen = str(len(rest[b"label"]))
             rest["lblLen"] = lblLen
-            rest["varNames"] = b" ".join(rest["varNames"])
-            tail = b" %(varNames)s" if lblLen == 0 else b"%(label)s %(varNames)s"
-            if rest["setType"] == b"C":  # multiple category sets
-                template = b" %%(lblLen)s %s " % tail
+            rest["label"] = rest.get(b"label", b"").decode()
+            rest["varNames"] = b" ".join(rest[b"varNames"]).decode()
+            tail = " %(varNames)s" if lblLen == 0 else "%(label)s %(varNames)s"
+            if rest[b"setType"] == b"C":  # multiple category sets
+                template = " %%(lblLen)s %s " % tail
+                template = template % rest
             else:                       # multiple dichotomy sets
-                # line below added/modified after Issue #4:
-                # Assertion during creating of multRespDefs
-                rest["valueLen"] = len(str(rest["countedValue"]))
-                template = (b"%%(valueLen)s %%(countedValue)s %%(lblLen)s %s "
-                            % tail)
-            mrespDef += template % rest
+                rest[b"valueLen"] = len(str(rest[b"countedValue"]))  # issue #4
+                template= "%s %s %s %s %s" % (str(rest[b"valueLen"]), str(rest[b"countedValue"]), rest["lblLen"], rest["label"], rest["varNames"])
+            mrespDef += template.encode()
             mrespDefs.append(mrespDef.rstrip())
         mrespDefs = b"\n".join(mrespDefs)
+        print(mrespDefs)
         return mrespDefs
 
     def _getMultRespDefsEx(self, mrDef):
