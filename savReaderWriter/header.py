@@ -1057,30 +1057,40 @@ class Header(Generic):
         This is a helper function for the multRespDefs setter function. 
         It translates the multiple response definition, specified as a
         dictionary, into a string that the IO module can use"""
+        # see also issue #23
         mrespDefs = []
-        for setName, rest in multRespDefs.items():
+        for setName, rest in multRespDefs.items():  # TODO: check with ioUtf8!
             rest = self.encode(rest)
             if rest[b"setType"] not in (b"C", b"D"):
                 continue
-            rest["setName"] = self.encode(setName)
-            mrespDef = "$%s=%s" % (rest["setName"].decode(), rest[b"setType"].decode())
-            mrespDef = mrespDef.encode()
+
+            # convert to ustrings for simpler string replacement
+            rest["setName"] = setName.decode()
+            rest["setType"] = rest[b"setType"].decode()  
             lblLen = str(len(rest[b"label"]))
             rest["lblLen"] = lblLen
             rest["label"] = rest.get(b"label", b"").decode()
             rest["varNames"] = b" ".join(rest[b"varNames"]).decode()
+
+            # now build the multiple response definition
+            mrespDef = "$%(setName)s=%(setType)s" % rest
             tail = " %(varNames)s" if lblLen == 0 else "%(label)s %(varNames)s"
-            if rest[b"setType"] == b"C":  # multiple category sets
+
+            # ... multiple category sets
+            if rest[b"setType"] == b"C":  
                 template = " %%(lblLen)s %s " % tail
                 template = template % rest
-            else:                       # multiple dichotomy sets
-                rest[b"valueLen"] = len(str(rest[b"countedValue"]))  # issue #4
-                template= "%s %s %s %s %s" % (str(rest[b"valueLen"]), str(rest[b"countedValue"]), rest["lblLen"], rest["label"], rest["varNames"])
-            mrespDef += template.encode()
+            # ... multiple dichotomy sets
+            else:
+                rest["countedValue"] = rest[b"countedValue"].decode() 
+                rest["valueLen"] = len(rest["countedValue"])  # issue #4
+                template = ("%(valueLen)s %(countedValue)s %(lblLen)s "
+                            "%(label)s %(varNames)s")
+            mrespDef += template % rest
             mrespDefs.append(mrespDef.rstrip())
-        mrespDefs = b"\n".join(mrespDefs)
-        print(mrespDefs)
-        return mrespDefs
+
+        mrespDefs = "\n".join(mrespDefs)
+        return mrespDefs.encode()
 
     def _getMultRespDefsEx(self, mrDef):
         """Get 'extended' multiple response defintions.
