@@ -9,4 +9,4 @@ __pycache__
 junit-py*.xml
 cWriterow.cpython-*m.so
 SHA1VERSION
-
+.DS_Store
