@@ -335,5 +335,5 @@ class SavWriter(Header):
 
     def writerows(self, records):
         """ This function writes all records."""
-        for case, record in enumerate(records):
+        for record in records:
             self.writerow(record)
