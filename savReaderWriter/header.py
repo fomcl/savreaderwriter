@@ -1058,19 +1058,28 @@ class Header(Generic):
         It translates the multiple response definition, specified as a
         dictionary, into a string that the IO module can use"""
         # see also issue #23
+        encoding = self.fileEncoding
         mrespDefs = []
-        for setName, rest in multRespDefs.items():  # TODO: check with ioUtf8!
+        for setName, rest in multRespDefs.items():
             rest = self.encode(rest)
             if rest[b"setType"] not in (b"C", b"D"):
                 continue
 
             # convert to ustrings for simpler string replacement
-            rest["setName"] = setName.decode()
-            rest["setType"] = rest[b"setType"].decode()  
+            rest[u"setName"] = setName.decode()
+            rest[u"setType"] = rest[b"setType"].decode(encoding)  
             lblLen = str(len(rest[b"label"]))
-            rest["lblLen"] = lblLen
-            rest["label"] = rest.get(b"label", b"").decode()
-            rest["varNames"] = b" ".join(rest[b"varNames"]).decode()
+            rest[u"lblLen"] = lblLen
+            rest[u"label"] = rest.get(b"label", b"").decode(encoding)
+            import copy
+            varNames = tuple(copy.deepcopy(rest[b"varNames"]))
+            rest[u"varNames"] = b" ".join(varNames).decode(encoding)
+
+            # check if the variables in the MR definition exist in data
+            difference = set(varNames) - set(self.varNames)
+            if difference:
+                msg = "Variables not present in data: %s"
+                raise ValueError(msg % b", ".join(sorted(difference)))
 
             # now build the multiple response definition
             mrespDef = "$%(setName)s=%(setType)s" % rest
@@ -1082,7 +1091,7 @@ class Header(Generic):
                 template = template % rest
             # ... multiple dichotomy sets
             else:
-                rest["countedValue"] = rest[b"countedValue"].decode() 
+                rest["countedValue"] = rest[b"countedValue"].decode(encoding) 
                 rest["valueLen"] = len(rest["countedValue"])  # issue #4
                 template = ("%(valueLen)s %(countedValue)s %(lblLen)s "
                             "%(label)s %(varNames)s")
@@ -1090,7 +1099,7 @@ class Header(Generic):
             mrespDefs.append(mrespDef.rstrip())
 
         mrespDefs = "\n".join(mrespDefs)
-        return mrespDefs.encode()
+        return mrespDefs.encode(encoding)
 
     def _getMultRespDefsEx(self, mrDef):
         """Get 'extended' multiple response defintions.
