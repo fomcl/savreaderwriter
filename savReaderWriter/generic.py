@@ -41,8 +41,11 @@ class Generic(object):
         """Helper function to encode unicode file names into bytestring file
         names encoded in the file system's encoding. Needed for C functions
         that have a c_char_p filename argument.
-        http://effbot.org/pyref/sys.getfilesystemencoding.htm
-        http://docs.python.org/2/howto/unicode.html under 'unicode filenames'"""
+
+        See also
+        --------
+        Effbot `http://effbot.org/pyref/sys.getfilesystemencoding.htm`_
+        Python docs `http://docs.python.org/2/howto/unicode.html_ (under 'unicode filenames)"""
         if not isinstance(fn, unicode):
             return fn
         elif sys.platform.startswith("win"):
@@ -129,7 +132,11 @@ class Generic(object):
     def wide2utf8(self, fn):
         """Take a unicode file name string and encode it to a multibyte string
         that Windows can use to represent file names (CP65001, UTF-8)
-        http://msdn.microsoft.com/en-us/library/windows/desktop/dd374130"""
+
+        See also
+        --------
+        MSDN `http://msdn.microsoft.com/en-us/library/windows/desktop/dd374130`_
+        """
 
         from ctypes import wintypes
 
@@ -460,7 +467,12 @@ class Generic(object):
         * ``ioUtf8 = False`` --> `CODEPAGE` mode,
         * ``ioUtf8 = True`` --> UTF-8 mode, aka. `UNICODE` mode
         This corresponds with the SPSS command `SHOW UNICODE` (getter)
-        and `SET UNICODE=ON/OFF` (setter)."""
+        and `SET UNICODE=ON/OFF` (setter).
+
+        See also
+        --------
+        unicode mode: `http://www-01.ibm.com/support/knowledgecenter/SSLVMB_21.0.0/com.ibm.spss.statistics.help/faq_unicode.htm`_
+        """
         if hasattr(self, "ioUtf8_"):
             return self.ioUtf8_
         self.ioUtf8_ = self.spssio.spssGetInterfaceEncoding()
