@@ -544,4 +544,6 @@ class Generic(object):
         files"""
         if nominator and nominator % 10**4 == 0:
             pctProgress = (float(nominator) / denominator) * 100
-            print("%2.1f%%... " % pctProgress),
+            sys.stdout.write("%2.1f%%...\r" % pctProgress )
+            sys.stdout.flush()
+

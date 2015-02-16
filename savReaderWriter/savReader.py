@@ -39,16 +39,23 @@ class SavReader(Header):
     rawMode : bool
         indicates whether values should get SPSS-style formatting, and whether
         date variables (if present) should be converted into ISO-dates. If set
-        to True, the program does not format any values, which increases 
-        processing speed. See also :ref:`formats` and :ref:`dateformats`
+        to ``True`` the program does not format any values, which increases 
+        processing speed. In particular ``rawMode=True`` implies that:
+        * SPSS datetimes will not be converted into ISO8601 dates
+        * SPSS `N` formats will not be converted into strings with leading zeroes
+        * SPSS `$sysmis` values will not be converted into ``None`` values
+        * String values will be ceiled multiples of 8 bytes
+
+See also :ref:`formats` and :ref:`dateformats`
     ioUtf8 : bool
         indicates the mode in which text communicated to or from the I/O 
         Module will be. Valid values are True (UTF-8 mode aka Unicode mode)
         and False (Codepage mode). Cf. `SET UNICODE=ON/OFF`.
     ioLocale : locale str
         indicates the locale of the I/O module. Cf. `SET LOCALE` (default
-        = None, which corresponds to `locale.setlocale(locale.LC_ALL, "")`, for
-        example: `en_US.UTF-8` (Unix) or `english` (Windows).
+        = ``None``, which corresponds to 
+        ``locale.setlocale(locale.LC_CTYPE, "")``, for example: 
+        ``en_US.UTF-8`` (Unix) or ``english`` (Windows).
 
 
     Examples
