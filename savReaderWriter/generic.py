@@ -419,7 +419,7 @@ class Generic(object):
     @ioLocale.setter
     def ioLocale(self, localeName=""):
         if not localeName:
-            localeName = locale.setlocale(locale.LC_ALL)  # see also issue #26
+            localeName = locale.setlocale(locale.LC_CTYPE)  # see also issue #26
         func = self.spssio.spssSetLocale
         func.argtypes = [c_int, c_char_p]
         func.restype = c_char_p
