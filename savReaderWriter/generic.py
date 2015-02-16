@@ -471,7 +471,7 @@ class Generic(object):
 
         See also
         --------
-        unicode mode: `http://www-01.ibm.com/support/knowledgecenter/SSLVMB_21.0.0/com.ibm.spss.statistics.help/faq_unicode.htm`_
+        SPSS-unicode-mode : `<http://www-01.ibm.com/support/knowledgecenter/SSLVMB_21.0.0/com.ibm.spss.statistics.help/faq_unicode.htm>`_
         """
         if hasattr(self, "ioUtf8_"):
             return self.ioUtf8_

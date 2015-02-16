@@ -22,14 +22,15 @@ class SavWriter(Header):
     ----------
 
     savFileName : str
-        The file name of the spss data file. 
-            * File names that end with '.sav' are compressed using the 'old' 
-              compression scheme
-            * File names that end with '_uncompressed.sav' are, well, not 
-              compressed. This is useful when you intend to read the files with 
-              the faster :py:class:`savReaderWriter.SavReaderNp` class
-            * File names that end with '.zsav' are compressed using the ZLIB 
-              (ZSAV) compression scheme (requires v21 SPSS I/O files)
+        The file name of the spss data file.
+
+        * File names that end with '.sav' are compressed using the 'old' 
+          compression scheme
+        * File names that end with '_uncompressed.sav' are, well, not 
+          compressed. This is useful when you intend to read the files with 
+          the faster :py:class:`savReaderWriter.SavReaderNp` class
+        * File names that end with '.zsav' are compressed using the ZLIB 
+          (ZSAV) compression scheme (requires v21 SPSS I/O files)
     varNames : list
         list of of strings of the variable names in the order in which they
         should appear in the spss data file. See also under 
