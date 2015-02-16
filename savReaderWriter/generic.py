@@ -411,10 +411,10 @@ class Generic(object):
         if hasattr(self, "setLocale"):
             return self.setLocale
         else:
-            currLocale = ".".join(locale.getlocale())
+            localeName = ".".join(locale.setlocale(locale.LC_CTYPE))
             msg = "NOTE. Locale not set; getting current locale: %s"
-            print(msg % currLocale)
-            return currLocale
+            print(msg % localeName)
+            return localeName
 
     @ioLocale.setter
     def ioLocale(self, localeName=""):
