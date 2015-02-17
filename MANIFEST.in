@@ -13,3 +13,5 @@ include TODO
 include COPYRIGHT
 global-exclude *.pyc *.*~
 prune .git
+include versioneer.py
+include savReaderWriter/_version.py

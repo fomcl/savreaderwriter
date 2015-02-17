@@ -9,27 +9,29 @@
 import os
 import sys
 import platform
-
-path = os.path.dirname(os.path.realpath(__file__)) or os.getcwd()
-sys.path.insert(0, path)
-
+import versioneer
 try:
     from ez_setup import use_setuptools
     use_setuptools()
 except:
-    pass # Tox
+    pass  # Tox
 from setuptools import setup
 
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read().strip()
+# automatic labeling of dists
+versioneer.VCS = 'git'
+versioneer.versionfile_source = 'savReaderWriter/_version.py'
+versioneer.versionfile_build = 'savReaderWriter/_version.py'
+versioneer.tag_prefix = 'v'  # tags are like v1.2.0
+versioneer.parentdir_prefix = 'savReaderWriter-'
+
 
 #####
 ## Set package_data values, depending on install/build
 #####
 
-is_32bit = platform.architecture()[0] == "32bit"
-is_64bit = platform.architecture()[0] == "64bit"
+arch = platform.architecture()[0]
+is_32bit, is_64bit = arch == "32bit", arch == "64bit"
 is_install_mode = 'install' in sys.argv
 pf = sys.platform.lower()
 
@@ -42,7 +44,7 @@ package_data = {'savReaderWriter': ['spssio/include/*.*',
                                     'unit_tests/*.*',
                                     'test_data/*.*',
                                     'README','VERSION', 
-                                    'TODO', 'COPYRIGHT']}
+                                    'COPYRIGHT']}
 
 ## *installing* the package: install only platform-relevant libraries
 if is_install_mode:             
@@ -65,8 +67,8 @@ if is_install_mode:
     elif pf.startswith("sunos") and not is_32bit:
         package_data['savReaderWriter'].append('spssio/sol64/*.*')
     else:
-        msg = "Your platform (%r) is not supported" % pf
-        raise NotImplementedError(msg)
+        msg = "Your platform (%r, %s) is not supported" % (pf, arch)
+        raise EnvironmentError(msg)
 
 ## *building* the package: include all the libraries
 else: 
@@ -81,9 +83,10 @@ else:
                                             'spssio/sol64/*.*'])
 
 email = "@".join(["fomcl", "yahoo.com"])
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read().strip()
 
 setup(name='savReaderWriter',
-      version=read('VERSION'),
       description='Read and write SPSS files',
       author='Albert-Jan Roskam',
       author_email=email,
@@ -92,11 +95,10 @@ setup(name='savReaderWriter',
       license='MIT',
       long_description=read('README'),
       zip_safe=False,
-      platforms=['Windows', 'Mac', 'Linux/POSIX'],
+      platforms=['Windows', 'MacOS', 'POSIX'],
       url='https://bitbucket.org/fomcl/savreaderwriter',
       download_url='https://bitbucket.org/fomcl/savreaderwriter/downloads',
-      extras_require={'fastReading': ["psyco"],
-                      'arraySlicing': ["numpy"],
+      extras_require={'arraySlicing': ["numpy"],
                       'fastWriting': ["Cython"],},
       packages=['savReaderWriter'],
       package_data=package_data,
@@ -106,20 +108,20 @@ setup(name='savReaderWriter',
                    'Operating System :: MacOS',
                    'Operating System :: Microsoft :: Windows',
                    'Operating System :: POSIX',
+                   'Operating System :: POSIX :: AIX',
+                   'Operating System :: POSIX :: HP-UX',
+                   'Operating System :: POSIX :: Linux',
+                   'Operating System :: POSIX :: SunOS/Solaris',
                    'Programming Language :: Python',
                    'Programming Language :: Python :: 2',
                    'Programming Language :: Python :: 2.7',
                    'Programming Language :: Python :: 3',
                    'Programming Language :: Python :: 3.3', 
+                   'Programming Language :: Python :: 3.4', 
                    'Programming Language :: Cython',
-                   'Programming Language :: Python :: Implementation :: CPython',
-                   'Topic :: Database']
+                   'Programming Language :: Python :: Implementation :: CPython'
+                   'Programming Language :: Python :: Implementation :: PyPy',
+                   'Topic :: Database'],
+      version=versioneer.get_version(),
+      cmdclass=versioneer.get_cmdclass()
       )
-
-
-with open(os.path.join(path, "savReaderWriter", "SHA1VERSION"), "wb") as f:
-    try:
-        import sha1version
-        f.write(sha1version.getHEADhash())
-    except:
-        f.write(b"--UNKNOWN--")

@@ -8,5 +8,6 @@ __pycache__
 .tox
 junit-py*.xml
 cWriterow.cpython-*m.so
-SHA1VERSION
+MANIFEST
 .DS_Store
+

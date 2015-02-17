@@ -145,3 +145,7 @@ from savHeaderReader import *
 from savReaderNp import *
 
 __all__ = ["SavReader", "SavWriter", "SavHeaderReader", "SavReaderNp"]
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
