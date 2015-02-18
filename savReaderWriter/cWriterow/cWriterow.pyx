@@ -1,8 +1,8 @@
 
-cdef pad_string(char* s, int width):
+cdef pad_string(char* s, int width, char* pad_with=b' '):
      cdef int padding
      padding = -8 * (width // -8)
-     return s + (padding - len(s)) * b' '
+     return s + (padding - len(s)) * pad_with
 
 def cWriterow(self, record):
     """ This function writes one record, which is a Python list,
@@ -19,10 +19,8 @@ def cWriterow(self, record):
             except (ValueError, TypeError):
                 value = self.sysmis_
         else:
-            #value = self.pad_string(value, varType)
-            value = pad_string(value, varType)
-            #if self.ioUtf8_ and varType:
             if self.ioUtf8_ and isinstance(value, unicode):
                 value = value.encode("utf-8")
+            value = pad_string(value, varType)
         record[i] = value
     self.record = record
