@@ -50,7 +50,7 @@ class Header(Generic):
         @functools.wraps(func)
         def wrapper(arg):
             result = func(arg)
-            if not arg.ioUtf8:
+            if not arg.ioUtf8 or arg.ioUtf8 == 2:
                 return result  # unchanged
             if isinstance(result, bytes_):
                 return uS(result)
@@ -163,7 +163,7 @@ class Header(Generic):
         # get array contents
         varNames = [varNamesArr[0][i] for i in xrange(numVars)]
         varTypes = [varTypesArr[0][i] for i in xrange(numVars)]
-        if self.ioUtf8:
+        if self.ioUtf8 and not self.ioUtf8 == 2:
             varNames = [varName.decode("utf-8") for varName in varNames]
 
         # clean up
@@ -495,15 +495,15 @@ class Header(Generic):
         if missingFmt == "SPSS_NO_MISSVAL":
             return {}
         elif missingFmt == "SPSS_ONE_MISSVAL":
-            return {b"values": [v1]}
+            return {u"values": [v1]}
         elif missingFmt == "SPSS_TWO_MISSVAL":
-            return {b"values": [v1, v2]}
+            return {u"values": [v1, v2]}
         elif missingFmt == "SPSS_THREE_MISSVAL":
-            return {b"values": [v1, v2, v3]}
+            return {u"values": [v1, v2, v3]}
         elif missingFmt == "SPSS_MISS_RANGE":
-            return {b"lower": v1, b"upper": v2}
+            return {u"lower": v1, u"upper": v2}
         elif missingFmt == "SPSS_MISS_RANGEANDVAL":
-            return {b"lower": v1, b"upper": v2, b"value": v3}
+            return {u"lower": v1, u"upper": v2, u"value": v3}
 
     def _setMissingValue(self, varName, **kwargs):
         """This is a helper function for the missingValues setter
@@ -513,6 +513,9 @@ class Header(Generic):
         * to specify a RANGE: 'lower', 'upper', optionally with 'value'
         * to specify DISCRETE VALUES: 'values', specified as a list no longer
           than three items, or as None, or as a float/int/str
+
+        Note: in v3.3.0, lower-upper-value(s) was returned as bytestring, 
+        now as  ustring, including when `ioLocale=False`.
         """
         if kwargs == {}:
             return 0
@@ -547,7 +550,7 @@ class Header(Generic):
             if strMissLabels and max(strMissLabels) > 9:
                 raise ValueError("Missing value label > 9 bytes")
 
-            nvalues = len(values) if values is not None else values
+            nvalues = len(list(values)) if values is not None else values
             if values is None or values == {}:
                 missingFmt = "SPSS_NO_MISSVAL"
                 args = placeholder, placeholder, placeholder

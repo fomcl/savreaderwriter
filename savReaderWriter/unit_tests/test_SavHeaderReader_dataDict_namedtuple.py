@@ -143,13 +143,13 @@ class test_SavHeaderReader_dataDictionary_namedtuple(unittest.TestCase):
         sysmis = -1 * sys.float_info.max
         missingValues = {b'AGE2': {},
                          b'AGE3': {},
-                         b'Age': {b'lower': 0.0, b'upper': 18.0},
+                         b'Age': {'lower': 0.0, 'upper': 18.0},
                          b'AvgIncome': {},
                          b'DATE_': {},
                          b'ID': {},
-                         b'Income1': {b'lower': sysmis, b'upper': -1.0},
-                         b'Income2': {b'lower': sysmis, b'upper': -1.0, b'value': 999.0},
-                         b'Income3': {b'values': [999.0, 888.0, 777.0]},
+                         b'Income1': {'lower': sysmis, 'upper': -1.0},
+                         b'Income2': {'lower': sysmis, 'upper': -1.0, 'value': 999.0},
+                         b'Income3': {'values': [999.0, 888.0, 777.0]},
                          b'MONTH_': {},
                          b'MaxIncome': {},
                          b'QUARTER_': {},
@@ -160,18 +160,18 @@ class test_SavHeaderReader_dataDictionary_namedtuple(unittest.TestCase):
                          b'V3': {},
                          b'YEAR_': {},
                          b'aLongStringVar': {},
-                         b'aShortStringVar': {b'values': [b'x', b'y']},
+                         b'aShortStringVar': {'values': [b'x', b'y']},
                          b'someDate': {},
                          b'weightVar': {}}
         miss = self.metadata.missingValues
         A_VERY_SMALL_NUMBER = 10 ** -50
-        self.assertTrue(miss[b"Income1"][b"lower"] < A_VERY_SMALL_NUMBER)
-        self.assertTrue(miss[b"Income2"][b"lower"] <A_VERY_SMALL_NUMBER)
+        self.assertTrue(miss[b"Income1"]["lower"] < A_VERY_SMALL_NUMBER)
+        self.assertTrue(miss[b"Income2"]["lower"] < A_VERY_SMALL_NUMBER)
 
-        del miss[b"Income1"][b"lower"]
-        del miss[b"Income2"][b"lower"]
-        del missingValues[b"Income1"][b"lower"]
-        del missingValues[b"Income2"][b"lower"]
+        del miss[b"Income1"]["lower"]
+        del miss[b"Income2"]["lower"]
+        del missingValues[b"Income1"]["lower"]
+        del missingValues[b"Income2"]["lower"]
         self.assertEqual(self.metadata.missingValues, missingValues)
 
     def test_multRespDefs(self):

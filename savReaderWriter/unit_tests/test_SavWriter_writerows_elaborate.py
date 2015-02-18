@@ -77,7 +77,7 @@ class test_SavWriter_elaborate(unittest.TestCase):
         self.assertEqual(records_got, records)
 
 
-        ### check the mata data.
+        ### check the meta data.
         with SavHeaderReader(self.savFileName) as header:
             metadata = header.dataDictionary(True)
 
@@ -118,11 +118,11 @@ class test_SavWriter_elaborate(unittest.TestCase):
         self.assertEqual(getattr(metadata, 'formats'), expected)
 
         # missingValues
-        expected = {b'prevexp': {}, b'gender': {b'values': [b'x']},
+        expected = {b'prevexp': {}, b'gender': {'values': [b'x']},
                     b'jobtime': {}, b'salbegin': {},
                     b'salary': {}, b'id': {}, b'bdate': {},
                     b'minority': {}, b'jobcat': {},
-                    b'educ': {b'values': [1.0, 2.0, 3.0]}}
+                    b'educ': {'values': [1.0, 2.0, 3.0]}}
         self.assertEqual(getattr(metadata, 'missingValues'), expected)
 
         # measurelevels
