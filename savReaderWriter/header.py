@@ -105,10 +105,12 @@ class Header(Generic):
             (nrows, ncols) ntuple"""
         nCases = c_long()
         func = self.spssio.spssGetNumberofCases
-        retcode = func(c_int(self.fh), byref(nCases))
+        func.argtypes = [c_int, POINTER(c_long)] 
+        retcode = func(self.fh, nCases)
         if nCases.value == -1:
             func = self.spssio.spssGetEstimatedNofCases
-            retcode = func(c_int(self.fh), byref(nCases))
+            func.argtypes = [c_int, POINTER(c_long)] 
+            retcode = func(self.fh, nCases)
         if retcode:
             checkErrsWarns("Problem getting number of cases", retcode)
         return nCases.value
@@ -125,7 +127,7 @@ class Header(Generic):
         numVars = c_int()
         func = self.spssio.spssGetNumberofVariables
         func.argtypes = [c_int, POINTER(c_int)]
-        retcode = func(self.fh, byref(numVars))
+        retcode = func(self.fh, numVars)
         if retcode:
             checkErrsWarns("Problem getting number of variables", retcode)
         return numVars.value
@@ -154,8 +156,7 @@ class Header(Generic):
         func.argtypes = [c_int, POINTER(c_int), 
                          POINTER(POINTER(c_char_p * numVars)),
                          POINTER(POINTER(c_int * numVars))]
-        retcode = func(self.fh, byref(numVars_),
-                       byref(varNamesArr), byref(varTypesArr))
+        retcode = func(self.fh, numVars_, varNamesArr, varTypesArr)
         if retcode:
             checkErrsWarns("Problem getting variable names & types", retcode)
 
@@ -236,8 +237,7 @@ class Header(Generic):
                                  POINTER(POINTER(c_char_p * 0)),
                                  POINTER(c_int)]  
                 retcode = func(self.fh, c_char_py3k(vName),
-                               byref(valuesArr), byref(labelsArr),
-                               byref(numLabels))
+                               valuesArr, labelsArr, numLabels)
                 valuesArr, labelsArr = initArrays(True, numLabels.value)
                 func.argtypes = [c_int, c_char_p,
                                  POINTER(POINTER(c_double * numLabels.value)),
@@ -253,8 +253,7 @@ class Header(Generic):
                                  POINTER(POINTER(c_char_p * 0)), 
                                  POINTER(c_int)]  
                 retcode = func(self.fh, c_char_py3k(vName),
-                               byref(valuesArr), byref(labelsArr),
-                               byref(numLabels))
+                               valuesArr, labelsArr, numLabels)
                 valuesArr, labelsArr = initArrays(False, numLabels.value)
                 func.argtypes = [c_int, c_char_p,
                                  POINTER(POINTER(c_char_p * numLabels.value)),
@@ -262,8 +261,8 @@ class Header(Generic):
                                  POINTER(c_int)] 
 
             # step 2: get labels with array of proper size
-            retcode = func(self.fh, c_char_py3k(vName), byref(valuesArr),
-                           byref(labelsArr), byref(numLabels))
+            retcode = func(self.fh, c_char_py3k(vName), 
+                           valuesArr, labelsArr, numLabels)
             if retcode:
                 msg = "Problem getting value labels of variable %r"  % varName
                 checkErrsWarns(msg, retcode)
@@ -332,7 +331,7 @@ class Header(Generic):
         for varName in self.varNames:
             vName = self.vNames[varName]
             retcode = func(self.fh, c_char_py3k(vName),
-                           byref(varLabel), lenBuff, byref(c_int()))
+                           varLabel, lenBuff, c_int())
             varLabels[varName] = varLabel.value
             if retcode:
                 msg = "Problem getting variable label of variable %r" % varName
@@ -380,8 +379,7 @@ class Header(Generic):
         for varName in self.varNames:
             vName = self.vNames[varName]
             retcode = func(self.fh, c_char_py3k(vName),
-                           byref(printFormat_), byref(printDec_),
-                           byref(printWid_))
+                           printFormat_, printDec_, printWid_)
             if retcode:
                 msg = "Error getting print format for variable '%s'"
                 checkErrsWarns(msg % vName.decode(), retcode)
@@ -486,8 +484,7 @@ class Header(Generic):
 
         missingFmt = c_int()
         vName = self.vNames[varName]
-        retcode = func(self.fh, c_char_py3k(vName),
-                       byref(missingFmt), *map(byref, args))
+        retcode = func(self.fh, c_char_py3k(vName), missingFmt, *args)
         if retcode:
             msg = "Error getting missing value for variable '%s'" % varName
             checkErrsWarns(msg, retcode)
@@ -645,8 +642,8 @@ class Header(Generic):
             retcode = func(self.fh, c_char_py3k(vName), measureLevel)
             varMeasureLevels[varName] = levels.get(measureLevel.value)
             if retcode:
-                msg = "Problem getting variable measurement level: %r"
-                checkErrsWarns(msg % varName, retcode)
+                msg = "Problem getting measurement level %r for variable %r"
+                checkErrsWarns(msg % (measureLevel.value, varName), retcode)
 
         return varMeasureLevels
 
@@ -685,7 +682,7 @@ class Header(Generic):
         varColumnWidths = {}
         for varName in self.varNames:
             vName = self.vNames[varName]
-            retcode = func(self.fh, c_char_py3k(vName), byref(varColumnWidth))
+            retcode = func(self.fh, c_char_py3k(vName), varColumnWidth)
             if retcode:
                 msg = "Problem getting column width: '%s'"
                 checkErrsWarns(msg % varName, retcode)
@@ -779,7 +776,7 @@ class Header(Generic):
         func.argtypes = [c_int, POINTER(c_char_p)]
 
         varSets = c_char_p()
-        retcode = func(self.fh, byref(varSets))
+        retcode = func(self.fh, varSets)
         if retcode:
             msg = "Problem getting variable set information"
             checkErrsWarns(msg, retcode)
@@ -832,7 +829,7 @@ class Header(Generic):
         varRole_ = c_int()
         for varName in self.varNames:
             vName = self.vNames[varName]
-            retcode = func(self.fh, c_char_py3k(vName), byref(varRole_))
+            retcode = func(self.fh, c_char_py3k(vName), varRole_)
             varRole = roles.get(varRole_.value)
             varRoles[varName] = varRole
             if retcode:
@@ -1189,7 +1186,7 @@ class Header(Generic):
         func.argtypes = [c_int, POINTER(c_char_p)]
 
         mrDefsEx = c_char_p()
-        retcode = func(self.fh, byref(mrDefsEx))
+        retcode = func(self.fh, mrDefsEx)
         if retcode:
             msg = "Problem getting extended multiple response definitions"
             checkErrsWarns(msg, retcode)
@@ -1227,7 +1224,7 @@ class Header(Generic):
         func.argtypes = [c_int, POINTER(c_char * lenBuff)]
 
         varNameBuff = create_string_buffer(lenBuff)
-        retcode = func(self.fh, byref(varNameBuff))
+        retcode = func(self.fh, varNameBuff)
         if retcode > 0:
             msg = "Problem getting case weight variable name"
             raise SPSSIOError(msg, retcode)
@@ -1260,13 +1257,13 @@ class Header(Generic):
 
         nElements = c_int()
         dateInfoArr = (POINTER(c_long * DEFAULT_ARRAY_SIZE))()
-        retcode = func(self.fh, byref(nElements), byref(dateInfoArr))
+        retcode = func(self.fh, nElements, dateInfoArr)
 
         # step 2: get date info with array of proper size
         func.argtypes = [c_int, POINTER(c_int), 
                          POINTER(POINTER(c_long * nElements.value))]
         dateInfoArr = (POINTER(c_long * nElements.value))()
-        retcode = func(self.fh, byref(nElements), byref(dateInfoArr))
+        retcode = func(self.fh, nElements, dateInfoArr)
         if retcode:
             checkErrsWarns("Problem getting TRENDS information", retcode)
 
@@ -1318,7 +1315,7 @@ class Header(Generic):
         func.argtypes = [c_int, POINTER(c_char * lenBuff)]
 
         textInfo = create_string_buffer(lenBuff)
-        retcode = func(self.fh, byref(textInfo))
+        retcode = func(self.fh, textInfo)
         if retcode:
             checkErrsWarns("Problem getting textInfo", retcode)
         return textInfo.value
@@ -1349,7 +1346,7 @@ class Header(Generic):
         func.argtypes = [c_int, POINTER(c_char * lenBuff)]
 
         idStr = create_string_buffer(lenBuff)
-        retcode = func(self.fh, byref(idStr))
+        retcode = func(self.fh, idStr)
         if retcode:
             checkErrsWarns("Error getting file label (id string)", retcode)
         return idStr.value
@@ -1391,7 +1388,7 @@ class Header(Generic):
         type7info = {}
         for subtype, label in subtypes.items():
             bFound = c_int()
-            retcode = func(self.fh, subtype, byref(bFound))
+            retcode = func(self.fh, subtype, bFound)
             if retcode:
                 checkErrsWarns("Problem retrieving type7 info", retcode)
             type7info[subtype] = (label, bool(bFound.value))
@@ -1425,7 +1422,7 @@ class Header(Generic):
         func.argtypes = [c_int, POINTER(c_long), POINTER(c_long)]
 
         pLength, pHashTotal = c_long(), c_long()
-        retcode = func(self.fh, byref(pLength), byref(pHashTotal))
+        retcode = func(self.fh, pLength, pHashTotal)
         maxData = pLength.value  # Maximum bytes to return
         if not maxData:
             return {}  # file contains no DEW info
@@ -1437,7 +1434,7 @@ class Header(Generic):
                              c_long, POINTER(c_long)]
 
             nData, pData = c_long(), c_void_p()
-            retcode = func(self.fh, byref(pData), maxData, byref(nData))
+            retcode = func(self.fh, pData, maxData, nData)
             dew_information = [pData.value]
 
         # retrieve subsequent segments of DEW information
@@ -1447,7 +1444,7 @@ class Header(Generic):
 
             for i in range(nData.value - 1):
                 nData = c_long()
-                retcode = func(self.fh, byref(pData), maxData, byref(nData))
+                retcode = func(self.fh, pData, maxData, nData)
                 if retcode > 0:
                     break
                 dew_information.append(pData.value)
