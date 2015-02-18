@@ -688,7 +688,7 @@ class Header(Generic):
             retcode = func(self.fh, c_char_py3k(vName), byref(varColumnWidth))
             if retcode:
                 msg = "Problem getting column width: '%s'"
-                checkErrsWarns(msg % varName.decode(), retcode)
+                checkErrsWarns(msg % varName, retcode)
             varColumnWidths[varName] = varColumnWidth.value
         return varColumnWidths
 
@@ -756,8 +756,7 @@ class Header(Generic):
                        "left": 0,  "right": 1,  "center": 2}
         for varName, varAlignment in varAlignments.items():
             if varAlignment.lower() not in alignments:
-                ukeys = b", ".join(alignments.keys()).decode()
-                raise ValueError("Valid alignments are %s" % ukeys)
+                raise ValueError("Valid alignments are: left, center, right")
             alignment = alignments.get(varAlignment.lower())
             retcode = func(self.fh, c_char_py3k(varName), alignment)
             if retcode:
