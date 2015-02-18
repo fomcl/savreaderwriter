@@ -133,6 +133,10 @@ userMissingValues = {
     "SPSS_MISS_RANGE": -2,
     "SPSS_MISS_RANGEANDVAL": -3}
 
+# ioUtf8 constants
+CODEPAGE_MODE = 0  # ioUtf8=False
+UNICODE_UMODE = 1  # ioUtf8=True, data returned as u" strings
+UNICODE_BMODE = 2  # ioUtf8=True, data returned as b" strings
 
 sys.path.insert(0, os.path.dirname(__file__))
 from py3k import *

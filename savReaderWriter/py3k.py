@@ -47,12 +47,15 @@ msg = "argument '%s': exceptions.TypeError: wrong type [%s]"
 if isPy3k:
     def c_char_py3k(s):
         s = s.encode("utf-8") if isinstance(s, str) else s
+        xxx = s
         if isinstance(s, (str, bytes)):
             return c_char_p(s)
         raise ArgumentError(msg % (s, type(s)))
 else:
     def c_char_py3k(s):
+        yyy = s
         s = s.encode("utf-8") if isinstance(s, unicode) else s
+        xxx = s
         if isinstance(s, (unicode, str)):
             return c_char_p(s)
         raise ArgumentError(msg % (s, type(s)))

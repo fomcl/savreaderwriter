@@ -46,7 +46,7 @@ class Header(Generic):
         values that are strs, lists, or dicts."""
         bytes_ = bytes if sys.version_info[0] > 2 else str
         uS = lambda x: x.decode("utf-8") if isinstance(x, bytes_) else x
-        uL = lambda x: map(uS, x) if isinstance(x, list) else x
+        uL = lambda x: list(map(uS, x)) if isinstance(x, list) else x
         @functools.wraps(func)
         def wrapper(arg):
             result = func(arg)

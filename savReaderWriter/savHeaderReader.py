@@ -109,6 +109,11 @@ class SavHeaderReader(Header):
             return Meta(*metadata.values())
         return metadata
 
+    def all(self):
+        """Returns all the metadata as a named tuple (cf. SavReader.all)
+        Exactly the same as dataDictionary(asNamedtuple=True) """  
+        return self.dataDictionary(True)
+
     def __getEntry(self, varName, k, v, enc):
         """Helper function for reportSpssDataDictionary"""
         try:
