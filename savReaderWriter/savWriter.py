@@ -241,11 +241,12 @@ class SavWriter(Header):
         to the internal SPSS date format. The time portion of the date variable
         is set to 0:00. To set the time portion if the date variable to another
         value, use convertTime."""
-        d, m, y = c_int(day), c_int(month), c_int(year)
+        func = self.spssio.spssConvertDate
+        func.argtypes = [c_int, c_int, c_int, POINTER(c_double)]
         spssDate = c_double()
-        retcode = self.spssio.spssConvertDate(d, m, y, byref(spssDate))
+        retcode = func(day, month, year, spssDate)
         if retcode:
-            msg = "Problem converting date value '%s-%s-%s'" % (d, m, y)
+            msg = "Problem converting date value '%s-%s-%s'" % (day, month, year)
             checkErrsWarns(msg, retcode)
         return spssDate.value
 
