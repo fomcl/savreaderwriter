@@ -53,7 +53,7 @@ Header
 
 .. autoclass:: savReaderWriter.Header
    :member-order: bysource
-   :members: numberofCases, numberofVariables, varNamesTypes, valueLabels, varLabels, formats, missingValues, measureLevels, columnWidths, alignments, varSets, varRoles, varAttributes, fileAttributes, multRespDefs, textInfo, fileLabel
+   :members: numberofCases, numberofVariables, varNamesTypes, valueLabels, varLabels, formats, missingValues, measureLevels, columnWidths, alignments, varSets, varRoles, varAttributes, fileAttributes, multRespDefs, caseWeightVar, textInfo, fileLabel
    :show-inheritance:
 
 Generic
