@@ -253,9 +253,10 @@ class SavWriter(Header):
     def convertTime(self, day, hour, minute, second):
         """This function converts a time given as day, hours, minutes, and
         seconds to the internal SPSS time format."""
-        d, h, m, s, spssTime = (c_int(day), c_int(hour), c_int(minute),
-                                c_double(float(second)), c_double())
-        retcode = self.spssio.spssConvertTime(d, h, m, s, byref(spssTime))
+        func = self.spssio.spssConvertTime
+        func.argtypes = [c_int, c_int, c_int, c_double, POINTER(c_double)]
+        spssTime = c_double()
+        retcode = func(day, hour, minute, float(second), spssTime)
         if retcode:
             msg = "Problem converting time value '%s %s:%s:%s'"
             checkErrsWarns(msg % (day, hour, minute, second), retcode)
