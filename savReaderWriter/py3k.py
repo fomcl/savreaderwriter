@@ -47,20 +47,17 @@ msg = "argument '%s': exceptions.TypeError: wrong type [%s]"
 if isPy3k:
     def c_char_py3k(s):
         s = s.encode("utf-8") if isinstance(s, str) else s
-        xxx = s
         if isinstance(s, (str, bytes)):
             return c_char_p(s)
         raise ArgumentError(msg % (s, type(s)))
 else:
     def c_char_py3k(s):
-        yyy = s
         s = s.encode("utf-8") if isinstance(s, unicode) else s
-        xxx = s
         if isinstance(s, (unicode, str)):
             return c_char_p(s)
         raise ArgumentError(msg % (s, type(s)))
 c_char_py3k.__doc__ = ("Wrapper for ctypes.c_char_p; in Python 3.x, s is converted to a utf-8 "
-	               "encoded bytestring, in Python 2, it does nothing")
+	               "encoded bytestring, in Python 2, it does nothing")  # TODO: not true!
 
 # Python 3: __unicode__ special method is now called __str__
 # and __str__ is now called __bytes__

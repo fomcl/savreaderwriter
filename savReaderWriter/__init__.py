@@ -15,12 +15,8 @@ segfaults = False
 
 import os
 import sys
+from ._version import get_versions
 
-try:
-    import psyco
-    psycoOk = True  # reading 66 % faster
-except ImportError:
-    psycoOk = False
 try:
     import numpy
     numpyOk = True
@@ -46,14 +42,8 @@ elif savrw_use_cWriterow in ("1", "on", "true"):
 
 # author and version info, for e.g. use in fileLabel
 __author__ = "Albert-Jan Roskam" + " " + "@".join(["fomcl", "yahoo.com"])
-if getattr(sys, 'frozen', False):
-    # The application is frozen by cx_freeze
-    __version__ = open(os.path.join(os.path.dirname(sys.executable),
-                        "savReaderWriter", "VERSION")).read().strip()
-else:
-    __version__ = open(os.path.join(os.path.dirname(__file__),
-                        "VERSION")).read().strip()
-version = __version__
+__version__ = version = get_versions()["version"].split("-")[0]
+del get_versions
 
 
 # some constants
@@ -149,7 +139,3 @@ from savHeaderReader import *
 from savReaderNp import *
 
 __all__ = ["SavReader", "SavWriter", "SavHeaderReader", "SavReaderNp"]
-
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions

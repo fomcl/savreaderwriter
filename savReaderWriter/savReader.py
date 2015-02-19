@@ -100,9 +100,6 @@ class SavReader(Header):
         self.seekNextCase = self.spssio.spssSeekNextCase
         self.caseBuffer = self.getCaseBuffer()
 
-        if psycoOk:
-            self._items = psyco.proxy(self._items)  # 3 x faster!
-
     def __enter__(self):
         """ This function opens the spss data file (context manager)."""
         if self.verbose and self.ioUtf8_:
@@ -636,7 +633,7 @@ class SavReader(Header):
             header = self.selector(self.varNames)
             header = [header] if not isinstance(header, tuple) else list(header)
         else:
-            msg = ("Variable names list misspecified. Must be 'None' or a " +
+            msg = ("Variable names list misspecified. Must be 'None' or a "
                    "list or tuple of existing variables")
             raise TypeError(msg)
         return header
