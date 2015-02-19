@@ -29,7 +29,7 @@ class SavReader(Header):
     selectVars : list
         indicates which variables in the file should be selected.
         The variables should be specified as a list of valid variable names.
-        If None is specified, all the variables in the file are used
+        If ``None`` is specified, all the variables in the file are used
     idVar : str
         indicates which variable in the file should be used for use as id
         variable for the 'get' method
@@ -51,13 +51,15 @@ class SavReader(Header):
         indicates the mode in which text communicated to or from the I/O 
         Module will be. Valid values are True (UTF-8 mode aka Unicode mode)
         and False (Codepage mode). Cf. `SET UNICODE=ON/OFF`.
-        See also under :py:meth:`savReaderWriter.Generic.ioUtf8`
+        See also under :py:meth:`savReaderWriter.Generic.ioUtf8` and under
+        ``ioUtf8`` in :py:class:`savReaderWriter.SavWriter`.
     ioLocale : locale str
         indicates the locale of the I/O module. Cf. `SET LOCALE` (default
         = ``None``, which corresponds to 
-        ``locale.setlocale(locale.LC_CTYPE, "")``, for example: 
+        ``locale.setlocale(locale.LC_CTYPE)``, for example: 
         ``en_US.UTF-8`` (Unix) or ``english`` (Windows).
-        See also under :py:meth:`savReaderWriter.Generic.ioLocale`
+        See also under :py:meth:`savReaderWriter.Generic.ioLocale`. 
+
 
 
     Examples

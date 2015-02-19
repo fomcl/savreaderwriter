@@ -26,7 +26,7 @@ class SavHeaderReader(Header):
     ioLocale : locale str, optional
         indicates the locale of the I/O module. Cf. `SET LOCALE`. 
         (default = None, which corresponds to 
-        `locale.setlocale(locale.LC_ALL, "")`)
+        ``locale.setlocale(locale.LC_CTYPE)``)
 
     Examples
     --------
@@ -34,10 +34,10 @@ class SavHeaderReader(Header):
     Typical use::
 
         with SavHeaderReader(savFileName) as header:
-            metadata = header.dataDictionary(True)
+            metadata = header.all()
             print(metadata.varLabels)
             print(str(header))
-            report = header.reportSpssDataDictionary(header.dataDictionary())
+            report = header.reportSpssDataDictionary(header.all(False))
 
    See also
    --------
@@ -109,10 +109,11 @@ class SavHeaderReader(Header):
             return Meta(*metadata.values())
         return metadata
 
-    def all(self):
+    def all(self, asNamedtuple=True):
         """Returns all the metadata as a named tuple (cf. SavReader.all)
-        Exactly the same as dataDictionary(asNamedtuple=True) """  
-        return self.dataDictionary(True)
+        Exactly the same as dataDictionary, but with different (nicer?)
+        default"""
+        return self.dataDictionary(asNamedtuple)
 
     def __getEntry(self, varName, k, v, enc):
         """Helper function for reportSpssDataDictionary"""

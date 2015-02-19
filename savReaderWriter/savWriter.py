@@ -34,73 +34,76 @@ class SavWriter(Header):
     varNames : list
         list of of strings of the variable names in the order in which they
         should appear in the spss data file. See also under 
-        :py:meth:`savReaderWriter.Header.varNamesTypes`
+        :py:meth:`savReaderWriter.Header.varNamesTypes`.
     varTypes : dict
         varTypes dictionary `{varName: varType}`
 
         * varType == 0 --> numeric
         * varType > 0 --> character' of that length (in bytes!)
-        See also under :py:meth:`savReaderWriter.Header.varNamesTypes`
+        See also under :py:meth:`savReaderWriter.Header.varNamesTypes`.
 
     valueLabels : dict, optional
-        value label dictionary `{varName: {value: label}}` Cf. `VALUE LABELS`
+        value label dictionary ``{varName: {value: label}}`` Cf. 
+        `VALUE LABELS`. See also under 
+        :py:meth:`savReaderWriter.Header.valueLabels`.
     varLabels : dict, optional
-        variable label dictionary `{varName: varLabel}`. Cf. `VARIABLE LABEL`.
-        See also under :py:meth:`savReaderWriter.Header.varLabels`
+        variable label dictionary ``{varName: varLabel}``. Cf.
+        `VARIABLE LABELS`. See also under 
+        :py:meth:`savReaderWriter.Header.varLabels`.
     formats : dict, optional
-        format dictionary `{varName: printFmt}` Cf. `FORMATS`.
+        format dictionary ``{varName: printFmt}``. Cf. `FORMATS`.
         See also under :py:meth:`savReaderWriter.Header.formats`, under
-        :ref:`formats` and under :ref:`dateformats`
+        :ref:`formats` and under :ref:`dateformats`.
     missingValues : dict, optional
-        missing values dictionary `{varName: {missing value spec}}`.
+        missing values dictionary ``{varName: {missing value spec}}``.
         Cf. `MISSING VALUES`. See also under 
         :py:meth:`savReaderWriter.Header.missingValues`
 
     measureLevels : dict, optional
-        measurement level dictionary `{varName: <level>}`
+        measurement level dictionary ``{varName: <level>}``.
         Valid levels are: "unknown", "nominal", "ordinal", "scale",
         "ratio", "flag", "typeless". Cf. `VARIABLE LEVEL`
-        See also under :py:meth:`savReaderWriter.Header.measureLevels`
+        See also under :py:meth:`savReaderWriter.Header.measureLevels`.
 
         .. warning::
             `measureLevels`, `columnWidths` and `alignments` must all three
             be set, if used
     columnWidths : dict, optional
-        column display width dictionary `{varName: <int>}`.
+        column display width dictionary ``{varName: <int>}``.
         Cf. `VARIABLE WIDTH`. (default: None --> >= 10 [stringVars] or 
         automatic [numVars])
-        See also under :py:meth:`savReaderWriter.Header.columnWidths`
+        See also under :py:meth:`savReaderWriter.Header.columnWidths`.
     alignments : dict, optional
-        variable alignment dictionary `{varName: <left/center/right>}`
+        variable alignment dictionary ``{varName: <left/center/right>}``.
         Cf. `VARIABLE ALIGNMENT` (default: None --> left)
-        See also under :py:meth:`savReaderWriter.Header.alignments`
+        See also under :py:meth:`savReaderWriter.Header.alignments`.
 
     varSets : dict, optional
-        sets dictionary `{setName: list_of_valid_varNames}`. 
+        sets dictionary ``{setName: list_of_valid_varNames}``. 
         Cf. `SETSMR` command.
         See also under :py:meth:`savReaderWriter.Header.varSets`
     varRoles : dict, optional
-        variable roles dictionary `{varName: varRole}`, where varRole
+        variable roles dictionary ``{varName: varRole}``, where varRole
         may be any of the following: 'both', 'frequency', 'input', 'none',
         'partition', 'record ID', 'split', 'target'. Cf. `VARIABLE ROLE`
-        See also under :py:meth:`savReaderWriter.Header.varRoles`
+        See also under :py:meth:`savReaderWriter.Header.varRoles`.
     varAttributes : dict, optional
-        variable attributes dictionary `{varName: {attribName:
-        attribValue}`. Cf. `VARIABLE ATTRIBUTES`.
-        See also under :py:meth:`savReaderWriter.Header.varAttributes`
+        variable attributes dictionary ``{varName: {attribName:
+        attribValue}``. Cf. `VARIABLE ATTRIBUTES`.
+        See also under :py:meth:`savReaderWriter.Header.varAttributes`.
     fileAttributes : dict, optional
-        file attributes dictionary `{attribName: attribValue}`.
+        file attributes dictionary ``{attribName: attribValue}``.
         Cf. FILE ATTRIBUTES. See also under 
-        :py:meth:`savReaderWriter.Header.fileAttributes`
+        :py:meth:`savReaderWriter.Header.fileAttributes`.
     fileLabel : dict, optional 
         file label string, which defaults to "File created by user
         <username> at <datetime>" is file label is None. Cf. `FILE LABEL`
-        See also under :py:meth:`savReaderWriter.Header.fileLabel`
+        See also under :py:meth:`savReaderWriter.Header.fileLabel`.
     multRespDefs : dict, optional
         multiple response sets definitions (dichotomy groups or
-        category groups) dictionary `{setName: <set definition>}`. In SPSS 
+        category groups) dictionary ``{setName: <set definition>}``. In SPSS 
         syntax, 'setName' has a dollar prefix ('$someSet'). Cf. `MRSETS`.
-        See also under :py:meth:`savReaderWriter.Header.multRespDefs`
+        See also under :py:meth:`savReaderWriter.Header.multRespDefs`.
 
     caseWeightVar : str, optional
         valid varName that is set as case weight (cf. `WEIGHT BY`). See also
@@ -110,7 +113,7 @@ class SavWriter(Header):
     ioUtf8 : bool, int, optional
         indicates the mode in which text communicated to or from the
         I/O Module will be. This refers to unicode mode (`SET UNICODE=ON`) 
-        and codepage mode in SPSS (Codepage mode, `SET UNICODE=OFF`).
+        and codepage mode in SPSS (`SET UNICODE=OFF`).
         See also under :py:meth:`savReaderWriter.Generic.ioUtf8`
 
         * `codepage mode`: ``ioUtf8=CODEPAGE_MODE``, or ``ioUtf8=0``, or
@@ -136,10 +139,10 @@ class SavWriter(Header):
 
     ioLocale : bool, optional
         indicates the locale of the I/O module, cf. `SET LOCALE` (default:
-        None, which is the same as ``".".join(locale.getlocale())``.
+        ``None``, which is the same as ``locale.setlocale(locale.LC_CTYPE)``).
         See also under :py:meth:`savReaderWriter.Generic.ioLocale`
     mode : str, optional
-      indicates the mode in which <savFileName> should be opened. Possible
+      indicates the mode in which ``savFileName`` should be opened. Possible
       values are:
 
       * "wb" --> write
