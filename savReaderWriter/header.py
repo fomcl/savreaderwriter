@@ -1103,10 +1103,12 @@ class Header(Generic):
     def _getMultRespDefsEx(self, mrDef):
         """Get 'extended' multiple response defintions.
         This is a helper function for the multRespDefs getter function."""
-        regex = ("\$(?P<setName>\w+)=(?P<setType>E) (?P<flag1>1)" +
-                 "(?P<flag2>1)? (?P<valueLen>[0-9]+) (?P<countedValue>\w+) " +
-                 "(?P<lblLen>[0-9]+) (?P<lblVarNames>[\w ]+)")
-        matches = re.findall(regex, mrDef, re.I | re.U)
+        regex = (b"\$(?P<setName>\w+)=(?P<setType>E) (?P<flag1>1)"
+                 b"(?P<flag2>1)? (?P<valueLen>[0-9]+) (?P<countedValue>\w+) "
+                 b"(?P<lblLen>[0-9]+) (?P<lblVarNames>[\w ]+)")
+        matches = re.findall(regex, mrDef, re.I | re.L)
+        if not matches:
+            return {}
         setName, setType, flag1, flag2 = matches[0][:4]
         valueLen, countedValue, lblLen, lblVarNames = matches[0][4:]
         length = int(lblLen)
@@ -1162,32 +1164,17 @@ class Header(Generic):
                             b"testSetEx1": extended1,
                             b"testSetEx2": extended2}
         """
-        #####
-        # I am not sure whether 'extended' MR definitions complement
-        # or replace 'normal' MR definitions. I assumed 'complement'.
-        #####
+        # It seems that spssGetMultRespDefsEx replaces spssGetMultRespDefs,
+        # so I ditched a call to self.spssio.spssGetMultRespDefs.
+        # TODO: self._getMultRespDefsEx is not tested! Need test data with
+        # 'extended' MR definitions. Caveat emptor: WTF are these exactly?
 
         ## Normal Multiple response definitions
-        func = self.spssio.spssGetMultRespDefs
-        func.argtypes = [c_int, POINTER(c_char_p)]
-
-        mrDefs = c_char_p()
-        retcode = func(self.fh, byref(mrDefs))
-        if retcode:
-            msg = "Problem getting multiple response definitions"
-            checkErrsWarns(msg, retcode)
-
-        multRespDefs = {}
-        if mrDefs.value:
-            for mrDef in mrDefs.value.split(b"\n"):
-                for setName, rest in self._getMultRespDef(mrDef).items():
-                    multRespDefs[setName] = rest
-            self.freeMemory("spssFreeMultRespDefs", mrDefs)
+        # (deleted code)
 
         ## Extended Multiple response definitions
         func = self.spssio.spssGetMultRespDefsEx
         func.argtypes = [c_int, POINTER(c_char_p)]
-
         mrDefsEx = c_char_p()
         retcode = func(self.fh, mrDefsEx)
         if retcode:
@@ -1197,12 +1184,15 @@ class Header(Generic):
         multRespDefsEx = {}
         if mrDefsEx.value:
             for mrDefEx in mrDefsEx.value.split(b"\n"):
-                for setName, rest in self._getMultRespDef(mrDefEx).items():
+                # dichotomy or category definitions
+                settypes_d_or_c = self._getMultRespDef(mrDefEx) 
+                for setName, rest in settypes_d_or_c.items():
                     multRespDefsEx[setName] = rest
+                # extended definitions
+                settype_e = self._getMultRespDefsEx(mrDefEx)
+                multRespDefsEx.update(settype_e)
             self.freeMemory("spssFreeMultRespDefs", mrDefsEx)
-
-        multRespDefs.update(multRespDefsEx)
-        return multRespDefs
+        return multRespDefsEx
 
     @multRespDefs.setter
     def multRespDefs(self, multRespDefs):
