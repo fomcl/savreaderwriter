@@ -127,6 +127,11 @@ class SavReader(Header):
         if not segfaults:
             self.closeSavFile(self.fh, mode=b"rb")
         del self.spssio
+        try:
+            locale.resetlocale()  # fails on Windows
+        except:
+            from winlocale import resetlocale
+            resetlocale()
 
     def __len__(self):
         """ This function reports the number of cases (rows) in the spss data

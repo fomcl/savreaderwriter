@@ -3,6 +3,7 @@
 
 import os
 import collections
+import locale
 
 from savReaderWriter import *
 from header import *
@@ -89,6 +90,11 @@ class SavHeaderReader(Header):
         """This function closes the spss data file and does some cleaning."""
         if not segfaults:
             self.closeSavFile(self.fh, mode=b"rb")
+        try:
+            locale.resetlocale()  # fails on Windows
+        except:
+            from winlocale import resetlocale
+            resetlocale()
 
     def dataDictionary(self, asNamedtuple=False):
         """ This function returns all the dictionary items. It returns

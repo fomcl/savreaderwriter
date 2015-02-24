@@ -4,6 +4,7 @@
 from ctypes import *
 import os
 import time
+import locale
 
 from savReaderWriter import *
 from py3k import *
@@ -243,6 +244,11 @@ class SavWriter(Header):
         if type is not None:
             pass  # Exception occurred
         self.closeSavFile(self.fh, self.mode)
+        try:
+            locale.resetlocale()  # fails on Windows
+        except:
+            from winlocale import resetlocale
+            resetlocale()
 
     def _openWrite(self, savFileName, overwrite):
         """ This function opens a file in preparation for creating a new IBM

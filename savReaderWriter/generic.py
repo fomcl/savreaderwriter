@@ -35,7 +35,7 @@ class Generic(object):
         if not self.encoding_and_locale_set:
             self.encoding_and_locale_set = True
             self.ioLocale = ioLocale
-            self.ioUtf8 = ioUtf8
+            self.ioUtf8 = bool(ioUtf8)  # bool() --> needed for UNICODE_BMODE
 
     def _encodeFileName(self, fn):
         """Helper function to encode unicode file names into bytestring file
