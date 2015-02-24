@@ -562,11 +562,22 @@ class SavReader(Header):
  
         :ref:`dateformats` : overview of SPSS datetime formats"""
         try:
-            if not hasattr(self, "gregorianEpoch"):
-                self.gregorianEpoch = datetime.datetime(1582, 10, 14, 0, 0, 0)
-            theDate = (self.gregorianEpoch +
-                       datetime.timedelta(seconds=spssDateValue))
-            return bytez(datetime.datetime.strftime(theDate, fmt))
+            MIDNIGHT_OCT_14_1582 = 86400
+            time_only = spssDateValue < MIDNIGHT_OCT_14_1582
+            if time_only:
+                return bytez(str(datetime.timedelta(seconds=spssDateValue)))
+            else:        
+                gregorianEpoch = datetime.datetime(1582, 10, 14, 0, 0, 0)
+                theDate = (gregorianEpoch + 
+                           datetime.timedelta(seconds=spssDateValue))
+                if theDate.year <= 1900:
+                    #import mx.DateTime
+                    #return mx.DateTime.DateTimeFrom(theDate).strftime(fmt)
+                    #1900 or earlier: always iso (ignores changes to __init__.py)
+                    if "%H" in fmt:
+                        return bytez(theDate.isoformat(" "))
+                    return bytez(theDate.isoformat().split("T")[0])
+                return bytez(datetime.datetime.strftime(theDate, fmt))
         except (OverflowError, TypeError, ValueError):
             return recodeSysmisTo
 

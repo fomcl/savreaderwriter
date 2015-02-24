@@ -32,7 +32,9 @@ records_expected = \
      [None, None, None, None, None, None, None,
       None, None, None, None, None, None]]
 
-# This test passes the second time it is run. 
+# PSPP does not know how to display all of these formats.
+# DTIME is a strange format, SPSS does not display it properly (?).
+# Incorrect in SPSS: compute x = date.dmy(01, 02, 2015); formats x (dtime10) 
 class test_SavWriter_dates_elaborate(unittest.TestCase):
 
     def setUp(self):
@@ -46,14 +48,20 @@ class test_SavWriter_dates_elaborate(unittest.TestCase):
                     b'SDATE10', b'DTIME10', b'JDATE10', b'MONTH10', b'MOYR10',
                     b'TIME10', b'ADATE10', b'WKDAY10']
         formats = dict(zip(varNames, spssfmts))
-        records = [[b'2010-08-11'] * len(varNames), [b'1910-01-12'] * len(varNames),
-                   [b''] * len(varNames), [None] * len(varNames)]
+        records = [[b'2010-08-11' for v in varNames],
+                   [b'1910-01-12' for v in varNames],
+                   [b'' for v in varNames],
+                   [None for v in varNames]]
 
-        with SavWriter(self.savFileName, varNames, varTypes, formats=formats) as writer:
-            for record in records:
+        kwargs = dict(savFileName=self.savFileName, varNames=varNames,
+                      varTypes=varTypes, formats=formats)
+        with SavWriter(**kwargs) as writer:
+            for i, record in enumerate(records):
                 for pos, value in enumerate(record):
                     record[pos] = writer.spssDateTime(record[pos], "%Y-%m-%d")
                 writer.writerow(record)
+        
+        self.maxDiff = None
 
     def test_dates(self):
         """Test if 13 different date/time formats are written and read 
