@@ -243,6 +243,10 @@ class SavWriter(Header):
             ``close()``"""
         if type is not None:
             pass  # Exception occurred
+        self.close()
+
+    def close(self):
+        """ This function closes the spss data file."""
         self.closeSavFile(self.fh, self.mode)
         try:
             locale.resetlocale()  # fails on Windows
