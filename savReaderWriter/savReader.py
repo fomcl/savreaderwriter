@@ -213,9 +213,11 @@ class SavReader(Header):
                 else:
                     record[i] = self.recodeSysmisTo
                 # format N-type values (=numerical with leading zeroes)
-                if bareformat_ == b"N":
+                if bareformat_ in (b"N", u"N"):
                     #record[i] = str(value).zfill(varWid)
-                    record[i] = bytez("%%0%dd" % varWid % value)  #15 x faster (zfill)
+                    nfmt_value = "%%0%dd" % varWid % value  #15 x faster (zfill)
+                    nfmt_value = nfmt_value if self.ioUtf8 == 1 else bytez(nfmt_value)
+                    record[i] = nfmt_value  #15 x faster (zfill)
                 # convert SPSS dates to ISO dates
                 elif bareformat_ in supportedDates:
                     fmt = supportedDates[bareformat_]
