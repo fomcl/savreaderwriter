@@ -4,15 +4,15 @@
 import unittest
 import sys
 import savReaderWriter as rw
+from py3k import isPy3k, isCPython
 
 class Test_spss2strDate(unittest.TestCase):
 
     def setUp(self):
-        self.savFileName = '/home/albertjan/nfs/Public/savreaderwriter/savReaderWriter/test_data/test_dates.sav'
+        self.savFileName = '../savReaderWriter/test_data/test_dates.sav'
         self.reader = rw.SavReader(self.savFileName)
         self.convert = self.reader.spss2strDate
 
-    #@unittest.skipIf(sys.version_info.major > 2, "requires mx package")
     def test_time(self): 
         got = self.convert(1, "%H:%M:%S", None)
         self.assertEqual(b'00:00:01', got)
@@ -30,7 +30,8 @@ class Test_spss2strDate(unittest.TestCase):
         got = self.convert(11654150400.0, "%d-%m-%Y", None)
         self.assertEqual(b'03-02-1952', got)
 
-    @unittest.skipIf(sys.version_info.major > 2, "requires mx package")
+    msg = "requires mx package (no Python 3 or Pypy)"
+    @unittest.skipIf(isPy3k or not isCPython, msg)
     def test_datetime_pre1900(self):
         got = self.convert(0.0, "%Y-%m-%d %H:%M:%S", None)
         self.assertEqual(b'1582-10-14 00:00:00', got)

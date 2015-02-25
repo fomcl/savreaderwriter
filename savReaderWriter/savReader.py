@@ -534,7 +534,22 @@ class SavReader(Header):
         return (self.numVars, self.nCases, self.varNames, self.varTypes,
                 self.formats, self.varLabels, self.valueLabels)
 
+    def decode(func):
+        """Decorator to decode datestrings for ioUtf8"""
+        @functools.wraps(func)
+        def wrapper(*args):
+            value = func(*args)
+            self = args[0]
+            if not self.ioUtf8 or self.ioUtf8 == 2:
+                return value  # unchanged
+            try:
+                return value.decode("utf-8")
+            except AttributeError:
+                return value
+        return wrapper
+
     @memoize
+    @decode
     def spss2strDate(self, spssDateValue, fmt, recodeSysmisTo):
         """This function converts internal SPSS dates (number of seconds
         since midnight, Oct 14, 1582 (the beginning of the Gregorian calendar))
@@ -567,20 +582,26 @@ class SavReader(Header):
         try:
             MIDNIGHT_OCT_14_1582 = 86400
             time_only = spssDateValue < MIDNIGHT_OCT_14_1582
+            is_time_fmt = fmt.startswith("%H:%M:%S") and time_only
+            is_dtime_fmt = fmt == "%d %H:%M:%S"
+            is_normal_fmt = not is_time_fmt and not is_dtime_fmt 
             delta = datetime.timedelta(seconds=spssDateValue)
             gregorianEpoch = datetime.datetime(1582, 10, 14, 0, 0, 0)
             theDate = (gregorianEpoch + delta)
-            if fmt.startswith("%H:%M:%S") and time_only:  # TIME format
+
+            if theDate.year >= 1900 and is_normal_fmt:
+                return bytez(datetime.datetime.strftime(theDate, fmt))
+            elif is_normal_fmt:  # pre 1900: requires mx; no Python 3 and pypy
+                import mx.DateTime
+                return mx.DateTime.DateTimeFrom(theDate).strftime(fmt)
+            elif is_time_fmt:
                 return bytez(str(delta).zfill(8))
-            elif fmt == "%d %H:%M:%S":  # DTIME format
+            elif is_dtime_fmt: 
                 time_part = bytez(theDate.isoformat().split("T")[1])
                 day_part = bytez(str(delta.days).zfill(2))
                 return day_part + b" " + time_part
-            elif theDate.year < 1900:
-                import mx.DateTime
-                return mx.DateTime.DateTimeFrom(theDate).strftime(fmt)
-            else:  
-                return bytez(datetime.datetime.strftime(theDate, fmt))
+            else:
+                raise RuntimeError
         except (OverflowError, TypeError, ValueError):
             return recodeSysmisTo
 
