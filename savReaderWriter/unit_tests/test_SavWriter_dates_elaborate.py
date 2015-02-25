@@ -22,10 +22,10 @@ wed1, august = stamp('2010-08-11', '%A'), stamp('2010-08-11', '%B')
 wed2, january = stamp('1910-01-12', '%A'), stamp('1910-01-12', '%B')
 records_expected = \
     [[b'2010-08-11 00:00:00', b'32 WK 2010', b'2010-08-11', b'3 Q 2010',
-      b'2010-08-11', b'2010-08-11', b'11 00:00:00', b'2010-08-11', august,
+      b'2010-08-11', b'2010-08-11', b'156260 00:00:00', b'2010-08-11', august,
       august + b' 2010', b'00:00:00.000000', b'2010-08-11', wed1],
      [b'1910-01-12 00:00:00', b'02 WK 1910', b'1910-01-12', b'1 Q 1910',
-      b'1910-01-12', b'1910-01-12', b'12 00:00:00', b'1910-01-12', january,
+      b'1910-01-12', b'1910-01-12', b'119524 00:00:00', b'1910-01-12', january,
       january + b' 1910', b'00:00:00.000000', b'1910-01-12', wed2],
      [None, None, None, None, None, None, None,
       None, None, None, None, None, None],
@@ -57,6 +57,7 @@ class test_SavWriter_dates_elaborate(unittest.TestCase):
                       varTypes=varTypes, formats=formats)
         with SavWriter(**kwargs) as writer:
             for i, record in enumerate(records):
+                import copy; record = copy.deepcopy(record) 
                 for pos, value in enumerate(record):
                     record[pos] = writer.spssDateTime(record[pos], "%Y-%m-%d")
                 writer.writerow(record)

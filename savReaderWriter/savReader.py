@@ -560,25 +560,26 @@ class SavReader(Header):
             ``datetime.datetime`` object
         strptime-formats-settings
             :download:`__init__.py <../__init__.py>` to change the 
-            strptime formats from ISO into something else
+            strptime formats from ISO into something else. Note that dates 
+            before 1900 require the mx package, which is Python 2 only (2015).
  
         :ref:`dateformats` : overview of SPSS datetime formats"""
         try:
             MIDNIGHT_OCT_14_1582 = 86400
             time_only = spssDateValue < MIDNIGHT_OCT_14_1582
-            if time_only:
-                return bytez(str(datetime.timedelta(seconds=spssDateValue)))
-            else:        
-                gregorianEpoch = datetime.datetime(1582, 10, 14, 0, 0, 0)
-                theDate = (gregorianEpoch + 
-                           datetime.timedelta(seconds=spssDateValue))
-                if theDate.year <= 1900:
-                    #import mx.DateTime
-                    #return mx.DateTime.DateTimeFrom(theDate).strftime(fmt)
-                    #1900 or earlier: always iso (ignores changes to __init__.py)
-                    if "%H" in fmt:
-                        return bytez(theDate.isoformat(" "))
-                    return bytez(theDate.isoformat().split("T")[0])
+            delta = datetime.timedelta(seconds=spssDateValue)
+            gregorianEpoch = datetime.datetime(1582, 10, 14, 0, 0, 0)
+            theDate = (gregorianEpoch + delta)
+            if fmt.startswith("%H:%M:%S") and time_only:  # TIME format
+                return bytez(str(delta).zfill(8))
+            elif fmt == "%d %H:%M:%S":  # DTIME format
+                time_part = bytez(theDate.isoformat().split("T")[1])
+                day_part = bytez(str(delta.days).zfill(2))
+                return day_part + b" " + time_part
+            elif theDate.year < 1900:
+                import mx.DateTime
+                return mx.DateTime.DateTimeFrom(theDate).strftime(fmt)
+            else:  
                 return bytez(datetime.datetime.strftime(theDate, fmt))
         except (OverflowError, TypeError, ValueError):
             return recodeSysmisTo
