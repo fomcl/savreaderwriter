@@ -31,7 +31,7 @@ class test_SavReader_typical_use(unittest.TestCase):
 
     def test_SavReader_unicode_mode(self):
 
-        savFileName = "../test_data/greetings.sav"
+        savFileName = "test_data/greetings.sav"
         greetings_got = []
         with SavReader(savFileName, ioUtf8=True) as reader:
             for record in reader:

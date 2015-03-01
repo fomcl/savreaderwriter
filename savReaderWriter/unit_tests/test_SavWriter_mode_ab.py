@@ -14,7 +14,7 @@ from savReaderWriter import *
 class test_SavWriter_append_data(unittest.TestCase):
 
     def setUp(self):
-        self.savFileName = "../test_data/Employee data.sav"
+        self.savFileName = "test_data/Employee data.sav"
         self.savFileNameCopy = os.path.join(tempfile.gettempdir(), "test.sav")
         shutil.copy(self.savFileName, self.savFileNameCopy)
         reader = None

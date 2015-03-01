@@ -21,7 +21,7 @@ class test_SavReader_utilities(unittest.TestCase):
     """Read a file and use __len__, __getitem__"""
 
     def setUp(self):
-        self.savFileName = "../test_data/Employee data.sav"
+        self.savFileName = "test_data/Employee data.sav"
         self.data = SavReader(self.savFileName)
 
     def test_SavReader_len(self):

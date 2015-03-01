@@ -13,7 +13,7 @@ class test_SavReader_typical_use(unittest.TestCase):
     """Rich comparison operators"""
 
     def setUp(self):
-        savFileName = "../test_data/german.sav"
+        savFileName = "test_data/german.sav"
         self.data = SavReader(savFileName)
 
     def test_rich_comp_eq(self):

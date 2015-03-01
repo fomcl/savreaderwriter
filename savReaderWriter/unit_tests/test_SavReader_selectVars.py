@@ -13,7 +13,7 @@ class test_SavReader_selectVars(unittest.TestCase):
     """Read a selection of a file"""
 
     def setUp(self):
-        self.savFileName = "../test_data/Employee data.sav"
+        self.savFileName = "test_data/Employee data.sav"
 
     def test_SavReader_selectVars_one(self):
         """Read a selection of a file (one var)"""

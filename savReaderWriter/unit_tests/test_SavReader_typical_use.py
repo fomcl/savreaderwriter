@@ -497,7 +497,7 @@ class test_SavReader_typical_use(unittest.TestCase):
     """Read a file"""
 
     def setUp(self):
-        self.savFileName = "../test_data/Employee data.sav"
+        self.savFileName = "test_data/Employee data.sav"
 
     def test_SavReader_typical(self):
         """Read a file, typical use"""

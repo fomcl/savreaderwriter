@@ -25,7 +25,7 @@ currLocale = locale.setlocale(locale.LC_CTYPE)
 # Demonstrates use of ioUtf8=UNICODE_BMODE, or ioUtf8=2. 
 # This is regular unicode mode (ioUtf8=UNICODE_BMODE, or ioUtf8=1, 
 # or ioUtf8=True), but data will be returned as bytes.
-in_savFileName = "../test_data/metadata_copy_test.sav"
+in_savFileName = "test_data/metadata_copy_test.sav"
 is_windows = sys.platform.startswith("win")
 ioLocale = "german" if is_windows else "de_DE.cp1252"
 b_settings = dict(ioUtf8=sav.UNICODE_BMODE, ioLocale=ioLocale)
