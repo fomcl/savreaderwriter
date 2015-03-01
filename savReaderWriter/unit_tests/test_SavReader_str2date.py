@@ -9,7 +9,7 @@ from py3k import isPy3k, isCPython
 class Test_spss2strDate(unittest.TestCase):
 
     def setUp(self):
-        self.savFileName = '../savReaderWriter/test_data/test_dates.sav'
+        self.savFileName = '../test_data/test_dates.sav'
         self.reader = rw.SavReader(self.savFileName)
         self.convert = self.reader.spss2strDate
 

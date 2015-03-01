@@ -194,8 +194,8 @@ class test_SavHeaderReader_metadata_report(unittest.TestCase):
 
     def setUp(self):
         #self.maxDiff = None
-        self.savFileName = "../savReaderWriter/test_data/Employee data.sav"
-        self.savFileName_ioUtf8 = "../savReaderWriter/test_data/greetings.sav"
+        self.savFileName = "../test_data/Employee data.sav"
+        self.savFileName_ioUtf8 = "../test_data/greetings.sav"
 
     # __str__ (although the meaning is different in Python 2 and 3)
     def test_SavHeaderReader_report_python2_and_3_str(self):

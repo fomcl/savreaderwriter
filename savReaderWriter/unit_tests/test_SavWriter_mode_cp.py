@@ -147,7 +147,7 @@ class test_SavWriter_copy_metadata(unittest.TestCase):
 
     def setUp(self):
         self.maxDiff = None
-        self.savFileName = "../savReaderWriter/test_data/Employee data.sav"
+        self.savFileName = "../test_data/Employee data.sav"
         self.savFileName1 = os.path.join(tempfile.gettempdir(), "test1.sav")
         self.savFileName2 = os.path.join(tempfile.gettempdir(), "test2.sav")
 

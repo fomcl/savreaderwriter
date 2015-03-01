@@ -9,7 +9,7 @@ import savReaderWriter as rw
 class Test_N_Format(unittest.TestCase):
 
     def setUp(self):
-        self.savFileName = "../savReaderWriter/test_data/leading_zero.sav"
+        self.savFileName = "../test_data/leading_zero.sav"
 
     def test_n_format(self):
         with closing(rw.SavReader(self.savFileName)) as reader:

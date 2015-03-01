@@ -13,7 +13,6 @@ try:
 except ImportError:
     numpyOK = False
 
-import sys; sys.path.insert(0, "/home/antonia/Desktop/savreaderwriter")
 from savReaderWriter import *
 from savReaderNp import *
 from py3k import *
@@ -22,10 +21,10 @@ from py3k import *
 class Test_SavReaderNp(unittest.TestCase):
 
     def setUp(self):
-        self.filename = "./test_data/Employee data.sav"
-        self.nfilename = "./test_data/all_numeric.sav"
-        self.uncompressedfn = "./test_data/all_numeric_uncompressed.sav"
-        self.uncompresseddt = ("./test_data/all_numeric_datetime_" + 
+        self.filename = "../test_data/Employee data.sav"
+        self.nfilename = "../test_data/all_numeric.sav"
+        self.uncompressedfn = "../test_data/all_numeric_uncompressed.sav"
+        self.uncompresseddt = ("../test_data/all_numeric_datetime_" + 
                                "uncompressed.sav")
     def test_getitem_indexing(self):
         self.npreader = SavReaderNp(self.filename)
@@ -212,7 +211,7 @@ class Test_SavReaderNp(unittest.TestCase):
         numpy.testing.assert_array_equal(actual.tolist(), desired)
 
     def test_ioUtf8_structured_array(self):
-        self.npreader = SavReaderNp("./test_data/greetings.sav", ioUtf8=True)
+        self.npreader = SavReaderNp("../test_data/greetings.sav", ioUtf8=True)
         actual = self.npreader.to_structured_array()[u"greeting"].tolist()
         actual = [item.rstrip() for item in actual]  # oddity in the test data
         actual = actual[1:-1]

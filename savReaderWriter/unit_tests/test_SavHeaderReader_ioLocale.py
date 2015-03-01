@@ -24,7 +24,7 @@ class test_SavHeaderReader_ioLocale(unittest.TestCase):
     def setUp(self):
         self.expected = [b'python', b'programmieren', b'macht',
                          b'\xfcberhaupt', b'v\xf6llig', b'spa\xdf']
-        self.savFileName = "../savReaderWriter/test_data/german.sav"
+        self.savFileName = "../test_data/german.sav"
         self.is_windows = sys.platform.startswith("win")
 	# any locale will do as long as the encoding is cp1252.
         # iso-8859-1 and latin-1 will probably also do.

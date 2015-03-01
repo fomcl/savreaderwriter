@@ -13,7 +13,7 @@ from savReaderWriter import *
 
 report_expected = """\
 **********************************************************************
-*File '../savReaderWriter/test_data/Employee data.sav' (24.32 kB) has 10 columns (variables) and 474 rows (4740 values)
+*File '../test_data/Employee data.sav' (24.32 kB) has 10 columns (variables) and 474 rows (4740 values)
 *The file was created with SPSS version: MS Windows Release 11.0 spssio32.dll (11.1.0)
 *The interface locale is: '...'
 *The interface mode is: Codepage (...)
@@ -38,7 +38,7 @@ class test_SavReader_file_report(unittest.TestCase, gocept.testing.assertion.Ell
     """Generate a file report"""
 
     def setUp(self):
-        self.savFileName = "../savReaderWriter/test_data/Employee data.sav"
+        self.savFileName = "../test_data/Employee data.sav"
 
     def test_SavReader_report_python2_and_3_str(self):
         data = SavReader(self.savFileName)

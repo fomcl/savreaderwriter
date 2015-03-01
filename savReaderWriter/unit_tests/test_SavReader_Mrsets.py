@@ -9,7 +9,7 @@ from savReaderWriter import *
 # I have no idea how to define these  
 # Email syntax or datafile to "@".join(["fomcl", "yahoo.%s" % ".com"]) 
 
-savFileName = "./test_data/spssio_test.sav"
+savFileName = "../test_data/spssio_test.sav"
 desired = \
 {b'V': {b'countedValue': b'1',     # dichotomy (MDGROUP)
         b'label': b'',

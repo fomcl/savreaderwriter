@@ -16,7 +16,7 @@ warnings_are_ignored = os.getenv("PYTHONWARNINGS") == "ignore"
 class test_SPSSIOWarning(unittest.TestCase):
 
     def setUp(self):
-        self.savFileName = "../savReaderWriter/test_data/Employee data.sav"
+        self.savFileName = "../test_data/Employee data.sav"
         os.environ["SAVRW_DISPLAY_WARNS"] = "always"
 
     # I have no idea why this works differently in Python 2

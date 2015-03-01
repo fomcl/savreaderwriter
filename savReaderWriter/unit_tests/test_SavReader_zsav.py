@@ -23,7 +23,7 @@ class test_SavReader_zsav(unittest.TestCase):
 
     def test_SavReader_zsavl(self):
 
-        savFileName = "../savReaderWriter/test_data/zlib_compressed.zsav"
+        savFileName = "../test_data/zlib_compressed.zsav"
         records_got = []
         with SavReader(savFileName, returnHeader=True) as reader:
             for record in reader:
