@@ -17,6 +17,12 @@ from savReaderWriter import *
 from savReaderNp import *
 from py3k import *
 
+def try_remove(f):
+    try:
+        os.remove(f)
+    except:
+        pass
+
 @unittest.skipUnless(numpyOK and isCPython, "Requires numpy, not numpypy")
 class Test_SavReaderNp(unittest.TestCase):
 
@@ -127,7 +133,7 @@ class Test_SavReaderNp(unittest.TestCase):
          (3.0, b'f', datetime.datetime(1929, 7, 26, 0, 0), 12.0, 
           1.0, 21450.0, 12000.0, 98.0, 381.0, 0.0)]
         self.assertEqual(actual, desired)
-        os.remove(mmapfile)
+        try_remove(mmapfile)
 
     def test_to_structured_array_memmap_raw(self):
         self.npreader = SavReaderNp(self.filename, rawMode=True)
@@ -141,7 +147,7 @@ class Test_SavReaderNp(unittest.TestCase):
          (3.0, b'f', 10943337600.0, 12.0, 1.0, 
           21450.0, 12000.0, 98.0, 381.0, 0.0)]
         self.assertEqual(actual, desired)
-        os.remove(mmapfile)
+        try_remove(mmapfile)
 
     def test_getitem_then_iter(self):
         """check if cursor is rewound after __getitem__"""

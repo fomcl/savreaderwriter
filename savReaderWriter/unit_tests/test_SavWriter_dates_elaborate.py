@@ -10,11 +10,16 @@ import os
 import tempfile
 import sys
 import functools
+import locale
 from time import strftime, strptime
 from savReaderWriter import *
 
 if sys.version_info[0] > 2:
     bytes = functools.partial(bytes, encoding='utf-8')
+
+# temporary (?) because a german locale of another test carries over to this one
+loc = "english" if sys.platform.startswith("win") else "en_US.UTF-8"
+locale.setlocale(locale.LC_ALL, loc)
 
 # make sure the test passes in other locales too
 stamp  = lambda v, fmt: bytes(strftime(fmt, strptime(v, '%Y-%m-%d')))
