@@ -93,8 +93,8 @@ class SavHeaderReader(Header):
         try:
             locale.resetlocale()  # fails on Windows
         except:
-            from winlocale import resetlocale
-            resetlocale()
+            if self.ioLocale:
+                locale.setlocale(locale.LC_ALL, self.ioLocale)
 
     def dataDictionary(self, asNamedtuple=False):
         """ This function returns all the dictionary items. It returns

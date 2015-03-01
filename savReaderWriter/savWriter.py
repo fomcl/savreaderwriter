@@ -251,8 +251,8 @@ class SavWriter(Header):
         try:
             locale.resetlocale()  # fails on Windows
         except:
-            from winlocale import resetlocale
-            resetlocale()
+            if self.ioLocale:
+                locale.setlocale(locale.LC_ALL, self.ioLocale)
 
     def _openWrite(self, savFileName, overwrite):
         """ This function opens a file in preparation for creating a new IBM

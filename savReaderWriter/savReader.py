@@ -130,8 +130,8 @@ class SavReader(Header):
         try:
             locale.resetlocale()  # fails on Windows
         except:
-            from winlocale import resetlocale
-            resetlocale()
+            if self.ioLocale:
+                locale.setlocale(locale.LC_ALL, self.ioLocale)
 
     def __len__(self):
         """ This function reports the number of cases (rows) in the spss data
