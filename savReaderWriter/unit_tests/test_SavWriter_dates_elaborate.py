@@ -5,7 +5,7 @@
 ## Read a file containg all the supported date formats
 ##############################################################################
 
-import unittest
+import nose
 import os
 import tempfile
 import sys
@@ -17,15 +17,15 @@ from savReaderWriter import *
 if sys.version_info[0] > 2:
     bytes = functools.partial(bytes, encoding='utf-8')
 
-# temporary (?) because a german locale of another test carries over to this one
-loc = "english" if sys.platform.startswith("win") else "en_US.UTF-8"
-locale.setlocale(locale.LC_ALL, loc)
+locale.setlocale(locale.LC_ALL, "")
 
+
+# ----------------
 # make sure the test passes in other locales too
 stamp  = lambda v, fmt: bytes(strftime(fmt, strptime(v, '%Y-%m-%d')))
 wed1, august = stamp('2010-08-11', '%A'), stamp('2010-08-11', '%B')
 wed2, january = stamp('1910-01-12', '%A'), stamp('1910-01-12', '%B')
-records_expected = \
+desired_records = \
     [[b'2010-08-11 00:00:00', b'32 WK 2010', b'2010-08-11', b'3 Q 2010',
       b'2010-08-11', b'2010-08-11', b'156260 00:00:00', b'2010-08-11', august,
       august + b' 2010', b'00:00:00.000000', b'2010-08-11', wed1],
@@ -37,68 +37,72 @@ records_expected = \
      [None, None, None, None, None, None, None,
       None, None, None, None, None, None]]
 
-# PSPP does not know how to display all of these formats.
-# DTIME is a strange format, SPSS does not display it properly (?).
-# Incorrect in SPSS: compute x = date.dmy(01, 02, 2015); formats x (dtime10) 
-class test_SavWriter_dates_elaborate(unittest.TestCase):
 
-    def setUp(self):
-        ## first, create a test file
-        self.savFileName = os.path.join(tempfile.gettempdir(), "test_dates.sav")
-        varNames = [b'var_datetime', b'var_wkyr', b'var_date', b'var_qyr', b'var_edate',
-                    b'var_sdate', b'var_dtime', b'var_jdate', b'var_month', b'var_moyr',
-                    b'var_time', b'var_adate', b'var_wkday']
-        varTypes = {v : 0 for v in varNames}
-        spssfmts = [b'DATETIME40', b'WKYR10', b'DATE10', b'QYR10', b'EDATE10',
-                    b'SDATE10', b'DTIME10', b'JDATE10', b'MONTH10', b'MOYR10',
-                    b'TIME10', b'ADATE10', b'WKDAY10']
-        formats = dict(zip(varNames, spssfmts))
-        records = [[b'2010-08-11' for v in varNames],
-                   [b'1910-01-12' for v in varNames],
-                   [b'' for v in varNames],
-                   [None for v in varNames]]
+# ----------------
+# NOTE: PSPP does not know how to display all of these formats.
+# Example use of DTIME in SPSS:
+# COMPUTE #a_day = 24 * 60 * 60.
+# COMPUTE x = 10 * #a_day + TIME.HMS(12, 03, 00).
+# FORMATS x (DTIME14).
+# will display as 10 12:03:00
 
-        kwargs = dict(savFileName=self.savFileName, varNames=varNames,
-                      varTypes=varTypes, formats=formats)
-        with SavWriter(**kwargs) as writer:
-            for i, record in enumerate(records):
-                import copy; record = copy.deepcopy(record) 
-                for pos, value in enumerate(record):
-                    record[pos] = writer.spssDateTime(record[pos], "%Y-%m-%d")
-                writer.writerow(record)
-        
-        self.maxDiff = None
+savFileName = os.path.join(tempfile.gettempdir(), "test_dates.sav")
 
-    def test_dates(self):
-        """Test if 13 different date/time formats are written and read 
-        correctly"""
-        data = SavReader(self.savFileName)
-        with data:
-            records_got = data.all()
-        self.assertEqual(records_expected, records_got)
+def setUp():
+    """create a test file"""
+    varNames = [b'var_datetime', b'var_wkyr', b'var_date', b'var_qyr', b'var_edate',
+                b'var_sdate', b'var_dtime', b'var_jdate', b'var_month', b'var_moyr',
+                b'var_time', b'var_adate', b'var_wkday']
+    varTypes = {v : 0 for v in varNames}
+    spssfmts = [b'DATETIME40', b'WKYR10', b'DATE10', b'QYR10', b'EDATE10',
+                b'SDATE10', b'DTIME10', b'JDATE10', b'MONTH10', b'MOYR10',
+                b'TIME10', b'ADATE10', b'WKDAY10']
+    formats = dict(zip(varNames, spssfmts))
+    records = [[b'2010-08-11' for v in varNames],
+               [b'1910-01-12' for v in varNames],
+               [b'' for v in varNames],
+               [None for v in varNames]]
 
-    def test_dates_recodeSysmisTo(self):
-        """Test if recodeSysmisTo arg recodes missing date value"""
-        data = SavReader(self.savFileName, recodeSysmisTo=999)
-        with data:
-            records_got = data.all()
-        records_expected_999 = records_expected[:2] + 2 * [13 * [999]]
-        self.assertEqual(records_expected_999, records_got)
+    kwargs = dict(savFileName=savFileName, varNames=varNames,
+                  varTypes=varTypes, formats=formats)
+    with SavWriter(**kwargs) as writer:
+        for i, record in enumerate(records):
+            for pos, value in enumerate(record):
+                record[pos] = writer.spssDateTime(record[pos], "%Y-%m-%d")
+            writer.writerow(record)
 
-    def tearDown(self):
-        try:
-            os.remove(self.savFileName)
-        except:
-            pass
+def tearDown():
+    try:
+        os.remove(savFileName)
+    except:
+        pass
+
+
+# ----------------
+@nose.with_setup(setUp)  #, tearDown)
+def test_date_values():
+    data = SavReader(savFileName)
+    with data:
+        actual_records = data.all()
+    for desired_record, actual_record in zip(desired_records, actual_records):
+        for desired, actual in zip(desired_record, actual_record):
+            yield compare_value, desired, actual
+
+@nose.with_setup(setUp, tearDown)
+def test_dates_recodeSysmisTo():
+    """Test if recodeSysmisTo arg recodes missing date value"""
+    data = SavReader(savFileName, recodeSysmisTo=999)
+    with data:
+        actual_records = data.all()
+    desired_records_ = desired_records[:2] + 2 * [13 * [999]]
+    for desired_record, actual_record in zip(desired_records_, actual_records):
+        for desired, actual in zip(desired_record, actual_record):
+            yield compare_value, desired, actual
+
+def compare_value(desired, actual):
+    assert desired == actual
+
 
 if __name__ == "__main__":
-    unittest.main()
-
-
-
-
-
-
-
-
+    nose.main()
 

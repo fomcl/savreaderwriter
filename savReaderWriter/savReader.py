@@ -60,8 +60,6 @@ class SavReader(Header):
         ``en_US.UTF-8`` (Unix) or ``english`` (Windows).
         See also under :py:meth:`savReaderWriter.Generic.ioLocale`. 
 
-
-
     Examples
     --------
     Typical use:
@@ -130,8 +128,7 @@ class SavReader(Header):
         try:
             locale.resetlocale()  # fails on Windows
         except:
-            if self.ioLocale:
-                locale.setlocale(locale.LC_ALL, self.ioLocale)
+            locale.setlocale(locale.LC_ALL, "")
 
     def __len__(self):
         """ This function reports the number of cases (rows) in the spss data
