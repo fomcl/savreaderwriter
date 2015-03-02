@@ -6,7 +6,7 @@ import sys
 import savReaderWriter as rw
 from py3k import isPy3k, isCPython
 
-isWindows = sys.platforml.startswith("win")  # no mx on appveyor
+isWindows = sys.platform.startswith("win")  # no mx on appveyor
 
 class Test_spss2strDate(unittest.TestCase):
 
