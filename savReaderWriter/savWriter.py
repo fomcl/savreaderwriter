@@ -201,6 +201,7 @@ class SavWriter(Header):
         self.pad_8_lookup = self._getPaddingLookupTable(self.varTypes)
         self.pad_string = self._pyWriterow_pad_string(isPy3k)
         self.bytify = bytify(self.fileEncoding)  # from py3k module
+        self.encoding = self.fileEncoding
 
         if self.mode == b"wb":
             self._openWrite(self.savFileName, self.overwrite)
@@ -345,7 +346,7 @@ class SavWriter(Header):
         """ This function writes one record, which is a Python list,
         compare this Python version with the Cython version cWriterow."""
         float_ = float
-        encoding = self.fileEncoding
+        encoding = self.encoding
         pad_string = self.pad_string
         for i, value in enumerate(record):
             varName = self.varNames[i]
